@@ -129,6 +129,17 @@ body.killcam #kcBars{display:block}
 /* ---------- sport mode (§12c) ---------- */
 body.sport #armorBar, body.sport #armorBar + .sub, body.sport .cards, body.sport #lives,
 body.sport #crosshair, body.sport #bosshp{display:none !important}
+#drsBox{top:150px;right:250px;display:none;text-align:center}
+body.sport #drsBox{display:block}
+#drsBox b{display:inline-block;font:400 24px/1 var(--title);letter-spacing:.12em;padding:4px 12px;
+  border:2px solid rgba(236,231,220,.25);color:rgba(236,231,220,.35);background:rgba(9,10,12,.55)}
+#drsBox.armed b{border-color:#5fd07a;color:#5fd07a}
+#drsBox.ready b{border-color:#5fd07a;color:#0a0b0c;background:#5fd07a;animation:drsP .5s ease-in-out infinite alternate}
+#drsBox.open b{border-color:#5fd07a;color:#0a0b0c;background:#7dff9a}
+@keyframes drsP{from{opacity:.65}to{opacity:1}}
+#drsBox span{display:block;margin-top:4px;font-size:10px;letter-spacing:.16em;color:#ffcf6a}
+body.touch #drsBox{top:56px;right:auto;left:50%;transform:translateX(-50%)}
+body.touch #drsBox b{font-size:15px;padding:2px 8px}
 #tower{top:150px;left:22px;font-size:10.5px;letter-spacing:.08em;min-width:150px}
 body:not(.sport) #tower{display:none}
 #tower .tw{display:flex;align-items:center;gap:6px;padding:2px 6px;background:rgba(9,10,12,.62);margin-bottom:1px}
@@ -668,7 +679,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.6.0 · 2026-10-04 11:12 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.7.0 · 2026-10-04 14:52 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -679,7 +690,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.6.0   (built 2026-10-04 11:12)
+   RACE TO DEATH  v3.7.0   (built 2026-10-04 14:52)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -704,7 +715,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.6.0',
+  version: '3.7.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -4411,9 +4422,9 @@ const CIRCUITS = [
    Narrower than the combat circuits — a grand-prix road, not a killing
    floor — and every one runs clockwise like the maps it came from.     */
 const GP_MOOD = {
-  sun: [-0.45, 0.62, 0.64], sunCol: 0xfff0d8, sunI: 6.4,
-  skyHi: 0x2f68b0, skyLo: 0xb9d2e6, haze: 0xc8d8e4, fog: 0.00046,
-  hemiSky: 0x6d9ad0, hemiGnd: 0x4f6b38, hemiI: 0.95, bounce: 0xc8e0a8, bounceI: 0.22,
+  sun: [-0.45, 0.62, 0.64], sunCol: 0xfff0d8, sunI: 5.6,
+  skyHi: 0x2f68b0, skyLo: 0xb9d2e6, haze: 0xb4c8d8, fog: 0.00030,
+  hemiSky: 0x6d9ad0, hemiGnd: 0x4f6b38, hemiI: 0.80, bounce: 0xc8e0a8, bounceI: 0.22,
   ground: 0x5d8a3e, shoulder: 0x6f9a4c, dust: 0xdfe6d8,
 };
 const SPORT_CIRCUITS = [
@@ -4423,7 +4434,7 @@ const SPORT_CIRCUITS = [
     blurb: 'Catalunya\'s shape. The long run to turn one, the endless right of turn three, a climb ' +
       'through the middle sector and a tight final chicane that decides the lap.',
     tags: ['LONG STRAIGHT', 'FAST TURN 3', 'FINAL CHICANE'],
-    half: 9, scale: 3.4,
+    half: 11.7, scale: 3.4,
     pts: [
       [128, 212, 45],   //  0  T1
       [108, 180, 40],   //  1  T2
@@ -4453,18 +4464,18 @@ const SPORT_CIRCUITS = [
     blurb: 'A full-throttle run along the top to a sweeping turn one, two hairpins in the middle sector ' +
       'and a twisting climb up the far side that rewards a tidy car.',
     tags: ['TWO HAIRPINS', 'TWISTY FINAL SECTOR', 'FLAT-OUT TOP STRAIGHT'],
-    half: 9, scale: 4.2,
+    half: 11.7, scale: 4.2,
     pts: [
       [425, 58, 30],    //  0  T1
       [408, 92, 35],    //  1  T2
       [335, 100, 40],   //  2  T3
       [328, 158, 26],   //  3  T4
       [282, 138, 30],   //  4  T5
-      [256, 96, 18],    //  5  T6 hairpin
+      [256, 96, 21],    //  5  T6 hairpin
       [218, 112, 40],   //  6  T7
       [185, 152, 60],   //  7  T8
       [140, 184, 45],   //  8  T9
-      [92, 216, 16],    //  9  T10 hairpin
+      [92, 216, 21],    //  9  T10 hairpin
       [102, 190, 30],   // 10  T11
       [100, 166, 30],   // 11  T12
       [62, 148, 22],    // 12  T13
@@ -4483,7 +4494,7 @@ const SPORT_CIRCUITS = [
     blurb: 'Two long straights with a slipstream on both, a fast sweep through the park and a knot of ' +
       'slow corners at the bottom where the overtaking happens.',
     tags: ['TWO STRAIGHTS', 'SLOW COMPLEX', 'BRAKING ZONES'],
-    half: 9, scale: 4.0,
+    half: 11.7, scale: 4.0,
     pts: [
       [396, 150, 30],   //  0  T1
       [384, 116, 50],   //  1  T2
@@ -4512,7 +4523,7 @@ const SPORT_CIRCUITS = [
     blurb: 'Silverstone\'s shape, on the old bomber base. Copse flat, the Maggotts-Becketts snake, ' +
       'the Hangar Straight to Stowe, and a fiddly run home through Bridge and Luffield.',
     tags: ['MAGGOTTS-BECKETTS', 'HANGAR STRAIGHT', 'HIGH SPEED'],
-    half: 9, scale: 3.6,
+    half: 11.7, scale: 3.6,
     pts: [
       [52, 328, 70],    //  0  Copse
       [88, 268, 120],   //  1  Maggotts
@@ -4765,6 +4776,8 @@ function vAdd(o) { (VENUE.root || scene).add(o); return o; }
 /* grip left on each surface, and the drag it adds (m/s^2 = a + b * speed) */
 const SURF = {
   sand:  { grip: 0.70, dragA: 0.9, dragB: 0.026 },
+  // the grand-prix run-off: cut a corner and the grass takes it back
+  grass: { grip: 0.58, dragA: 1.5, dragB: 0.034 },
   water: { grip: 0.76, dragA: 1.3, dragB: 0.048 },
 };
 
@@ -4854,6 +4867,13 @@ function buildTrack(C) {
   TRACK.wMax = Math.max.apply(null, S.map(s => s.w));
   buildTrackGrid();
 
+  // where the barrier stands on each side: wallP along +n, wallN along -n.
+  // Hard against the road everywhere, except on a grand-prix circuit, where
+  // the inside of every bend is open grass (§3b)
+  for (const s of S) { s.wallP = s.wallN = s.w + CFG.wallSetback; }
+  if (C.sport) buildRunoff();
+  for (const s of S) s.edge = Math.max(s.wallP, s.wallN) - CFG.wallSetback;
+
   if (!C.polar) {
     const chk = circuitChecks(S.map(s => s.p.x), S.map(s => s.p.z), S.map(s => s.w), CFG.wallSetback, 8);
     if (chk.clash.length || chk.tight.length) {
@@ -4865,7 +4885,65 @@ function buildTrack(C) {
   buildGround(C);
   buildRoadMesh(C);
   buildBarriers();
+  if (C.sport) buildCatchFence();
   buildSurfaces(C);
+}
+
+/* §3b  Run-off. The inside of every bend on a grand-prix circuit loses its
+   wall: the barrier swings out to RUNOFF metres back, over grass, and swings
+   in again on the straight after. Cutting the corner is possible and costs
+   grip, speed and (§12c) a track-limits strike. The barrier only goes as far
+   as the lap allows — never within reach of another part of the road. */
+const RUNOFF = 24;
+function buildRunoff() {
+  const N = TRACK.N, S = TRACK.S, SB = CFG.wallSetback;
+  const want = [new Float32Array(N), new Float32Array(N)];   // [0] the +n side, [1] the -n side
+  for (let i = 0; i < N; i++) {
+    const k = S[i].k;
+    if (Math.abs(k) < 0.0045) continue;
+    const side = k > 0 ? 0 : 1;                      // the inside of the bend
+    for (let j = -30; j <= 30; j++) want[side][((i + j) % N + N) % N] = RUNOFF;
+  }
+  const near = (x, z, i) => {
+    const cx = Math.floor(x / TGRID), cz = Math.floor(z / TGRID);
+    let best = Infinity;
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+      const a = TRACK.grid.get((cx + dx) + ',' + (cz + dz));
+      if (!a) continue;
+      for (const s of a) {
+        let di = Math.abs(s.i - i); di = Math.min(di, N - di);
+        if (di * TRACK.step < 120) continue;          // this stretch of road itself
+        const d = Math.hypot(s.p.x - x, s.p.z - z) - s.w - SB - 5;
+        if (d < best) best = d;
+      }
+    }
+    return best;
+  };
+  for (let side = 0; side < 2; side++) {
+    const sg = side === 0 ? 1 : -1, W = want[side];
+    // a barrier that swings out and back in, never one that steps
+    const sm = new Float32Array(N);
+    for (let i = 0; i < N; i++) {
+      let a = 0;
+      for (let j = -12; j <= 12; j++) a += W[((i + j) % N + N) % N];
+      sm[i] = a / 25;
+    }
+    // and only as far as the rest of the lap allows
+    for (let i = 0; i < N; i++) {
+      const s = S[i];
+      // on the inside of a bend the offset line folds back on itself past the
+      // centre of the curve: a hairpin only has a few metres to give
+      const inside = (side === 0) === (s.k > 0), kk = Math.abs(s.k);
+      let o = Math.min(sm[i], inside && kk > 1e-4 ? 1 / kk - s.w - SB - 3 : 1e9);
+      while (o > 0.5) {
+        const off = (s.w + SB + o) * sg;
+        if (near(s.p.x + s.n.x * off, s.p.z + s.n.z * off, i) > 0) break;
+        o -= 2;
+      }
+      o = Math.max(0, o);
+      if (side === 0) s.wallP = s.w + SB + o; else s.wallN = s.w + SB + o;
+    }
+  }
 }
 
 function sAt(i) { const N = TRACK.N; return TRACK.S[((i % N) + N) % N]; }
@@ -4948,7 +5026,7 @@ function roadGap(x, z) {
       const a = TRACK.grid.get((cx + dx) + ',' + (cz + dz));
       if (!a) continue;
       for (const s of a) {
-        const d = Math.hypot(s.p.x - x, s.p.z - z) - s.w;
+        const d = Math.hypot(s.p.x - x, s.p.z - z) - (s.edge || s.w);
         if (d < best) best = d;
       }
     }
@@ -5011,8 +5089,11 @@ function buildRoadMesh(C) {
   const gn = TEX.gravelN.clone(); gn.needsUpdate = true;
   gn.wrapS = gn.wrapT = THREE.RepeatWrapping; gn.repeat.set(1.2, 1);
   const shMat = mat(M.shoulder, { map: gt, normal: gn, normalScale: 1.5, rough: 1.0, metal: 0, env: 0.3 });
-  ribbon((i) => W_(i) - 0.2, (i) => W_(i) + 7.0, 0.012, shMat, 0.09, true);
-  ribbon((i) => -W_(i) - 7.0, (i) => -W_(i) + 0.2, 0.012, shMat, 0.09, true);
+  // a grand-prix circuit has its mown grass right up to the kerb instead
+  if (!C.sport) {
+    ribbon((i) => W_(i) - 0.2, (i) => W_(i) + 7.0, 0.012, shMat, 0.09, true);
+    ribbon((i) => -W_(i) - 7.0, (i) => -W_(i) + 0.2, 0.012, shMat, 0.09, true);
+  }
 
   // painted edge lines + dashed centre
   edgeRibbon((i) => W_(i) - 0.62, 0.42, 0.045, 0xd8d0bc, false);
@@ -5070,10 +5151,12 @@ function edgeRibbon(offset, width, y, color, dashed) {
 
 function buildBarriers() {
   const N = TRACK.N, H = 1.55;
-  const hw = (i) => sAt(i).w + CFG.wallSetback;
+  const sport = !!(TRACK.C && TRACK.C.sport);
+  if (sport) sponsorStrip();
   const ct = TEX.concrete.clone(); ct.needsUpdate = true;
   ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(1, 0.4);
   for (const side of [1, -1]) {
+    const hw = (i) => (side > 0 ? sAt(i).wallP : sAt(i).wallN);
     const pos = [], uv = [], idx = [];
     let q = 0;
     for (let i = 0; i < N; i++) {
@@ -5081,10 +5164,15 @@ function buildBarriers() {
       const ha = hw(i) * side, hb = hw((i + 1) % N) * side;
       const ax = a.p.x + a.n.x * ha, az = a.p.z + a.n.z * ha;
       const bx = b.p.x + b.n.x * hb, bz = b.p.z + b.n.z * hb;
-      pos.push(ax, 0, az); uv.push(a.d / 6, 0);
-      pos.push(ax, H, az); uv.push(a.d / 6, 1);
-      pos.push(bx, 0, bz); uv.push((i + 1 === N ? TRACK.length : b.d) / 6, 0);
-      pos.push(bx, H, bz); uv.push((i + 1 === N ? TRACK.length : b.d) / 6, 1);
+      // grand-prix walls carry sponsor boards; the strip is read from the
+      // road. Facing the left wall, the way ahead is to your right, so it runs
+      // forwards; the right-hand wall runs it backwards or every word mirrors
+      const L = sport ? SPON.stripLen * side : 6;
+      const ua = a.d / L, ub = (i + 1 === N ? TRACK.length : b.d) / L;
+      pos.push(ax, 0, az); uv.push(ua, 0);
+      pos.push(ax, H, az); uv.push(ua, 1);
+      pos.push(bx, 0, bz); uv.push(ub, 0);
+      pos.push(bx, H, bz); uv.push(ub, 1);
       const o = q * 4;
       if (side > 0) idx.push(o, o + 2, o + 1, o + 1, o + 2, o + 3);
       else idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
@@ -5095,10 +5183,9 @@ function buildBarriers() {
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     g.setIndex(idx);
     g.computeVertexNormals();
-    // grand-prix barriers are painted white; the rest are bare concrete
-    const wall = new THREE.Mesh(g, mat(TRACK.C && TRACK.C.sport ? 0xd9dde0 : 0x9c9078, {
-      map: ct, rough: 0.95, metal: 0.05, env: 0.35, side: THREE.DoubleSide,
-    }));
+    const wall = new THREE.Mesh(g, sport
+      ? mat(0xffffff, { map: SPON.strip, rough: 0.6, metal: 0.05, env: 0.5, side: THREE.DoubleSide })
+      : mat(0x9c9078, { map: ct, rough: 0.95, metal: 0.05, env: 0.35, side: THREE.DoubleSide }));
     wall.receiveShadow = true;
     wall.castShadow = true;
     vAdd(wall);
@@ -5149,7 +5236,9 @@ function buildGround(C) {
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(950, 950);
   const nt = TEX.gravelN.clone(); nt.needsUpdate = true;
   nt.wrapS = nt.wrapT = THREE.RepeatWrapping; nt.repeat.set(950, 950);
-  const m = mat(M.ground, { map: t, normal: nt, normalScale: 0.45, rough: 1, metal: 0, env: 0.4 });
+  const m = C.sport
+    ? mat(0xffffff, { map: (() => { const q = texGrass().clone(); q.needsUpdate = true; q.wrapS = q.wrapT = THREE.RepeatWrapping; q.repeat.set(475, 475); return q; })(), rough: 0.95, metal: 0, env: 0.3 })
+    : mat(M.ground, { map: t, normal: nt, normalScale: 0.45, rough: 1, metal: 0, env: 0.4 });
   const ground = new THREE.Mesh(g, m);
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.06;
@@ -5311,6 +5400,8 @@ function buildSurfaces(C) {
 /* the surface under a car, or null */
 function surfaceAt(i, lat) {
   const s = sAt(i);
+  // off the road and past the kerb on a grand-prix circuit: grass
+  if (TRACK.C && TRACK.C.sport && Math.abs(lat) > s.w + 0.35) return 'grass';
   if (!s.surf) return null;
   const f = lat / s.w;
   return (f >= s.surf.a && f <= s.surf.b) ? s.surf.kind : null;
@@ -5521,16 +5612,18 @@ function texScreen() {
   return tex(c);
 }
 
-function addBillboard(x, z, rotY, w) {
+function addBillboard(x, z, rotY, w, screen) {
   const g = new THREE.Group();
   g.position.set(x, 0, z); g.rotation.y = rotY;
   const leg = mat(0x6a543a, { metal: 0.6, rough: 0.7, env: 0.7, flat: true });
   part(g, BOX(0.9, 13, 0.9), leg, -w / 2 + 1, 6.5, 0);
   part(g, BOX(0.9, 13, 0.9), leg, w / 2 - 1, 6.5, 0);
   for (let i = -1; i <= 1; i++) part(g, BOX(w, 0.3, 0.3), leg, 0, 9 + i * 2, 0);
-  part(g, BOX(w + 1.2, w * 0.56 + 1.2, 0.9), mat(0x2a241c, { rough: 0.85, env: 0.4 }), 0, 13 + w * 0.28, 0);
-  const sm = new THREE.MeshBasicMaterial({ map: texScreen(), toneMapped: true });
-  part(g, new THREE.PlaneGeometry(w, w * 0.54), sm, 0, 13 + w * 0.28, 0.55);
+  // a sponsor's hoarding is 4:1; the broadcast's own screen is nearer square
+  const hh = screen ? w * 0.25 : w * 0.54;
+  part(g, BOX(w + 1.2, hh + 1.2, 0.9), mat(0x2a241c, { rough: 0.85, env: 0.4 }), 0, 13 + w * 0.28, 0);
+  const sm = new THREE.MeshBasicMaterial({ map: screen || texScreen(), toneMapped: true });
+  part(g, new THREE.PlaneGeometry(w, hh), sm, 0, 13 + w * 0.28, 0.55);
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   vAdd(g);
   return g;
@@ -5735,8 +5828,9 @@ function buildFixtures(C) {
     const span = hw * 2 + 6;
     for (const yy of [14.2, 16.4]) part(g, BOX(span, 0.3, 0.3), steel, 0, yy, 0);
     for (let i = -6; i <= 6; i++) part(g, BOX(0.18, 2.4, 0.18), steel, i * (span / 13), 15.3, 0, 0, 0, (i % 2 ? 0.5 : -0.5));
-    const sm = new THREE.MeshBasicMaterial({ map: texScreen(), toneMapped: true });
-    part(g, new THREE.PlaneGeometry(15, 4.6), sm, 0, 15.3, 0.9);
+    // the title sponsor's name over the grid on a grand-prix circuit
+    const sm = new THREE.MeshBasicMaterial({ map: C.sport ? sponsorTex('ndhlovu', 1024, 256) : texScreen(), toneMapped: true });
+    part(g, new THREE.PlaneGeometry(C.sport ? 18.4 : 15, 4.6), sm, 0, 15.3, 0.9);
     for (let L = 0; L < 5; L++) {
       const lm = new THREE.MeshBasicMaterial({ color: 0x2a0c0c, toneMapped: false });
       WORLD.lights.push(part(g, CYL(0.7, 0.7, 0.4, 12), lm, -8 + L * 4, 11.6, 1.0, Math.PI / 2, 0, 0));
@@ -6814,64 +6908,286 @@ function addHulk(b, x, z, yaw, rustM) {
   put(b, F, vBox(4, 3, 5), rustM, 0, 4.2, -Lh * 0.25);
 }
 /* ========================= §4c  GRAND PRIX =========================
-   SPORT MODE's circuits are dressed as grand-prix venues rather than
-   wasteland: green hills, trees, grandstands down the start straight and at
-   the big braking zones, a pit building, advertising hoardings on the
-   outside of corners and tyre walls where a car would go in. The kerbs and
-   the paler barriers are drawn by the track builder (§3) when C.sport.
+   SPORT MODE's circuits are dressed the way a street grand prix looks on
+   television: mown grass, white barriers lined with sponsor boards and a
+   catch fence, grandstands and apartment blocks packed in behind them, a
+   harbour full of yachts on one side, mountains behind the town, and a
+   bridge over the start straight carrying the title sponsor. No trees.
+   The kerbs, the sponsor boards on the walls and the run-off are drawn by
+   the track builder (§3) when C.sport.
    ================================================================== */
-function dressGP(C) {
-  addDunes(0x5e7f45, 34, true);
-  const T = new Tiles(260);
-  const leaf = [0x2f5a2a, 0x3d6b30, 0x4a7a36, 0x56803c].map((c) => mat(c, { rough: 0.95, metal: 0, env: 0.3 }));
-  const bark = mat(0x4a3826, { rough: 1, metal: 0, env: 0.2 });
 
-  // trees: belts of them out beyond the run-off, thicker further out
-  for (let k = 0; k < 520; k++) {
+/* grass, mown in stripes: fine blades over two shades of green, the stripes
+   a ground tile wide (9.5 m), the way a groundsman cuts a circuit */
+function texGrass() {
+  if (TEX.grassGP) return TEX.grassGP;
+  const S = 512;
+  const { c, x } = makeCanvas(S, S);
+  for (let h = 0; h < 2; h++) {
+    x.fillStyle = h ? '#2c561d' : '#43702c';
+    x.fillRect(h * S / 2, 0, S / 2, S);
+  }
+  for (let i = 0; i < 26000; i++) {
+    const px = Math.random() * S, py = Math.random() * S;
+    const g = 90 + Math.random() * 60 | 0;
+    x.strokeStyle = 'rgba(' + (30 + Math.random() * 35 | 0) + ',' + g + ',' + (22 + Math.random() * 22 | 0) + ',' + (0.25 + Math.random() * 0.4).toFixed(2) + ')';
+    x.lineWidth = 1;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + rand(-1.5, 1.5), py - rand(2, 6)); x.stroke();
+  }
+  for (let i = 0; i < 60; i++) {                       // clover and bare patches
+    x.fillStyle = Math.random() < 0.5 ? 'rgba(30,70,20,.18)' : 'rgba(150,160,80,.10)';
+    x.beginPath(); x.arc(Math.random() * S, Math.random() * S, rand(6, 22), 0, Math.PI * 2); x.fill();
+  }
+  return (TEX.grassGP = tex(c));
+}
+
+/* apartment and hotel fronts: a grid of windows with balconies and shutters */
+function texFacade(base, trimC) {
+  const W = 256, H = 256;
+  const { c, x } = makeCanvas(W, H);
+  x.fillStyle = base; x.fillRect(0, 0, W, H);
+  for (let r = 0; r < 4; r++) for (let q = 0; q < 4; q++) {
+    const px = q * 64 + 14, py = r * 64 + 12;
+    x.fillStyle = 'rgba(40,60,80,.85)'; x.fillRect(px, py, 36, 34);                  // glass
+    x.fillStyle = 'rgba(200,225,240,.35)'; x.fillRect(px + 2, py + 2, 14, 30);         // sky in it
+    x.fillStyle = trimC; x.fillRect(px - 4, py, 4, 34); x.fillRect(px + 36, py, 4, 34); // shutters
+    x.fillStyle = 'rgba(255,255,255,.75)'; x.fillRect(px - 6, py + 36, 48, 4);        // balcony slab
+    x.strokeStyle = 'rgba(30,30,30,.6)'; x.lineWidth = 1;
+    for (let k = 0; k < 9; k++) { x.beginPath(); x.moveTo(px - 4 + k * 5.5, py + 40); x.lineTo(px - 4 + k * 5.5, py + 52); x.stroke(); }
+    x.beginPath(); x.moveTo(px - 6, py + 40); x.lineTo(px + 42, py + 40); x.stroke();
+  }
+  return tex(c);
+}
+
+/* the catch fence over the barriers: steel mesh, see-through */
+function texFence() {
+  if (TEX.fenceGP) return TEX.fenceGP;
+  const { c, x } = makeCanvas(64, 64);
+  x.clearRect(0, 0, 64, 64);
+  x.strokeStyle = 'rgba(200,205,210,1)'; x.lineWidth = 2;
+  for (let k = -64; k < 128; k += 16) {
+    x.beginPath(); x.moveTo(k, 0); x.lineTo(k + 64, 64); x.stroke();
+    x.beginPath(); x.moveTo(k + 64, 0); x.lineTo(k, 64); x.stroke();
+  }
+  return (TEX.fenceGP = tex(c));
+}
+
+/* mountains behind the town: lumpy green-grey massifs, not cones. An
+   icosahedron with every vertex pushed in or out, squashed and half sunk. */
+function addMountains(L) {
+  const rock = [0x4c5a3e, 0x56604a, 0x5e5c4c, 0x46553a].map((c) => mat(c, { rough: 1, metal: 0, env: 0.25, flat: true }));
+  for (let i = 0; i < 20; i++) {
+    const a = (i / 20) * TAU + rand(-0.08, 0.08);
+    const rad = rand(500, 1000), h = rand(300, 700);
+    const r = L.r + rad + rand(700, 1300);
+    const geo = new THREE.IcosahedronGeometry(1, 3);
+    const p = geo.attributes.position;
+    // the faces do not share vertices, so the push has to come from where a
+    // vertex IS, not from a dice roll per vertex, or the faces tear apart
+    const seed = rand(0, 100);
+    for (let k = 0; k < p.count; k++) {
+      const x0 = p.getX(k), y0 = p.getY(k), z0 = p.getZ(k);
+      const f = 1 + 0.10 * Math.sin(x0 * 5.1 + seed) * Math.cos(z0 * 4.3 - seed) + 0.07 * Math.sin(y0 * 7.7 + x0 * 3.1 + seed * 2);
+      p.setXYZ(k, x0 * f, y0 * f, z0 * f);
+    }
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, pick(rock));
+    m.scale.set(rad, h, rad * rand(0.6, 1.0));
+    m.position.set(L.x + Math.cos(a) * r, -h * 0.25, L.z + Math.sin(a) * r);
+    m.rotation.y = rand(0, TAU);
+    vAdd(m);
+  }
+}
+
+/* where the harbour is: below the lowest part of the lap, the whole width */
+function harbourBox() {
+  let minX = 1e9, maxX = -1e9, maxZ = -1e9;
+  for (const s of TRACK.S) { minX = Math.min(minX, s.p.x); maxX = Math.max(maxX, s.p.x); maxZ = Math.max(maxZ, s.p.z); }
+  return { x0: minX - 500, x1: maxX + 500, z0: maxZ + 70, z1: maxZ + 1100 };
+}
+
+function addHarbour(H) {
+  const water = new THREE.MeshStandardMaterial({ color: SRGB(0x1d5e78), roughness: 0.12, metalness: 0.35 });
+  water.envMapIntensity = 1.6;
+  const w = new THREE.Mesh(new THREE.PlaneGeometry(H.x1 - H.x0, H.z1 - H.z0), water);
+  w.rotation.x = -Math.PI / 2;
+  w.position.set((H.x0 + H.x1) / 2, 0.02, (H.z0 + H.z1) / 2);
+  w.receiveShadow = true;
+  vAdd(w);
+  // the quay
+  const quay = mat(0xd8cfbd, { rough: 0.9, env: 0.4 });
+  const q = new THREE.Mesh(BOX(H.x1 - H.x0, 1.2, 8), quay);
+  q.position.set((H.x0 + H.x1) / 2, 0.5, H.z0 - 2);
+  vAdd(q);
+  // yachts moored in rows off the quay, the big ones further out
+  const T = new Tiles(260);
+  const hull = mat(0xf4f4f2, { rough: 0.3, metal: 0.2, env: 1.4 });
+  const deck = mat(0xb08a5a, { rough: 0.7, env: 0.4 });
+  const glass = mat(0x101820, { rough: 0.08, metal: 0.8, env: 2.0 });
+  const navy = mat(0x14243a, { rough: 0.35, metal: 0.3, env: 1.2 });
+  for (let row = 0; row < 4; row++) {
+    const z = H.z0 + 30 + row * 55;
+    for (let x = H.x0 + 40; x < H.x1 - 40; x += rand(26, 60)) {
+      if (Math.random() < 0.25) continue;
+      const len = rand(18, 30) + row * 10, wid = len * 0.22, b = T.at(x, z);
+      const F = frameAt(x, 0, z, Math.PI / 2 + rand(-0.15, 0.15));
+      put(b, F, gBox(wid, 2.6, len), Math.random() < 0.2 ? navy : hull, 0, 1.3, 0);
+      put(b, F, gBox(wid * 0.9, 0.2, len * 0.95), deck, 0, 2.7, 0);
+      put(b, F, gBox(wid * 0.72, 2.2, len * 0.5), hull, 0, 3.9, -len * 0.05);
+      put(b, F, gBox(wid * 0.74, 0.9, len * 0.48), glass, 0, 4.0, -len * 0.05);
+      if (len > 30) {
+        put(b, F, gBox(wid * 0.56, 1.8, len * 0.32), hull, 0, 5.8, -len * 0.08);
+        put(b, F, gBox(wid * 0.58, 0.7, len * 0.30), glass, 0, 5.9, -len * 0.08);
+      }
+    }
+  }
+  T.build(true);
+}
+
+/* a bridge across the road with a huge display on both faces */
+function addSponsorBridge(i, key) {
+  const s = sAt(i);
+  const half = Math.max(s.wallP, s.wallN) + 5;
+  const g = new THREE.Group();
+  g.position.set(s.p.x, 0, s.p.z);
+  g.rotation.y = Math.atan2(s.t.x, s.t.z);
+  const conc = mat(0xd9d4c8, { rough: 0.85, env: 0.4 });
+  const steel = mat(0x2a2e33, { rough: 0.4, metal: 0.8, env: 1.2 });
+  for (const sx of [-1, 1]) part(g, BOX(3.2, 9.5, 3.2), conc, sx * half, 4.75, 0);
+  part(g, BOX(half * 2 + 3.2, 1.6, 4.4), conc, 0, 9.3, 0);
+  part(g, BOX(half * 2 + 3.2, 0.25, 4.6), steel, 0, 10.2, 0);
+  const dw = half * 1.7, dh = dw / 4;
+  part(g, BOX(dw + 0.8, dh + 0.8, 1.2), steel, 0, 10.3 + dh / 2 + 0.4, 0);
+  const sm = new THREE.MeshBasicMaterial({ map: sponsorTex(key, 1024, 256), toneMapped: true });
+  for (const f of [1, -1]) part(g, new THREE.PlaneGeometry(dw, dh), sm, 0, 10.3 + dh / 2 + 0.4, f * 0.62, 0, f > 0 ? 0 : Math.PI, 0);
+  g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  vAdd(g);
+}
+
+function dressGP(C) {
+  const L = lapCentre();
+  addMountains(L);
+  const H = harbourBox();
+  addHarbour(H);
+  const inHarbour = (x, z) => x > H.x0 - 20 && x < H.x1 + 20 && z > H.z0 - 25;
+
+  // the town: apartment blocks behind the stands, hotels a little further back
+  const facades = [
+    ['#efe4cf', '#5a7a5a'], ['#e9cdb4', '#8a5a3a'], ['#f4f1ea', '#3a5a7a'], ['#e4d3a8', '#7a6a4a'], ['#d9b8a0', '#5a4a3a'],
+  ].map(([b, t]) => mat(0xffffff, { map: texFacade(b, t), rough: 0.85, metal: 0, env: 0.35 }));
+  const roof = mat(0xb46a4a, { rough: 0.9, env: 0.3 });
+  const T = new Tiles(260);
+  let made = 0;
+  for (let k = 0; k < 900 && made < 170; k++) {
     const i = randi(0, TRACK.N - 1), s = sAt(i), side = Math.random() < 0.5 ? 1 : -1;
-    const o = (s.w + rand(30, 320)) * side;
+    const o = ((side > 0 ? s.wallP : s.wallN) + rand(40, 240)) * side;
     const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
-    if (!propOK(x, z, 6)) continue;
-    const h = rand(7, 16), b = T.at(x, z);
-    b.place(gCyl(0.22, 0.34, h * 0.42, 6), bark, x, h * 0.21, z);
-    b.place(gCyl(0, h * 0.27, h * 0.72, 7), pick(leaf), x, h * 0.42 + h * 0.36, z, 0, rand(0, 6), 0);
+    const w = rand(18, 36), d = rand(14, 24), h = rand(16, 58);
+    if (inHarbour(x, z) || !propOK(x, z, Math.max(w, d) * 0.7 + 6)) continue;
+    const b = T.at(x, z), F = frameAt(x, 0, z, Math.atan2(s.t.x, s.t.z) + (Math.random() < 0.5 ? 0 : Math.PI / 2));
+    put(b, F, gBoxUV(Math.round(w), Math.round(h), Math.round(d), 16, 16), pick(facades), 0, h / 2, 0);
+    put(b, F, gBox(Math.round(w) + 1, 0.8, Math.round(d) + 1), roof, 0, h + 0.4, 0);
+    made++;
   }
   T.build(true);
 
   // grandstands down both sides of the start straight
   const stand = (i, side, len) => {
-    const s = sAt(i), o = (s.w + CFG.wallSetback + 16) * side;
+    const s = sAt(i), o = ((side > 0 ? s.wallP : s.wallN) + 16) * side;
     const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
     if (!propOK(x, z, 4)) return;
     addStand(x, z, Math.atan2(s.t.x, s.t.z) + (side > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.PI, len);
   };
   for (const d of [-170, -110, 40, 100, 160]) stand(idxAhead(0, d), 1, 54);
-  // the pit building opposite, behind the pit wall
+  // the pits, behind the pit wall, with the title sponsor on the roof
   {
     const s = sAt(idxAhead(0, -20)), o = -(s.w + 30);
     const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
-    if (propOK(x, z, 8)) addBuilding(x, z, Math.atan2(s.t.x, s.t.z), 22, 11, 190, false);
+    if (propOK(x, z, 8)) {
+      addBuilding(x, z, Math.atan2(s.t.x, s.t.z), 22, 11, 190, false);
+      const yaw = Math.atan2(s.t.x, s.t.z);
+      const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = yaw;
+      const sm = new THREE.MeshBasicMaterial({ map: sponsorTex('ndhlovu', 1024, 256), toneMapped: true });
+      part(g, new THREE.PlaneGeometry(48, 12), sm, 11.2, 17, 0, 0, Math.PI / 2, 0);
+      part(g, BOX(0.6, 13, 50), mat(0x1a1d22, { rough: 0.6 }), 10.8, 17, 0);
+      vAdd(g);
+    }
   }
 
-  // at every corner: a stand on the outside of the slow ones, hoardings and
-  // a tyre wall where a car that misses its braking point would end up
+  // corners: stands at the slow ones, sponsor hoardings, tyre walls
+  const ads = ['ndhlovu', 'watch', 'games', 'shades', 'prime'];
   const K = C.pts.length;
   for (let k = 0; k < K; k++) {
     const R = C.pts[k][2];
     if (R <= 32 && k % 2 === 0) placeOut(C, k, 30, 26, (x, z, yaw, side) =>
       addStand(x, z, yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.PI, 40));
-    if (k % 2 === 1) placeOut(C, k + 0.15, 14, 8, (x, z, yaw, side) =>
-      addBillboard(x, z, yaw + (side > 0 ? -Math.PI / 2 : Math.PI / 2), 14));
+    placeOut(C, k + 0.18, 14, 8, (x, z, yaw, side) =>
+      addBillboard(x, z, yaw + (side > 0 ? -Math.PI / 2 : Math.PI / 2), 18, sponsorTex(ads[k % ads.length], 1024, 256)));
     if (R <= 45) {
-      const i = idxAt(k), s = sAt(i), side = sgnOutside(i);
+      const i = idxAt(k), side = sgnOutside(i);
       for (let j = -3; j <= 3; j++) {
         const sp = sAt(idxAhead(i, j * 3.2));
-        const o = (sp.w + CFG.wallSetback + 1.4) * side;
+        const o = ((side > 0 ? sp.wallP : sp.wallN) + 1.4) * side;
         addTyreStack(sp.p.x + sp.n.x * o, sp.p.z + sp.n.z * o, 3);
       }
     }
   }
+
+  // the bridges: the title sponsor over the start straight, the game show
+  // over the longest DRS straight
+  addSponsorBridge(idxAhead(0, 170), 'ndhlovu');
+  const Z = drsZones();
+  const far = Z.find((z) => Math.abs(z.a - 0) > TRACK.N * 0.15 && Math.abs(z.a - TRACK.N) > TRACK.N * 0.15);
+  if (far) addSponsorBridge((far.a + Math.round((((far.b - far.a) % TRACK.N + TRACK.N) % TRACK.N) * 0.5)) % TRACK.N, 'games');
+
+  // the grid boxes, ten of them, where sportStart puts the cars
+  const white = mat(0xf2f2ee, { rough: 0.7, env: 0.3 });
+  const gb = new PartBuilder();
+  for (let k = 0; k < 10; k++) {
+    const i = idxAhead(0, -(14 + k * 10)), s = sAt(i), lat = (k % 2 ? -1 : 1) * 4.2;
+    const F = frameAt(s.p.x + s.n.x * lat, 0.035, s.p.z + s.n.z * lat, Math.atan2(s.t.x, s.t.z));
+    put(gb, F, gBox(3.0, 0.02, 0.22), white, 0, 0, 3.6);
+    for (const sx of [-1, 1]) put(gb, F, gBox(0.22, 0.02, 1.4), white, sx * 1.4, 0, 3.0);
+  }
+  const gg = new THREE.Group(); gb.build(gg); gg.traverse((o) => { if (o.isMesh) o.receiveShadow = true; }); vAdd(gg);
 }
+
+/* the catch fence along every barrier that stands at the road's edge */
+function buildCatchFence() {
+  const N = TRACK.N, H0 = 1.55, H1 = 4.9;
+  const fm = new THREE.MeshStandardMaterial({ map: texFence(), transparent: true, alphaTest: 0.35, side: THREE.DoubleSide, roughness: 0.5, metalness: 0.7 });
+  const post = mat(0x8c9096, { rough: 0.45, metal: 0.8, env: 1.0 });
+  const pb = new PartBuilder();
+  for (const side of [1, -1]) {
+    const pos = [], uv = [], idx = [];
+    let q = 0;
+    for (let i = 0; i < N; i++) {
+      const a = sAt(i), b = sAt(i + 1);
+      const ha = side > 0 ? a.wallP : a.wallN, hb = side > 0 ? b.wallP : b.wallN;
+      if (ha > a.w + CFG.wallSetback + 1 || hb > b.w + CFG.wallSetback + 1) continue;   // open run-off: no fence
+      const ax = a.p.x + a.n.x * ha * side, az = a.p.z + a.n.z * ha * side;
+      const bx = b.p.x + b.n.x * hb * side, bz = b.p.z + b.n.z * hb * side;
+      pos.push(ax, H0, az, ax, H1, az, bx, H0, bz, bx, H1, bz);
+      uv.push(a.d / 2.4, 0, a.d / 2.4, 1.4, b.d / 2.4, 0, b.d / 2.4, 1.4);
+      const o = q * 4;
+      idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
+      q++;
+      if (i % 4 === 0) {
+        const F = frameAt(ax, 0, az, 0);
+        put(pb, F, gBox(0.14, H1 - H0 + 0.4, 0.14), post, 0, (H0 + H1) / 2 + 0.2, 0);
+      }
+    }
+    if (!q) continue;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    vAdd(new THREE.Mesh(g, fm));
+  }
+  const pg = new THREE.Group(); pb.build(pg); vAdd(pg);
+}
+
 
 /* red and white kerbs along every bend tighter than about 140 m, both
    sides, a little into the road and a little onto the grass */
@@ -6911,6 +7227,167 @@ function buildKerbs() {
     m.receiveShadow = true;
     vAdd(m);
   }
+}
+/* ========================== §4d  SPONSORS ==========================
+   Who pays for SPORT MODE. Every logo is drawn here on a canvas — no image
+   files — and handed out as textures for the barrier boards, the bridge over
+   the straight, the hoardings, the start gantry and the cars themselves.
+
+     NDHLOVU CAPITAL     Investment Group, title sponsor; the elephant
+     THE ELEPHANT GAMES  the game show
+     PRIME TERMINAL      the trading terminal
+     ORVANNE GENEVE      watches (invented for the game)
+     SOLSTICE            eyewear (invented for the game)
+   ================================================================== */
+const SPON = {};
+
+/* the elephant: side-on, trunk raised, ear forward, one tusk. Drawn into a
+   box of height s with its feet at (x, y). */
+function drawElephant(x, cx, cy, s, col, tusk) {
+  x.save();
+  x.translate(cx, cy);
+  x.scale(s / 100, s / 100);
+  x.fillStyle = col;
+  x.beginPath();
+  // body
+  x.ellipse(-8, -48, 44, 30, 0, 0, Math.PI * 2);
+  x.fill();
+  // legs
+  for (const lx of [-40, -22, 6, 22]) { x.fillRect(lx, -30, 13, 30); }
+  // head
+  x.beginPath(); x.ellipse(36, -62, 22, 22, 0, 0, Math.PI * 2); x.fill();
+  // trunk, curled up at the tip — the lucky one
+  x.lineCap = 'round'; x.strokeStyle = col; x.lineWidth = 11;
+  x.beginPath(); x.moveTo(52, -58); x.quadraticCurveTo(70, -40, 66, -20); x.quadraticCurveTo(64, -4, 78, -10); x.stroke();
+  // tail
+  x.lineWidth = 3; x.beginPath(); x.moveTo(-50, -50); x.quadraticCurveTo(-62, -36, -58, -22); x.stroke();
+  // ear, a shade darker
+  x.globalAlpha = 0.55; x.fillStyle = '#000';
+  x.beginPath(); x.ellipse(24, -58, 13, 20, -0.2, 0, Math.PI * 2); x.fill();
+  x.globalAlpha = 1;
+  // eye and tusk
+  x.fillStyle = '#000'; x.beginPath(); x.arc(44, -68, 2.6, 0, Math.PI * 2); x.fill();
+  if (tusk !== false) {
+    x.strokeStyle = tusk || '#fff6e0'; x.lineWidth = 4;
+    x.beginPath(); x.moveTo(50, -50); x.quadraticCurveTo(62, -40, 70, -46); x.stroke();
+  }
+  x.restore();
+}
+
+function spText(x, t, cx, cy, size, col, font, track) {
+  x.fillStyle = col;
+  x.font = (font || '700 ') + size + 'px "Arial Narrow", Impact, sans-serif';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  if (track && x.letterSpacing !== undefined) x.letterSpacing = track + 'px';
+  x.fillText(t, cx, cy);
+  if (x.letterSpacing !== undefined) x.letterSpacing = '0px';
+}
+
+/* one sponsor board into the rectangle (ox, oy, w, h) */
+function drawBoard(x, key, ox, oy, w, h) {
+  x.save();
+  x.beginPath(); x.rect(ox, oy, w, h); x.clip();
+  const cy = oy + h / 2;
+  if (key === 'ndhlovu') {
+    const g = x.createLinearGradient(ox, oy, ox, oy + h);
+    g.addColorStop(0, '#0d2a4a'); g.addColorStop(1, '#071628');
+    x.fillStyle = g; x.fillRect(ox, oy, w, h);
+    x.fillStyle = '#d4a63a'; x.fillRect(ox, oy + h - h * 0.06, w, h * 0.06);
+    drawElephant(x, ox + h * 0.78, oy + h * 0.88, h * 0.95, '#d4a63a', '#fff6e0');
+    spText(x, 'NDHLOVU CAPITAL', ox + w * 0.58, cy - h * 0.10, h * 0.42, '#f2e6c8', '800 ', h * 0.02);
+    spText(x, 'INVESTMENT GROUP', ox + w * 0.58, cy + h * 0.27, h * 0.16, '#d4a63a', '600 ', h * 0.08);
+  } else if (key === 'games') {
+    const g = x.createLinearGradient(ox, oy, ox + w, oy);
+    g.addColorStop(0, '#3a0a5c'); g.addColorStop(1, '#a3168a');
+    x.fillStyle = g; x.fillRect(ox, oy, w, h);
+    for (let i = 0; i < 14; i++) {                   // studio lights
+      x.fillStyle = 'rgba(255,214,90,' + (0.25 + (i % 3) * 0.2) + ')';
+      x.beginPath(); x.arc(ox + w * (i + 0.5) / 14, oy + h * 0.1, h * 0.035, 0, Math.PI * 2); x.fill();
+    }
+    drawElephant(x, ox + w * 0.11, oy + h * 0.86, h * 0.72, '#ffd65a', false);
+    spText(x, 'THE ELEPHANT GAMES', ox + w * 0.58, cy, h * 0.40, '#ffd65a', '900 ', h * 0.01);
+    spText(x, 'SATURDAY NIGHT · LIVE', ox + w * 0.58, cy + h * 0.32, h * 0.13, '#ffffff', '600 ', h * 0.06);
+  } else if (key === 'prime') {
+    x.fillStyle = '#05080b'; x.fillRect(ox, oy, w, h);
+    // a candle chart running through it
+    x.strokeStyle = 'rgba(40,220,140,.35)'; x.lineWidth = Math.max(1, h * 0.02);
+    x.beginPath();
+    for (let i = 0; i <= 40; i++) {
+      const px = ox + (w * i) / 40, py = cy + Math.sin(i * 0.7) * h * 0.18 - (i / 40) * h * 0.22;
+      if (i) x.lineTo(px, py); else x.moveTo(px, py);
+    }
+    x.stroke();
+    spText(x, 'PRIME', ox + w * 0.25, cy, h * 0.46, '#28dc8c', '900 ', h * 0.02);
+    spText(x, 'TERMINAL', ox + w * 0.67, cy, h * 0.40, '#e8edf2', '300 ', h * 0.02);
+  } else if (key === 'watch') {
+    x.fillStyle = '#0d3b2e'; x.fillRect(ox, oy, w, h);
+    // a watch face
+    const r = h * 0.32, wx = ox + h * 0.62;
+    x.strokeStyle = '#d6b45a'; x.lineWidth = h * 0.05;
+    x.beginPath(); x.arc(wx, cy, r, 0, Math.PI * 2); x.stroke();
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      x.fillStyle = '#d6b45a';
+      x.fillRect(wx + Math.cos(a) * r * 0.78 - 1.5, cy + Math.sin(a) * r * 0.78 - 1.5, 3, 3);
+    }
+    x.lineWidth = h * 0.03; x.beginPath(); x.moveTo(wx, cy); x.lineTo(wx + r * 0.5, cy - r * 0.35); x.moveTo(wx, cy); x.lineTo(wx, cy - r * 0.7); x.stroke();
+    spText(x, 'ORVANNE', ox + w * 0.58, cy - h * 0.06, h * 0.40, '#f0e2b6', '400 ', h * 0.12);
+    spText(x, 'GENÈVE · SINCE 1871', ox + w * 0.58, cy + h * 0.28, h * 0.13, '#d6b45a', '600 ', h * 0.05);
+  } else if (key === 'shades') {
+    x.fillStyle = '#f4f2ee'; x.fillRect(ox, oy, w, h);
+    // the frames
+    const sx = ox + h * 0.75, gw = h * 0.36;
+    x.fillStyle = '#101010';
+    for (const d of [-1, 1]) { x.beginPath(); x.ellipse(sx + d * gw * 0.62, cy, gw * 0.5, gw * 0.36, 0, 0, Math.PI * 2); x.fill(); }
+    x.fillRect(sx - gw * 0.15, cy - gw * 0.2, gw * 0.3, gw * 0.08);
+    spText(x, 'SOLSTICE', ox + w * 0.60, cy - h * 0.05, h * 0.44, '#101010', '300 ', h * 0.14);
+    spText(x, 'LUXURY EYEWEAR', ox + w * 0.60, cy + h * 0.30, h * 0.13, '#8a6a2a', '600 ', h * 0.08);
+  }
+  x.restore();
+}
+
+const SPON_ORDER = ['ndhlovu', 'watch', 'games', 'shades', 'prime', 'ndhlovu', 'games', 'watch', 'prime', 'shades'];
+
+/* the barrier boards: a long strip of them, 6 m each, repeated round the lap */
+function sponsorStrip() {
+  if (SPON.strip) return SPON.strip;
+  const bw = 512, bh = 128, n = SPON_ORDER.length;
+  const { c, x } = makeCanvas(bw * n, bh);
+  SPON_ORDER.forEach((k, i) => {
+    drawBoard(x, k, i * bw, 0, bw, bh);
+    x.fillStyle = 'rgba(255,255,255,.9)'; x.fillRect(i * bw, 0, 3, bh);     // the seam between boards
+  });
+  const t = tex(c);
+  t.wrapT = THREE.ClampToEdgeWrapping;
+  SPON.strip = t; SPON.stripLen = n * 6.2;
+  return t;
+}
+
+/* a single big display: the bridge, the hoardings, the start gantry */
+function sponsorTex(key, w, h) {
+  const id = key + ':' + w + 'x' + h;
+  if (SPON[id]) return SPON[id];
+  const { c, x } = makeCanvas(w, h);
+  drawBoard(x, key, 0, 0, w, h);
+  return (SPON[id] = tex(c));
+}
+
+/* the car's own sponsor decals */
+function decalTex(key, w, h, bg) {
+  const id = 'd:' + key + ':' + w + 'x' + h + ':' + (bg || '');
+  if (SPON[id]) return SPON[id];
+  const { c, x } = makeCanvas(w, h);
+  if (key === 'ndhlovu') {
+    if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w, h); }
+    drawElephant(x, h * 0.62, h * 0.9, h * 0.9, '#d4a63a', '#fff6e0');
+    spText(x, 'NDHLOVU', w * 0.62, h * 0.38, h * 0.40, '#ffffff', '800 ');
+    spText(x, 'CAPITAL', w * 0.62, h * 0.76, h * 0.28, '#d4a63a', '700 ', h * 0.06);
+  } else if (key.indexOf('num:') === 0) {
+    spText(x, key.slice(4), w / 2, h / 2 + h * 0.04, h * 0.86, '#ffffff', '900 ');
+  }
+  const t = tex(c);
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+  return (SPON[id] = t);
 }
 /* ========================== §5  POWER PANELS ======================= */
 /* Panels are deliberately placed on the OUTSIDE of corners — the side the
@@ -7899,6 +8376,9 @@ function buildCarMesh(def) {
   out.contact = addContactShadow(g, out.width, out.length);
   g.traverse(o => { if (o.isMesh) o.castShadow = true; });
   if (out.contact) out.contact.castShadow = false;
+  // a model built at real size and shown bigger (the F1 cars): the whole
+  // group scales, and the car's own footprint grows with it
+  if (out.meshScale) { g.scale.setScalar(out.meshScale); out.length *= out.meshScale; out.width *= out.meshScale; }
   return out;
 }
 
@@ -8274,98 +8754,168 @@ function addSlicks(g, out, list, stripe) {
   }
 }
 
+
+/* clear-coated metallic paint: a lacquer layer over the colour, the way a
+   grand-prix car shines under the lights */
+function f1Paint(color, metal) {
+  const m = new THREE.MeshPhysicalMaterial({
+    color: SRGB(color), metalness: metal === undefined ? 0.55 : metal, roughness: 0.30,
+    clearcoat: 1.0, clearcoatRoughness: 0.06,
+  });
+  m.envMapIntensity = 1.5;
+  return m;
+}
+
+/* a flat decal laid on the body: a sponsor or the race number */
+function f1Decal(group, texKey, w, h, x, y, z, rx, ry, rz, bg) {
+  const m = new THREE.MeshBasicMaterial({
+    map: decalTex(texKey, 256, 96, bg), transparent: true, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -2, toneMapped: true,
+  });
+  const me = part(group, new THREE.PlaneGeometry(w, h), m, x, y, z, rx || 0, ry || 0, rz || 0);
+  me.castShadow = false;
+  return me;
+}
+
+/* The model is built at real F1 proportions (5.7 m) and the whole car is
+   then scaled up 30% (F1_SCALE) so it reads on screen from the closer
+   SPORT camera — wheels, wings, the lot, so nothing is out of proportion. */
+const F1_SCALE = 1.3;
+
 function buildF1Car(def, out, ch, M, wheels, g) {
   const b = new PartBuilder();
-  const body = M.body, acc = M.acc, dark = M.dark;
-  const carbon = mat(0x15161a, { rough: 0.45, metal: 0.35, env: 0.9 });
-  const trim = paintMat(def.trim || def.accent, { rough: 0.4, metal: 0.6, env: 1.0 });
+  const body = f1Paint(def.body), acc = f1Paint(def.accent, 0.45), dark = M.dark;
+  const carbon = mat(0x111215, { rough: 0.38, metal: 0.45, env: 1.1 });
+  const trim = f1Paint(def.trim || def.accent, 0.5);
+  const chrome = mat(0xd8dde2, { rough: 0.12, metal: 1.0, env: 2.0 });
+  const ti = mat(0x6b5a8a, { rough: 0.25, metal: 1.0, env: 1.6 });     // heat-blued titanium
 
-  // floor and plank
-  b.box(carbon, 1.50, 0.04, 3.30, 0, 0.09, -0.30);
-  for (const sx of [-1, 1]) b.box(carbon, 0.06, 0.07, 2.4, sx * 0.76, 0.12, -0.40);
+  // floor, plank, floor-edge wings
+  b.box(carbon, 1.56, 0.04, 3.40, 0, 0.09, -0.30);
+  for (const sx of [-1, 1]) {
+    b.box(carbon, 0.07, 0.08, 2.5, sx * 0.78, 0.12, -0.40);
+    b.box(carbon, 0.20, 0.02, 0.9, sx * 0.70, 0.16, -1.50, 0, 0, sx * 0.25);
+  }
 
-  // the tub and the nose, one loft from the tip to the gearbox
+  // the tub and nose, one loft from the tip to the gearbox
   b.loft(body, [
-    { z: 2.95, a: 0.09, b: 0.05, cy: 0.22, n: 2.2 },
-    { z: 2.55, a: 0.14, b: 0.09, cy: 0.28, n: 2.4 },
-    { z: 1.80, a: 0.21, b: 0.14, cy: 0.38, n: 2.6 },
+    { z: 2.98, a: 0.08, b: 0.05, cy: 0.22, n: 2.2 },
+    { z: 2.60, a: 0.14, b: 0.09, cy: 0.27, n: 2.4 },
+    { z: 1.85, a: 0.21, b: 0.14, cy: 0.37, n: 2.6 },
     { z: 1.10, a: 0.28, b: 0.19, cy: 0.45, n: 3.0 },
     { z: 0.50, a: 0.36, b: 0.25, cy: 0.47, n: 3.2 },
     { z: -0.55, a: 0.42, b: 0.29, cy: 0.49, n: 3.2 },
     { z: -1.40, a: 0.30, b: 0.23, cy: 0.47, n: 2.8 },
     { z: -2.05, a: 0.16, b: 0.14, cy: 0.42, n: 2.4 },
     { z: -2.32, a: 0.09, b: 0.08, cy: 0.40, n: 2.0 },
-  ], 18);
-  // the cockpit opening, a dark slot in the top of the tub
+  ], 22);
+  // cockpit opening, its rim, the steering wheel
   b.box(dark, 0.42, 0.04, 0.80, 0, 0.745, 0.05);
+  b.box(carbon, 0.46, 0.05, 0.05, 0, 0.77, 0.46);
+  b.box(carbon, 0.26, 0.10, 0.04, 0, 0.74, 0.30);
 
-  // engine cover and airbox, two-tone
+  // engine cover and airbox, two-tone; T-cam, shark fin, camera pods
   b.loft(acc, [
     { z: 0.02, a: 0.13, b: 0.09, cy: 0.84, n: 2.4 },
     { z: -0.35, a: 0.20, b: 0.22, cy: 0.80, n: 2.6 },
     { z: -1.00, a: 0.17, b: 0.17, cy: 0.71, n: 2.6 },
     { z: -1.95, a: 0.06, b: 0.08, cy: 0.58, n: 2.0 },
-  ], 14);
-  b.box(dark, 0.17, 0.12, 0.05, 0, 0.88, 0.04);                    // airbox intake
-  b.box(trim, 0.20, 0.05, 0.10, 0, 1.00, -0.08);                   // T-cam
-  b.box(body, 0.02, 0.30, 0.95, 0, 0.92, -1.30);                   // shark fin
+  ], 16);
+  b.box(dark, 0.17, 0.13, 0.05, 0, 0.88, 0.04);
+  b.box(trim, 0.22, 0.05, 0.10, 0, 1.00, -0.08);
+  b.box(body, 0.02, 0.30, 0.95, 0, 0.92, -1.30);
+  for (const sx of [-1, 1]) b.box(carbon, 0.05, 0.05, 0.14, sx * 0.14, 1.02, -0.20);
 
-  // sidepods
+  // sidepods: inlets, cooling louvres, mirrors on stalks, bargeboards, brake ducts
   for (const sx of [-1, 1]) {
     b.place(makeLoft([
       { z: 0.42, a: 0.13, b: 0.13, cy: 0.40, n: 2.6 },
       { z: 0.05, a: 0.25, b: 0.18, cy: 0.38, n: 3.0 },
       { z: -0.80, a: 0.23, b: 0.16, cy: 0.35, n: 3.0 },
       { z: -1.60, a: 0.09, b: 0.08, cy: 0.28, n: 2.4 },
-    ], 14), body, sx * 0.55, 0, 0);
-    b.box(dark, 0.20, 0.17, 0.04, sx * 0.55, 0.40, 0.44);           // intake
-    b.box(acc, 0.04, 0.10, 0.90, sx * 0.80, 0.42, -0.30);           // livery stripe on the pod
-    b.box(carbon, 0.10, 0.05, 0.14, sx * 0.62, 0.66, 0.35);         // mirror
-    b.box(carbon, 0.02, 0.10, 0.02, sx * 0.55, 0.60, 0.35);
+    ], 16), body, sx * 0.55, 0, 0);
+    b.box(dark, 0.20, 0.17, 0.04, sx * 0.55, 0.40, 0.44);
+    b.box(acc, 0.04, 0.10, 0.90, sx * 0.80, 0.42, -0.30);
+    for (let k = 0; k < 5; k++) b.box(dark, 0.18, 0.012, 0.05, sx * 0.55, 0.555, -0.45 - k * 0.09);
+    b.box(body, 0.16, 0.07, 0.10, sx * 0.66, 0.70, 0.36);
+    b.box(chrome, 0.13, 0.055, 0.005, sx * 0.66, 0.70, 0.31);
+    b.place(gCyl(0.012, 0.012, 0.22, 5), carbon, sx * 0.58, 0.62, 0.36, 0, 0, sx * 0.9);
+    b.box(carbon, 0.02, 0.20, 0.60, sx * 0.48, 0.24, 0.85);
+    b.box(carbon, 0.10, 0.12, 0.10, sx * 0.80, 0.34, 1.75);
+    b.box(carbon, 0.12, 0.16, 0.12, sx * 0.80, 0.36, -1.75);
   }
 
-  // front wing: two elements and endplates
-  b.box(body, 1.94, 0.03, 0.44, 0, 0.10, 2.86);
-  b.box(acc, 1.86, 0.025, 0.24, 0, 0.17, 2.70, -0.28, 0, 0);
-  b.box(acc, 1.70, 0.02, 0.16, 0, 0.23, 2.58, -0.45, 0, 0);
-  for (const sx of [-1, 1]) b.box(body, 0.03, 0.22, 0.58, sx * 0.97, 0.18, 2.80);
-  for (const sx of [-1, 1]) b.box(carbon, 0.03, 0.18, 0.10, sx * 0.12, 0.19, 2.75);   // pylons to the nose
+  // front wing: three elements, endplates, pylons
+  b.box(body, 1.96, 0.03, 0.44, 0, 0.10, 2.86);
+  b.box(acc, 1.88, 0.025, 0.24, 0, 0.17, 2.70, -0.28, 0, 0);
+  b.box(acc, 1.72, 0.02, 0.16, 0, 0.23, 2.58, -0.45, 0, 0);
+  b.box(trim, 1.60, 0.015, 0.10, 0, 0.28, 2.50, -0.65, 0, 0);
+  for (const sx of [-1, 1]) {
+    b.box(body, 0.03, 0.24, 0.60, sx * 0.98, 0.18, 2.80);
+    b.box(acc, 0.032, 0.05, 0.60, sx * 0.98, 0.29, 2.80);
+    b.box(carbon, 0.03, 0.18, 0.10, sx * 0.12, 0.19, 2.75);
+  }
 
-  // rear wing, beam wing, pylon, diffuser
-  b.box(body, 1.00, 0.03, 0.32, 0, 0.90, -2.46);
-  b.box(acc, 1.00, 0.03, 0.18, 0, 1.03, -2.38, -0.32, 0, 0);
-  for (const sx of [-1, 1]) b.box(body, 0.03, 0.46, 0.62, sx * 0.51, 0.86, -2.42);
-  b.box(carbon, 0.90, 0.03, 0.16, 0, 0.46, -2.40);
-  b.box(carbon, 0.05, 0.42, 0.12, 0, 0.66, -2.30);
-  b.box(carbon, 1.10, 0.18, 0.46, 0, 0.18, -2.22, 0.35, 0, 0);
+  // rear wing: main plane, endplates, beam wing, swan-neck pylon
+  b.box(body, 1.02, 0.035, 0.32, 0, 0.90, -2.46);
+  for (const sx of [-1, 1]) {
+    b.box(body, 0.03, 0.48, 0.64, sx * 0.52, 0.86, -2.42);
+    b.box(acc, 0.034, 0.10, 0.64, sx * 0.52, 1.06, -2.42);
+  }
+  b.box(carbon, 0.92, 0.03, 0.16, 0, 0.46, -2.40);
+  b.box(carbon, 0.05, 0.44, 0.12, 0, 0.66, -2.30);
 
-  // halo and the driver
-  b.place(new THREE.TorusGeometry(0.30, 0.026, 6, 18, Math.PI), carbon, 0, 0.80, -0.22, Math.PI / 2, 0, 0);
-  b.place(gCyl(0.025, 0.025, 0.34, 6), carbon, 0, 0.66, 0.15, 0.95, 0, 0);
-  const hm = paintMat(def.helmet || def.accent, { rough: 0.25, metal: 0.4, env: 1.3 });
-  b.place(new THREE.SphereGeometry(0.135, 14, 10), hm, 0, 0.80, -0.16);
-  b.box(dark, 0.22, 0.06, 0.06, 0, 0.82, -0.04);                     // visor
+  // diffuser and strakes; the exhaust in heat-blued titanium, wastegates either side
+  b.box(carbon, 1.12, 0.18, 0.46, 0, 0.18, -2.22, 0.35, 0, 0);
+  for (let k = -2; k <= 2; k++) b.box(carbon, 0.015, 0.16, 0.40, k * 0.22, 0.18, -2.22, 0.35, 0, 0);
+  b.place(gCyl(0.062, 0.07, 0.30, 12), ti, 0, 0.50, -2.28, Math.PI / 2, 0, 0);
+  b.place(gCyl(0.045, 0.045, 0.31, 10), dark, 0, 0.50, -2.28, Math.PI / 2, 0, 0);
+  for (const sx of [-1, 1]) b.place(gCyl(0.028, 0.03, 0.22, 8), ti, sx * 0.16, 0.44, -2.26, Math.PI / 2, 0, 0);
 
-  // suspension: wishbones out to each wheel
+  // halo and the driver: helmet in team colours, a stripe, a mirrored visor
+  b.place(new THREE.TorusGeometry(0.30, 0.03, 8, 22, Math.PI), carbon, 0, 0.80, -0.22, Math.PI / 2, 0, 0);
+  b.place(gCyl(0.028, 0.028, 0.34, 8), carbon, 0, 0.66, 0.15, 0.95, 0, 0);
+  b.place(new THREE.SphereGeometry(0.14, 20, 14), f1Paint(def.helmet || def.accent, 0.4), 0, 0.80, -0.16);
+  b.place(new THREE.SphereGeometry(0.142, 20, 8, 0, Math.PI * 2, Math.PI * 0.42, Math.PI * 0.16), f1Paint(def.body, 0.5), 0, 0.80, -0.16);
+  b.box(mat(0x0a0a0c, { rough: 0.05, metal: 0.9, env: 2.2 }), 0.22, 0.065, 0.06, 0, 0.82, -0.035);
+  b.box(trim, 0.03, 0.012, 0.26, 0, 0.945, -0.17);
+
+  // suspension: wishbones and push rods to every corner
   for (const sx of [-1, 1]) {
     for (const [z, y] of [[1.75, 0.34], [-1.75, 0.36]]) {
-      b.place(gCyl(0.018, 0.018, 0.58, 5), carbon, sx * 0.52, y + 0.06, z, 0, 0, Math.PI / 2 - sx * 0.12);
-      b.place(gCyl(0.018, 0.018, 0.58, 5), carbon, sx * 0.52, y - 0.08, z, 0, 0, Math.PI / 2 + sx * 0.06);
+      b.place(gCyl(0.02, 0.02, 0.58, 6), carbon, sx * 0.52, y + 0.07, z + 0.06, 0, 0, Math.PI / 2 - sx * 0.12);
+      b.place(gCyl(0.02, 0.02, 0.58, 6), carbon, sx * 0.52, y + 0.07, z - 0.08, 0, 0, Math.PI / 2 - sx * 0.12);
+      b.place(gCyl(0.02, 0.02, 0.58, 6), carbon, sx * 0.52, y - 0.08, z, 0, 0, Math.PI / 2 + sx * 0.06);
+      b.place(gCyl(0.016, 0.016, 0.50, 6), carbon, sx * 0.50, y + 0.02, z, 0, 0, Math.PI / 2 - sx * 0.55);
     }
   }
-
-  // the number on the nose
-  b.box(trim, 0.16, 0.012, 0.34, 0, 0.59, 1.15);
-
   b.build(ch);
+
+  // the DRS flap is its own part so it can open on the straights
+  const flap = new THREE.Group();
+  flap.position.set(0, 1.0, -2.30);
+  part(flap, gBox(1.02, 0.03, 0.20), acc, 0, 0, -0.09, -0.30, 0, 0);
+  ch.add(flap);
+  out.drsFlap = flap;
+
+  // decals: the title sponsor on both pods and the rear wing, numbers on nose and fin
+  for (const sx of [-1, 1]) f1Decal(ch, 'ndhlovu', 0.62, 0.23, sx * 0.795, 0.41, -0.55, 0, sx * Math.PI / 2, 0);
+  f1Decal(ch, 'ndhlovu', 0.82, 0.30, 0, 0.90, -2.302, 0, 0, 0, '#0d2a4a');
+  f1Decal(ch, 'ndhlovu', 0.82, 0.30, 0, 0.90, -2.618, 0, Math.PI, 0, '#0d2a4a');
+  f1Decal(ch, 'num:' + def.num, 0.30, 0.12, 0, 0.615, 1.30, -Math.PI / 2 + 0.12, 0, 0);
+  for (const sx of [-1, 1]) f1Decal(ch, 'num:' + def.num, 0.40, 0.16, sx * 0.012, 0.95, -1.30, 0, sx * Math.PI / 2, 0);
+
+  // thick slicks: wider fronts and a lot wider rears
   addSlicks(g, wheels, [
-    { x: 0.80, z: 1.75, r: 0.34, w: 0.34, front: true }, { x: -0.80, z: 1.75, r: 0.34, w: 0.34, front: true },
-    { x: 0.78, z: -1.75, r: 0.36, w: 0.44, front: false }, { x: -0.78, z: -1.75, r: 0.36, w: 0.44, front: false },
+    { x: 0.80, z: 1.75, r: 0.36, w: 0.40, front: true }, { x: -0.80, z: 1.75, r: 0.36, w: 0.40, front: true },
+    { x: 0.78, z: -1.75, r: 0.38, w: 0.52, front: false }, { x: -0.78, z: -1.75, r: 0.38, w: 0.52, front: false },
   ], def.stripe || 0xe8302b);
   out.length = 5.7; out.width = 2.0;
-  out.exhausts.push(new THREE.Vector3(0, 0.50, -2.40));
-  // the rain light, the one rear lamp an F1 car has
-  out.brakeLights.push(part(ch, gBox(0.10, 0.08, 0.04), emissiveMat(0xff2a12, 1.0).clone(), 0, 0.40, -2.36));
+  out.meshScale = F1_SCALE;
+  out.exhausts.push(new THREE.Vector3(0, 0.50, -2.46));
+  // the rain light and the LED strips on the endplates, all lit by braking
+  out.brakeLights.push(part(ch, gBox(0.14, 0.09, 0.04), emissiveMat(0xff2a12, 1.0).clone(), 0, 0.40, -2.36));
+  for (const sx of [-1, 1]) out.brakeLights.push(part(ch, gBox(0.012, 0.30, 0.04), emissiveMat(0xff2a12, 1.0).clone(), sx * 0.537, 0.86, -2.70));
 }
 /* ======================== §6b  PORTRAITS ===========================
    A photograph of every car for the garage and grid cards — the real
@@ -8607,6 +9157,7 @@ class Car {
     this.turret = built.turret;
     this.turretMuzzle = built.turretMuzzle;
     this.flames = built.flames;
+    this.drsFlap = built.drsFlap || null;     // SPORT MODE: the rear-wing flap that opens
     this.brakeLights = built.brakeLights || [];
     this.headLights = built.headLights || [];
     this.bodyLen = built.length;
@@ -8736,7 +9287,8 @@ class Car {
     this.si = nearestIdx(this.pos, this.si);
     const smp = sAt(this.si);
     const lat = lateralOf(this.pos, this.si);
-    const lim = smp.w - this.bodyWid * 0.35;
+    // the barrier on the side the car is on (§3b: it can stand well back)
+    const lim = (lat > 0 ? smp.wallP : smp.wallN) - CFG.wallSetback - this.bodyWid * 0.35;
     // what the tyres are on — read by the next integrate()
     this.surf = surfaceAt(this.si, lat);
     if (Math.abs(lat) > lim) {
@@ -8744,7 +9296,28 @@ class Car {
       this.pos.x -= smp.n.x * over * sg;
       this.pos.z -= smp.n.z * over * sg;
       const nv = this.vel.x * smp.n.x + this.vel.z * smp.n.z;
-      if (sgn(nv) === sg) {
+      if (sgn(nv) === sg && SPORT.on) {
+        // Grand-prix barriers: the car glances off and keeps going. Only the
+        // speed INTO the wall is taken away, the nose is turned to run along
+        // it, and a firm hit costs a little on top.
+        this.vel.x -= smp.n.x * nv * 1.05;
+        this.vel.z -= smp.n.z * nv * 1.05;
+        const impact = Math.abs(nv);
+        const along = Math.atan2(smp.t.x, smp.t.z) + (this.vel.x * smp.t.x + this.vel.z * smp.t.z < 0 ? Math.PI : 0);
+        this.yaw += angDiff(this.yaw, along) * clamp(impact * 0.04, 0.05, 0.5);
+        this.yawRate *= 0.7;
+        if (impact > 6 && this.wallCd <= 0) {
+          this.wallCd = 0.35;
+          this.vel.multiplyScalar(clamp(1 - impact * 0.006, 0.88, 0.99));
+          this.applyDamage(0, null, 'wall');
+          fxSpark(_v4.set(this.pos.x - smp.n.x * 1.2 * sg, 1.0, this.pos.z - smp.n.z * 1.2 * sg).clone(), 8 + Math.min(14, impact), 0xffd089);
+          SFX.clang(this.pos, impact / 16);
+          if (this.isPlayer) camShake(clamp(impact * 0.03, 0.08, 0.6), this.pos);
+        } else if (impact > 1.5 && Math.random() < 0.4) {
+          fxSpark(_v4.set(this.pos.x - smp.n.x * 1.2 * sg, 1.0, this.pos.z - smp.n.z * 1.2 * sg).clone(), 2, 0xffc070);
+          if (this.isPlayer && Math.random() < 0.3) SFX.scrape(this.pos, clamp(impact / 8, 0.1, 1));
+        }
+      } else if (sgn(nv) === sg) {
         this.vel.x -= smp.n.x * nv * 1.25;
         this.vel.z -= smp.n.z * nv * 1.25;
         const impact = Math.abs(nv);
@@ -8885,7 +9458,13 @@ class Car {
     let FxR = Fdrive;
     // traction control on the F1 cars: a thousand horsepower on 800 kg would
     // otherwise light up the rears off every slow corner and every start
-    if (this.spec.f1 && FxR > 0) FxR = Math.min(FxR, muR * FzR * 0.97);
+    // It leaves the rears what the corner needs: drive is capped at what is
+    // left of the friction circle after the cornering force, so a full-throttle
+    // exit tightens the line instead of pushing the car off the road.
+    if (this.spec.f1 && FxR > 0) {
+      const cap = muR * FzR;
+      FxR = Math.min(FxR, Math.sqrt(Math.max(0, cap * cap - FyR * FyR)) * 0.97 + cap * 0.04);
+    }
     let FxF = 0;
     if (brake > 0) {
       const bf = brake * P.br;
@@ -8903,7 +9482,8 @@ class Car {
     if (magR > capR) { const k = capR / magR; FxR *= k; FyR *= k; }
 
     // ---------- resistance ----------
-    const drag = this.dragK * speed * speed * sgn(vx || 1);
+    // an open DRS flap sheds a fifth of the drag (§12d)
+    const drag = this.dragK * (this.drsOpen ? 0.80 : 1) * speed * speed * sgn(vx || 1);
     const roll = P.m * 0.016 * G_ACC * sgn(vx || 1);
     // sand bogs a car down and water drags at it, harder the faster it goes;
     // faded out at a crawl so a car parked in a puddle does not twitch
@@ -9464,7 +10044,9 @@ function contactCars(A, B, H, report) {
 
   // ---- normal impulse. Restitution is low: armour plate thuds, it does not
   // bounce, and the mass ratio means the truck barely notices the coupe.
-  const j = closing * 1.22 / mt;
+  // grand-prix contact: less bounce, and wheels and wings slide off each other
+  const sport = SPORT.on;
+  const j = closing * (sport ? 1.08 : 1.22) / mt;
   A.vel.x -= nx * j * mB; A.vel.z -= nz * j * mB;
   B.vel.x += nx * j * mA; B.vel.z += nz * j * mA;
 
@@ -9472,7 +10054,8 @@ function contactCars(A, B, H, report) {
   // sliding past like ice; capped by the normal load, Coulomb style
   const tx = -nz, tz = nx;
   const vt = rvx * tx + rvz * tz;
-  const jt = clamp(vt * 0.55, -closing * 0.45, closing * 0.45) / mt;
+  const fr = sport ? 0.12 : 0.55, fc = sport ? 0.10 : 0.45;
+  const jt = clamp(vt * fr, -closing * fc, closing * fc) / mt;
   A.vel.x += tx * jt * mB; A.vel.z += tz * jt * mB;
   B.vel.x -= tx * jt * mA; B.vel.z -= tz * jt * mA;
 
@@ -9480,8 +10063,9 @@ function contactCars(A, B, H, report) {
   // divided down by how hard each car is to turn
   const crossA = rAx * nz - rAz * nx;
   const crossB = rBx * nz - rBz * nx;
-  A.yawRate += crossA * closing * 0.055 * (mB / mt) / A.izN;
-  B.yawRate -= crossB * closing * 0.055 * (mA / mt) / B.izN;
+  const tk = sport ? 0.022 : 0.055;
+  A.yawRate += crossA * closing * tk * (mB / mt) / A.izN;
+  B.yawRate -= crossB * closing * tk * (mA / mt) / B.izN;
   A.yawRate = clamp(A.yawRate, -4.5, 4.5);
   B.yawRate = clamp(B.yawRate, -4.5, 4.5);
 
@@ -10117,14 +10701,22 @@ function updateAI(car, dt, t) {
     desired = lerp(desired, ai.panel.off, blend);
   }
 
-  const look = 15 + spd * 0.58;
-  const lim = Math.min(sAt(car.si).w, sAt(idxAhead(car.si, look)).w) - 3.2;
+  // F1 cars look a little closer and keep a car's width off the white line:
+  // with no wall on the inside of a bend there is nothing else to stop the
+  // chord from cutting across the grass
+  const look = sp.f1 ? 11 + spd * 0.46 : 15 + spd * 0.58;
+  const lim = Math.min(sAt(car.si).w, sAt(idxAhead(car.si, look)).w) - (sp.f1 ? 3.2 + car.bodyWid * 0.5 : 3.2);
   desired = clamp(desired, -lim, lim);
 
   /* ---------- steer toward the aim point ---------- */
   const aim = offPos(idxAhead(car.si, look), desired, 0);
   const want = Math.atan2(aim.x - car.pos.x, aim.z - car.pos.z);
   let steer = clamp(angDiff(car.yaw, want) * 2.3 - car.yawRate * 0.34, -1, 1);
+  if (sp.f1) {
+    // drifting toward the edge anyway: lean back in before the wheels go over
+    const latNow = lateralOf(car.pos, car.si), edge = sAt(car.si).w - car.bodyWid * 0.5 - 0.8;
+    if (Math.abs(latNow) > edge) steer = clamp(steer - sgn(latNow) * (Math.abs(latNow) - edge) * 0.35, -1, 1);
+  }
 
   /* ---------- speed ---------- */
   // real tyres cap out near mu*g; slicks and downforce (gripK, aeroK) go further
@@ -10143,6 +10735,12 @@ function updateAI(car, dt, t) {
   else if (spd > targetV + 3.5) throttle = -1;
   else throttle = 0.30;
   if (car.oiled > 0) throttle = Math.min(throttle, 0.3);
+  // an F1 car feeds the throttle in on the exit instead of flooring it while
+  // the corner still wants all the grip
+  if (sp.f1 && kNow > 0.004 && throttle > 0) {
+    const r = spd / cornerV(latA, sp.aeroK, kNow);
+    throttle = Math.min(throttle, clamp((1 - r) * 4 + 0.35, 0.35, 1));
+  }
 
   /* ---------- stuck recovery ---------- */
   if (Math.abs(spd) < 3.5) ai.stuckT += dt; else ai.stuckT = 0;
@@ -10999,13 +11597,14 @@ function thrillsTick(dt) {
    SPORT MODE: grand-prix racing. Five teams, two cars each, ten on the
    grid, on grand-prix circuits. F1's rules, not the broadcast's:
 
-     - a standing start from the five red lights
+     - ten seconds on the grid revving, then five red lights (§12d)
      - no weapons, no panels, no barrels, no gantries, no Juggernaut
      - no damage: contact costs you time and position, never the car
      - nitrous is the energy store: it recharges under braking
+     - DRS on the long straights, track limits with strikes and penalties
      - one to five laps, the race is over when you take the flag
-     - points for the top ten, 25-18-15-12-10-8-6-4-2-1, and one more for
-       the fastest lap; they add up into a season on this device
+     - points for the top ten, 25-18-15-12-10-8-6-4-2-1; they add up into
+       a season on this device
 
    The grid is drawn at random for every race, so you will start in the
    pack as often as at the front.
@@ -11067,8 +11666,11 @@ function showSport() {
       '<div class="spmap"><img class="cmap" alt="" src="' + pv.url + '"><div class="tag">' + C.sub + ' &middot; ' + pv.km.toFixed(2) + ' KM &middot; ' + C.turns + ' TURNS' +
       (best ? ' &middot; BEST ' + fmtTime(best) : '') + '</div><div class="note">' + C.blurb + '</div></div></div>' +
     '<div class="grid-cards">' + SPORT_GARAGE.map((k, i) => sportCard(k, { sel: i === SPORT.car, pick: i })).join('') + '</div>' +
-    '<div class="blurb" style="margin-top:10px">Lights out and away. No damage, no weapons &mdash; contact costs you time, never the car. ' +
-      'Nitrous is your energy store and it recharges under braking. Points for the top ten, one more for the fastest lap.</div>' +
+    '<div class="blurb" style="margin-top:10px"><b>Grand-prix rules.</b> Ten seconds on the grid &mdash; hold the throttle to rev &mdash; then five red lights. ' +
+      'Get away on the right revs or bog it. No damage, no weapons: contact costs time, never the car. ' +
+      '<b>DRS</b>: within a second of the car ahead at the detection point and you can open the wing on the straight (<kbd>E</kbd>). ' +
+      '<b>Track limits</b>: all four wheels past the white line is a strike and deletes the lap; three is the black-and-white flag, ' +
+      'every one after is a 5-second penalty. Nitrous is the battery and charges under braking. Points 25-18-15-12-10-8-6-4-2-1.</div>' +
     mpButtons([['spgo', 'START'], ['spback', 'BACK']]) +
     '<div class="cta" data-nav="spgo">&#9650;&#9660; row &middot; &#9664; &#9654; change &middot; ENTER start &middot; <kbd>ESC</kbd> back</div>'
   );
@@ -11123,7 +11725,7 @@ function sportStart() {
     const s = car.spec;
     car.driver = s.drivers[e.d];
     if (!isP) car.pname = null;
-    car.placeAt(idxAhead(0, -(12 + k * 8)), (k % 2 ? -1 : 1) * 3.0);
+    car.placeAt(idxAhead(0, -(14 + k * 10)), (k % 2 ? -1 : 1) * 4.2);
     car.lives = 1; car.maxLives = 1;
     car.nosEff = s.nosEff || 1;
     car.lapAt = 0; car.bestLap = 0; car.lastLapN = 0;
@@ -11143,10 +11745,12 @@ function sportStart() {
   updateRanks();
   G.bossKill = false; G.pay = null;
   G.state = 'countdown';
-  G.cd = 4.2;
+  G.cd = 10.05;
+  G.lastCd = null;
+  f1StartPrep();
   hideScreen();
   ghostSetup();
-  setTimeout(() => { if (SPORT.on && G.state === 'countdown') hint('STARTING <b>P' + SPORT.gridPos + '</b> OF 10', 3); }, 300);
+  setTimeout(() => { if (SPORT.on && G.state === 'countdown') hint('STARTING <b>P' + SPORT.gridPos + '</b> OF 10 &middot; HOLD THE THROTTLE TO REV', 4); }, 300);
 }
 
 function sportLeave() {
@@ -11163,7 +11767,7 @@ function sportTick(dt) {
     if (c.lapCount !== c.lastLapN) {
       if (c.lapCount > c.lastLapN && c.lapAt > 0 && c.lastLapN >= 1) {
         const t = G.raceT - c.lapAt;
-        if (t > 15) {
+        if (t > 15 && !c.lapBad) {
           if (!c.bestLap || t < c.bestLap) c.bestLap = t;
           if (!SPORT.fast.t || t < SPORT.fast.t) {
             SPORT.fast = { t: t, car: c };
@@ -11173,8 +11777,10 @@ function sportTick(dt) {
       }
       c.lastLapN = c.lapCount;
       c.lapAt = G.raceT;
+      c.lapBad = false;                       // a new lap starts clean
     }
   }
+  f1RaceTick(dt);
   SPORT.towerT -= dt;
   if (SPORT.towerT <= 0) { SPORT.towerT = 0.25; sportTower(); }
 }
@@ -11214,14 +11820,17 @@ function sportResult() {
   // they would have taken at the pace they were doing
   const L = TRACK.length, end = G.laps + 1;
   for (const c of G.cars) {
-    if (c.finished) { c.classT = c.finishTime; continue; }
-    const v = Math.max(15, (c.progress * L) / Math.max(1, G.raceT));
-    c.classT = G.raceT + Math.max(0, (end - c.progress) * L) / v;
+    if (c.finished) c.classT = c.finishTime;
+    else {
+      const v = Math.max(15, (c.progress * L) / Math.max(1, G.raceT));
+      c.classT = G.raceT + Math.max(0, (end - c.progress) * L) / v;
+    }
+    c.classT += c.penalty || 0;               // time penalties go on race time
   }
   const order = G.cars.slice().sort((a, b) => (b.finished - a.finished) || (a.classT - b.classT));
   const win = order[0];
   const pos = order.indexOf(p) + 1;
-  const pts = (F1_POINTS[pos - 1] || 0) + (SPORT.fast.car === p ? 1 : 0);
+  const pts = F1_POINTS[pos - 1] || 0;      // no fastest-lap point since 2025
   if (!G.pay) {
     const S = sportRec();
     S.races++; S.points += pts;
@@ -11236,13 +11845,15 @@ function sportResult() {
   let rows = '';
   const names = [];
   order.forEach((c, i) => {
-    const pt = (F1_POINTS[i] || 0) + (SPORT.fast.car === c ? 1 : 0);
-    const t = i === 0 ? fmtTime(c.classT) : '+' + (c.classT - win.classT).toFixed(3);
+    const pt = F1_POINTS[i] || 0;
+    // a car a lap or more down is lapped, not given a time
+    const down = Math.floor(win.progress - c.progress + (c.finished ? 0 : 0.02));
+    const t = i === 0 ? fmtTime(c.classT) : (down >= 1 && !c.finished ? '+' + down + ' LAP' + (down > 1 ? 'S' : '') : '+' + (c.classT - win.classT).toFixed(3));
     names.push(c.isPlayer ? (CAREER.name || 'YOU') : c.driver);
     rows += '<div class="srow' + (c.isPlayer ? ' me' : '') + '" style="border-left-color:' + hexCss(c.spec.accent === 0x111214 ? c.spec.body : c.spec.accent) + '">' +
       '<div class="n">' + (i + 1) + '</div><div class="who"><b class="pn"></b> &nbsp;<span style="opacity:.55">' + c.spec.car + '</span>' +
       (SPORT.fast.car === c ? ' &nbsp;<span style="color:#c86bff">FASTEST LAP ' + fmtTime(SPORT.fast.t) + '</span>' : '') + '</div>' +
-      '<div class="st">' + t + (c.finished ? '' : ' &middot; EST') + '</div><div class="q in">' + (pt ? pt + ' PTS' : '') + '</div></div>';
+      '<div class="st">' + t + (c.finished ? '' : ' &middot; EST') + (c.penalty ? ' &middot; <span style="color:#ff8478">+' + c.penalty + 'S PEN</span>' : '') + '</div><div class="q in">' + (pt ? pt + ' PTS' : '') + '</div></div>';
   });
   const S = sportRec();
   showScreen(
@@ -11289,6 +11900,217 @@ function sportNav(a) {
   }
   return false;
 }
+/* ========================= §12d  F1 RULES ==========================
+   How a grand prix actually runs, as far as a ten-car, five-lap race can
+   carry it (FIA Sporting Regulations, 2025 season):
+
+   THE START. The cars sit on the grid with the engines running while the
+   clock counts down — ten seconds here, and you can rev it. Then five red
+   lights come on, one a second, and after a random hold of up to a second
+   they all go out together. That is the start. Your launch depends on the
+   revs you were holding when the lights went: in the sweet spot you get
+   away clean, bog it and you crawl, bounce it off the limiter and the rears
+   light up.
+
+   DRS. On the long straights there is a detection point and an activation
+   zone. Cross the detection point within one second of the car in front and
+   you may open the rear-wing flap in the zone (E, or automatic on touch):
+   less drag, more top speed. It closes when you brake or the zone ends,
+   and it is not available on the opening lap.
+
+   TRACK LIMITS. The white line is the edge of the circuit; the kerb is a
+   courtesy. All four wheels past it is a strike. Three strikes and the
+   black-and-white flag comes out; every one after that is a five-second
+   time penalty. A lap with a strike in it has its time deleted — it will
+   not count as your best, your ghost or the fastest lap.
+
+   POINTS. 25-18-15-12-10-8-6-4-2-1 for the top ten. There has been no
+   point for the fastest lap since 2025; it is still announced, and the
+   broadcast still pays for it.
+
+   CLASSIFICATION. Time penalties are added to race time. A car a lap or
+   more down is shown as lapped rather than given a time gap.
+   ================================================================== */
+const F1R = { zones: [], hold: 0, lightsOut: false, lit: -1 };
+
+/* ------------------------------ DRS zones --------------------------- */
+function drsZones() {
+  const N = TRACK.N, S = TRACK.S, out = [];
+  const straight = (i) => Math.abs(sAt(i).k) < 0.0012;
+  // find the runs of straight road, starting the search on a bend
+  let st = 0;
+  while (st < N && straight(st)) st++;
+  let run = null;
+  const runs = [];
+  for (let k = 1; k <= N; k++) {
+    const i = (st + k) % N;
+    if (straight(i)) { if (!run) run = { a: i, n: 0 }; run.n++; }
+    else if (run) { runs.push(run); run = null; }
+  }
+  if (run) runs.push(run);
+  runs.sort((p, q) => q.n - p.n);
+  for (const r of runs.slice(0, 2)) {
+    const len = r.n * TRACK.step;
+    if (len < 380) continue;
+    const a = (r.a + Math.round(110 / TRACK.step)) % N;
+    const b = (r.a + r.n - Math.round(70 / TRACK.step)) % N;
+    const det = ((r.a - Math.round(90 / TRACK.step)) % N + N) % N;
+    out.push({ a: a, b: b, det: det, len: len });
+  }
+  return out;
+}
+const inSpan = (i, a, b) => (a <= b ? i >= a && i <= b : i >= a || i <= b);
+
+/* ------------------------------ the start --------------------------- */
+function f1StartPrep() {
+  F1R.zones = drsZones();
+  F1R.hold = rand(0.2, 1.0);
+  F1R.lightsOut = false;
+  F1R.lit = -1;
+  for (const c of G.cars) {
+    c.revT = 0; c.blipT = 0; c.drsOk = false; c.drsOpen = false; c.drsZone = -1; c.drsFlapA = 0;
+    c.strikes = 0; c.penalty = 0; c.offTrack = false; c.lapBad = false;
+  }
+  setF1Lights(0);
+}
+
+function setF1Lights(n) {
+  for (let i = 0; i < WORLD.lights.length; i++) WORLD.lights[i].material.color.setHex(i < n ? 0xff2020 : 0x2a0c0c);
+}
+
+/* the player is holding the throttle? keyboard, pad or the touch pedal */
+function f1RevInput() {
+  return (KEYS['w'] || KEYS['ArrowUp'] || (PAD.on && PAD.throttle > 0.3)) ? 1 : 0;
+}
+
+/* runs in place of the usual countdown while a sport race lines up */
+function f1Countdown(dt) {
+  G.cd -= dt;
+  // the clock: ten seconds of revving, then a light a second
+  const n = G.cd > 5 ? 0 : clamp(6 - Math.ceil(G.cd), 1, 5);
+  const sec = Math.ceil(G.cd);
+  if (G.cd > 5 && sec !== G.lastCd) {
+    G.lastCd = sec;
+    announce(String(Math.min(10, sec)), sec >= 10 ? 'HOLD THE THROTTLE &middot; REV IT UP' : '');
+    SFX.beep(false);
+  }
+  if (n !== F1R.lit && G.cd <= 5) {
+    F1R.lit = n;
+    setF1Lights(n);
+    SFX.tone(440, 0.18, 'square', 0.12);
+    if (n === 5) hint('FIVE RED LIGHTS &mdash; <b>WAIT FOR LIGHTS OUT</b>', 2);
+  }
+
+  // every engine revving on the grid, the cars held on the brakes
+  for (const c of G.cars) {
+    if (c.remote) continue;
+    let want;
+    if (c.isPlayer) want = G.paused ? 0 : f1RevInput();
+    else {
+      c.blipT -= dt;
+      if (c.blipT <= 0 && Math.random() < dt * 2.2) c.blipT = rand(0.12, 0.45);
+      // in the lights everybody holds launch revs
+      want = G.cd < 5 ? 0.62 + Math.sin(G.time * 9 + c.spec.num) * 0.04 : (c.blipT > 0 ? 1 : 0.12);
+    }
+    c.input.throttle = 0; c.input.steer = 0;
+    c.vel.multiplyScalar(0.85); c.yawRate *= 0.85;
+    c.step(dt);
+    c.revT += (want - c.revT) * damp(want > c.revT ? 7 : 4, dt);
+    c.rpm = c.P.idle + (c.P.redline * 0.92 - c.P.idle) * c.revT;
+    c.load = want;
+    c.gear = 0;
+  }
+  updateCamera(dt);
+  updateParticles(dt);
+  updateWorld(dt);
+  updateHUD(dt);
+  SFX.drive(G.player.telemetry());
+  SFX.field(G.cars, G.player);
+
+  if (G.cd <= -F1R.hold) {
+    // lights out and away we go
+    setF1Lights(0);
+    F1R.lightsOut = true;
+    G.state = 'racing';
+    G.lapStart = 0;
+    for (const c of G.cars) f1Launch(c);
+    announce('LIGHTS OUT', 'AND AWAY WE GO');
+    SFX.beep(true);
+  }
+}
+
+/* the getaway, from the revs held at the moment the lights went out */
+function f1Launch(c) {
+  const r = c.revT, f = c.forward(_v1);
+  let shove = 0, msg = null;
+  if (r >= 0.50 && r <= 0.86) { shove = 7.5; msg = 'PERFECT START'; }
+  else if (r > 0.86) { shove = 2.5; msg = 'WHEELSPIN &mdash; TOO MANY REVS'; c.wheelSpin = 1.2; }
+  else if (r >= 0.25) { shove = 4; msg = 'DECENT START'; }
+  else { shove = 0; msg = 'BOGGED DOWN &mdash; NOT ENOUGH REVS'; }
+  if (!c.isPlayer) shove = rand(3.5, 7.5);
+  c.vel.x += f.x * shove; c.vel.z += f.z * shove;
+  if (c.isPlayer) hint('<b>' + msg + '</b>', 2.4);
+}
+
+/* ------------------------------ during the race --------------------- */
+function f1RaceTick(dt) {
+  const zones = F1R.zones;
+  for (const c of G.cars) {
+    if (c.remote || !c.alive) continue;
+    // track limits: all four wheels past the white line
+    const s = sAt(c.si);
+    const off = Math.abs(lateralOf(c.pos, c.si)) - c.bodyWid * 0.5 > s.w + 0.35;
+    if (off && !c.offTrack && G.state === 'racing' && c.lapCount >= 1 && !c.finished) {
+      c.strikes++;
+      c.lapBad = true;
+      if (c.strikes >= 4) c.penalty += 5;
+      if (c.isPlayer) {
+        if (c.strikes < 3) hint('TRACK LIMITS &mdash; WARNING <b>' + c.strikes + '</b> &middot; LAP TIME DELETED', 2.6);
+        else if (c.strikes === 3) { hint('<b>BLACK AND WHITE FLAG</b> &mdash; ONE MORE AND IT IS A PENALTY', 3); feed('BLACK AND WHITE FLAG &middot; <b>TRACK LIMITS</b>', '#ffffff'); }
+        else { announce('5 SECOND PENALTY', 'TRACK LIMITS &middot; ' + c.penalty + ' S IN TOTAL'); feed('<b>+5 S</b> TIME PENALTY &middot; TRACK LIMITS', '#ff6b5e'); }
+      }
+    }
+    c.offTrack = off;
+
+    // DRS: detection, activation, the flap
+    for (let z = 0; z < zones.length; z++) {
+      const Z = zones[z];
+      if (c.si === Z.det || (c.lastSi !== undefined && inSpan(Z.det, c.lastSi, c.si) && c.si !== c.lastSi)) {
+        const ahead = G.cars.find((o) => o.rank === c.rank - 1);
+        c.drsOk = c.lapCount >= 2 && !!ahead && sportGap(c, ahead) < 1.0;
+        c.drsZone = z;
+        if (c.isPlayer && c.drsOk) hint('DRS AVAILABLE &mdash; <b>' + (TOUCH.on ? 'OPENS ITSELF' : 'PRESS E') + '</b> IN THE ZONE', 2);
+      }
+    }
+    const Z = zones[c.drsZone];
+    const inZone = Z && inSpan(c.si, Z.a, Z.b);
+    if (!inZone || c.input.throttle < 0) {
+      if (c.drsOpen && c.isPlayer) hint('DRS CLOSED', 0.8);
+      c.drsOpen = false;
+      if (Z && !inZone && c.lastIn) c.drsOk = false;
+    } else if (c.drsOk && !c.drsOpen) {
+      const ask = c.isPlayer ? (KEYS['e'] || TOUCH.on) : c.input.throttle > 0.9;
+      if (ask) { c.drsOpen = true; if (c.isPlayer) SFX.tone(1300, 0.08, 'square', 0.06); }
+    }
+    c.lastIn = inZone;
+    c.lastSi = c.si;
+    c.drsFlapA += ((c.drsOpen ? 0.85 : 0) - c.drsFlapA) * damp(10, dt);
+    if (c.drsFlap) c.drsFlap.rotation.x = c.drsFlapA;
+  }
+  f1Hud();
+}
+
+function f1Hud() {
+  if (!SPORT.drsEl) {
+    SPORT.drsEl = document.createElement('div');
+    SPORT.drsEl.id = 'drsBox';
+    HUD.hud.appendChild(SPORT.drsEl);
+  }
+  const p = G.player, Z = F1R.zones[p.drsZone];
+  const inZone = Z && inSpan(p.si, Z.a, Z.b);
+  SPORT.drsEl.className = p.drsOpen ? 'open' : (p.drsOk && inZone ? 'ready' : (p.drsOk ? 'armed' : ''));
+  SPORT.drsEl.innerHTML = '<b>DRS</b>' + (p.strikes ? '<span>LIMITS ' + Math.min(p.strikes, 3) + '/3' + (p.penalty ? ' &middot; +' + p.penalty + 'S' : '') + '</span>' : '');
+}
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
    drift swings the frame instead of welding it to the bumper. Speed pushes
@@ -11305,6 +12127,15 @@ const CAM_MODES = [
   { dist: 7.4, height: 3.1, fov: 72, name: 'CLOSE' },
   { dist: 0.2, height: 1.55, fov: 78, name: 'HOOD' },
 ];
+
+/* SPORT MODE sits closer to a bigger car: low and tight behind the gearbox,
+   the way a broadcast chase camera frames an F1 car */
+const SPORT_CAMS = [
+  { dist: 8.2, height: 2.35, fov: 64, name: 'CHASE' },
+  { dist: 6.0, height: 1.85, fov: 70, name: 'CLOSE' },
+  { dist: 0.9, height: 1.62, fov: 80, name: 'COCKPIT' },
+];
+function camModes() { return SPORT.on ? SPORT_CAMS : CAM_MODES; }
 
 function camShake(power, pos) {
   let p = power;
@@ -11324,7 +12155,7 @@ function camKick(back, up) {
 }
 
 function resetCamera(car) {
-  const M = CAM_MODES[CAM.mode];
+  const M = camModes()[CAM.mode];
   CAM.yaw = car.yaw;
   CAM.pos.set(car.pos.x - Math.sin(car.yaw) * M.dist, M.height, car.pos.z - Math.cos(car.yaw) * M.dist);
   CAM.look.copy(car.pos);
@@ -11336,7 +12167,7 @@ function resetCamera(car) {
 
 function updateCamera(dt) {
   const p = G.player;
-  const C = CFG.cam, M = CAM_MODES[CAM.mode];
+  const C = CFG.cam, M = camModes()[CAM.mode];
   const spd = Math.max(0, p.speed);
   const sf = clamp(spd / p.spec.topSpeed, 0, 1);
   const braking = p.input.throttle < 0 && spd > 6;
@@ -11349,17 +12180,19 @@ function updateCamera(dt) {
   }
   CAM.yaw += angDiff(CAM.yaw, yawTarget) * damp(C.yawLag + sf * 3.0, dt);
 
-  const wantDist = M.dist + sf * C.distSpeed * (braking ? 0.25 : 1) + CAM.kickBack * 1.6;
+  // SPORT keeps the camera tight on the car at any speed
+  const wantDist = M.dist + sf * C.distSpeed * (braking ? 0.25 : 1) * (SPORT.on ? 0.3 : 1) + CAM.kickBack * 1.6;
   CAM.dist += (wantDist - CAM.dist) * damp(braking ? 9 : 3.4, dt);
   const wantH = M.height + sf * C.heightSpeed + CAM.kickUp * 0.8;
 
   if (CAM.mode === 2) {
     // bumper cam rides the body
-    p.worldPoint(_v1.set(0, M.height, p.bodyLen * 0.28), CAM.pos);
+    // the F1 cockpit camera sits on the roll hoop, over the driver's head
+    p.worldPoint(_v1.set(0, M.height, p.bodyLen * (SPORT.on ? -0.03 : 0.28)), CAM.pos);
     CAM.yaw = p.yaw;
   } else {
     _v1.set(p.pos.x - Math.sin(CAM.yaw) * CAM.dist, wantH, p.pos.z - Math.cos(CAM.yaw) * CAM.dist);
-    CAM.pos.lerp(_v1, damp(C.posLag, dt));
+    CAM.pos.lerp(_v1, damp(C.posLag * (SPORT.on ? 2.6 : 1), dt));
 
     // never let geometry sit between car and camera
     const from = _v2.set(p.pos.x, 1.5, p.pos.z);
@@ -11892,7 +12725,7 @@ function payday(p, opts) {
   const kills = Math.max(0, (p.kills | 0) - (opts.killsAtStart | 0));
   if (kills) lines.push([kills + ' KILL' + (kills > 1 ? 'S' : ''), kills * 350]);
   const drift = Math.round(((p.driftScore || 0) + (p.driftBank || 0)) / 8);
-  if (drift > 0) lines.push(['DRIFTING', drift]);
+  if (drift > 0 && !SPORT.on) lines.push(['DRIFTING', drift]);     // grand prix pays for results, not style
   if (opts.bossKill) lines.push(['THE JUGGERNAUT', 3000]);
   const combo = Math.round((THR.comboPts || 0) / 10);
   if (combo > 0) lines.push(['COMBOS &middot; BEST x' + (THR.bestMult || 1), combo]);
@@ -13542,8 +14375,8 @@ const PAUSE = {
     { kind:'go', label:'RESUME', go: () => togglePause(false) },
     { kind:'sep' },
     { kind:'opt', label:'CAMERA',
-      get: () => CAM_MODES[CAM.mode].name,
-      step: (d) => { CAM.mode = (CAM.mode + d + CAM_MODES.length) % CAM_MODES.length; } },
+      get: () => camModes()[CAM.mode].name,
+      step: (d) => { CAM.mode = (CAM.mode + d + camModes().length) % camModes().length; } },
     { kind:'opt', label:'REAR VIEW MIRROR',
       get: () => MIRROR.on ? 'ON' : 'OFF',
       step: () => { MIRROR.on = !MIRROR.on; } },
@@ -13815,8 +14648,8 @@ function initInput() {
     if (k === 'r' && G.state === 'racing' && SPORT.on) sportStart();
     else if (k === 'r' && G.state === 'racing' && !MP.on && !DAILY.on) startRound(G.round);
     if (k === 'c' && G.state === 'racing') {
-      CAM.mode = (CAM.mode + 1) % CAM_MODES.length;
-      hint('CAMERA &mdash; <b>' + CAM_MODES[CAM.mode].name + '</b>', 1.4);
+      CAM.mode = (CAM.mode + 1) % camModes().length;
+      hint('CAMERA &mdash; <b>' + camModes()[CAM.mode].name + '</b>', 1.4);
     }
     if (k === 'v') {
       MIRROR.on = !MIRROR.on;
@@ -14762,6 +15595,7 @@ function tick(dt) {
     return;
   }
 
+  if (G.state === 'countdown' && SPORT.on) { f1Countdown(dt); return; }
   if (G.state === 'countdown') {
     G.cd -= dt;
     const n = Math.ceil(G.cd - 0.2);
@@ -14840,7 +15674,9 @@ function tick(dt) {
       G.lastLap = G.raceT - G.lapStart;
       // a lap under 15s means the counter jumped, not a fast lap
       let best = false;
-      if (G.lastLap > 15) {
+      const deleted = SPORT.on && G.player.lapBad;
+      if (deleted) feed('LAP TIME DELETED &middot; <b>TRACK LIMITS</b>', '#ff8478');
+      if (G.lastLap > 15 && !deleted) {
         best = !G.bestLap || G.lastLap < G.bestLap;
         if (best) {
           G.bestLap = G.lastLap;
@@ -14850,7 +15686,7 @@ function tick(dt) {
         }
         medalCheck(G.circuit, G.lastLap);
       }
-      ghostLap(G.lastLap, best);                  // keeps the recording if it was the best
+      ghostLap(G.lastLap, best && !deleted);      // keeps the recording if it was the best
       if (best) LB.submitLap(G.circuit, G.bestLap, G.player.key, GHOST.lastEnc);
     }
     G.lastLapCount = G.player.lapCount;
