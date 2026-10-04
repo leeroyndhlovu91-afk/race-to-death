@@ -85,10 +85,54 @@ canvas#gl{position:fixed;inset:0;display:block;width:100%;height:100%}
 #dial{display:block;filter:drop-shadow(0 4px 18px rgba(0,0,0,.6))}
 
 /* ---------- centre ---------- */
-#driftPop{bottom:176px;left:22px;font:400 25px/1 var(--title);letter-spacing:.07em;
+#driftPop{bottom:258px;left:22px;font:400 25px/1 var(--title);letter-spacing:.07em;
   color:#9fd8ff;opacity:0;transition:opacity .14s;text-shadow:0 2px 14px rgba(0,0,0,.85)}
 #driftPop.on{opacity:1}
 #driftPop b{color:#fff;font-weight:400}
+
+/* ---------- combo chain (§12b) ---------- */
+#combo{bottom:292px;left:22px;opacity:0;transition:opacity .15s;text-shadow:0 2px 14px rgba(0,0,0,.85)}
+#combo.on{opacity:1}
+#combo .cm{font:400 30px/1 var(--title);letter-spacing:.06em;color:#ffd27a}
+#combo .cm b{font-weight:400;color:#fff;font-size:40px}
+#combo .cp{font-size:11px;letter-spacing:.2em;opacity:.8;margin-top:2px}
+#combo i{display:block;height:3px;margin-top:5px;background:#ffd27a;width:0;transition:width .1s linear;
+  box-shadow:0 0 12px rgba(255,200,90,.6)}
+#combo.kick{animation:ckick .32s ease-out}
+@keyframes ckick{0%{transform:scale(1.35)}100%{transform:scale(1)}}
+#comboPop{top:30%;left:50%;transform:translateX(-50%);text-align:center;width:520px}
+.cpi{font:400 24px/1.1 var(--title);letter-spacing:.07em;color:#ece7dc;
+  text-shadow:0 3px 18px rgba(0,0,0,.9);animation:cpop 1.5s ease-out forwards}
+.cpi b{color:#ffd27a;font-weight:400}
+.cpi.up{color:#fff;font-size:30px}
+@keyframes cpop{0%{opacity:0;transform:translateY(10px) scale(1.25)}12%{opacity:1;transform:none}
+  70%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+
+/* ---------- ghost gap ---------- */
+#ghostDelta{top:124px;left:22px;font:400 26px/1 var(--title);letter-spacing:.05em;opacity:0;
+  transition:opacity .2s;text-shadow:0 2px 12px rgba(0,0,0,.85)}
+#ghostDelta span{display:block;font:11px/1.4 var(--mono,inherit);letter-spacing:.2em;color:#8fd8ff;opacity:.8}
+#ghostDelta.on{opacity:1}
+#ghostDelta.ahead{color:#8fe89b}
+#ghostDelta.behind{color:#ff8478}
+
+/* ---------- kill cam ---------- */
+#kcBars{position:absolute;inset:0;pointer-events:none;display:none;z-index:30}
+body.killcam #kcBars{display:block}
+#kcBars .kt,#kcBars .kb{position:absolute;left:0;right:0;height:11%;background:#000;animation:kcin .35s ease-out}
+#kcBars .kt{top:0}
+#kcBars .kb{bottom:0;display:flex;align-items:center;justify-content:space-between;padding:0 4%}
+#kcBars .kb span{font:400 30px/1 var(--title);letter-spacing:.2em;color:#e2222c}
+#kcBars .kb em{font-style:normal;font-size:10px;letter-spacing:.3em;opacity:.55}
+@keyframes kcin{from{transform:scaleY(0)}}
+
+/* ---------- medals, daily ---------- */
+.medals{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:9.5px;letter-spacing:.14em;margin:6px 0 2px}
+.medals .md{opacity:.42}
+.medals .md.got{opacity:1;color:var(--mc)}
+.dbig{font:400 46px/1 var(--title);letter-spacing:.05em;text-align:center;color:#ffd27a;margin-top:6px}
+.pay .nx .nxb{display:block;height:4px;margin:5px auto 0;max-width:260px;background:rgba(236,231,220,.12)}
+.pay .nx .nxb b{display:block;height:100%;background:#8fe89b}
 #crosshair{top:50%;left:50%;width:34px;height:34px;margin:-17px 0 0 -17px;opacity:0;
   transition:opacity .15s}
 #crosshair::before,#crosshair::after{content:"";position:absolute;background:rgba(236,231,220,.85)}
@@ -328,6 +372,10 @@ body.touch #announce .small{font-size:8.5px;letter-spacing:.24em}
 body.touch #hint{bottom:auto;top:68%;font-size:9px;letter-spacing:.14em;width:calc(60 * var(--vw))}
 body.touch #bosshp{top:96px;width:calc(60 * var(--vw))}
 body.touch #driftPop{bottom:auto;top:58%;left:50%;transform:translateX(-50%);font-size:18px}
+body.touch #combo{bottom:auto;top:44%;left:50%;transform:translateX(-50%);text-align:center}
+body.touch #combo .cm{font-size:20px}body.touch #combo .cm b{font-size:26px}
+body.touch #comboPop{top:24%;width:60vw}body.touch .cpi{font-size:16px}body.touch .cpi.up{font-size:19px}
+body.touch #ghostDelta{top:56px;left:auto;right:calc(30 * var(--vw));font-size:16px}
 
 /* ---------- menus on a phone ---------- */
 body.touch .sc h1{font-size:46px}
@@ -602,7 +650,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.4.0 · 2026-10-04 08:30 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.5.0 · 2026-10-04 09:27 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -613,7 +661,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.4.0   (built 2026-10-04 08:30)
+   RACE TO DEATH  v3.5.0   (built 2026-10-04 09:27)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -638,7 +686,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.4.0',
+  version: '3.5.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -3757,6 +3805,7 @@ function spawnP(pos, vel, opt) {
   p.stretch = !!opt.stretch;
   p.col0 = opt.color === undefined ? 0xffaa33 : opt.color;
   p.col1 = opt.color1;
+  p.soft = opt.tex === 'smoke';
   mm.map = opt.tex === 'smoke' ? TEX.smoke : opt.tex === 'spark' ? TEX.spark : TEX.glow;
   mm.blending = opt.blend === 'normal' ? THREE.NormalBlending : THREE.AdditiveBlending;
   mm.color.copy(SRGB(p.col0));
@@ -3790,6 +3839,11 @@ function updateParticles(dt) {
     } else {
       p.mesh.scale.setScalar(s);
     }
+    // A camera-facing quad that dips into the road is cut off along a hard
+    // straight line: tyre smoke growing to 6 m from 0.25 m up was drawing grey
+    // rectangles on the tarmac. Keep a puff's centre at least 0.4 of its size
+    // up, where only its already-transparent rim can reach the ground.
+    if (p.soft && p.mesh.position.y < s * 0.4) p.mesh.position.y = s * 0.4;
     if (p.spin) { p.rot += p.spin * dt; p.mesh.rotateZ(p.rot); }
     if (p.col1 !== undefined) {
       _pc0.copy(SRGB(p.col0)); _pc1.copy(SRGB(p.col1));
@@ -4252,7 +4306,11 @@ const CIRCUITS = [
     barrels: [0.4, 1.3, 2.3, 3.2, 4.2, 5.2, 6.2, 7.5, 9.2, 10.2, 11.2, 12.2, 13.2, 14.2, 15.1],
     pit: [-220, 240],
     mood: {
-      sun: [-0.74, 0.16, -0.65], sunCol: 0xffa878, sunI: 6.8,
+      // The sun was 9 degrees up (y 0.16), lower than any other circuit. Every
+      // shadow ran six times its height across the tarmac, and the 40 m tails and
+      // jumbos laid long smeared blobs over the road; the shadow map stretched six
+      // times along the light as well, so their edges went blocky. 22 degrees.
+      sun: [-0.74, 0.40, -0.65], sunCol: 0xffa878, sunI: 6.8,
       skyHi: 0x27365e, skyLo: 0xe0a384, haze: 0xdca890, fog: 0.00068,
       hemiSky: 0x2b3a66, hemiGnd: 0x9a7a60, hemiI: 0.74, bounce: 0xffb090, bounceI: 0.30,
       ground: 0xa39680, shoulder: 0xa89a84, dust: 0xd8c0a0,
@@ -4950,12 +5008,18 @@ function buildGround(C) {
    Black Gold calls it without, and gets exactly what it always had. */
 function addDunes(tint, n, soft) {
   const duneMat = mat(tint, { rough: 1, metal: 0, env: 0.5, flat: !soft });
+  // Black Gold is built round the origin. The newer circuits are not: the
+  // Boneyard's lap is centred 900 m away from it, so a ring round the origin
+  // stood dunes right on the tarmac — the pale wedge beside the road. They
+  // ring the lap itself now, far enough out that a whole footprint clears it.
+  const L = soft ? lapCentre() : { x: 0, z: 0, r: 0 };
   for (let i = 0; i < (n || 46); i++) {
     const a = (i / (n || 46)) * TAU + rand(-0.05, 0.05);
-    const r = rand(1500, 2600);
     const h = soft ? rand(28, 95) : rand(50, 190);
-    const d = new THREE.Mesh(CYL(0, soft ? rand(320, 700) : rand(220, 520), h, soft ? 12 : 7), duneMat);
-    d.position.set(Math.cos(a) * r, h * 0.42 - 20, Math.sin(a) * r);
+    const rad = soft ? rand(320, 700) : rand(220, 520);
+    const r = soft ? L.r + rad + rand(250, 1100) : rand(1500, 2600);
+    const d = new THREE.Mesh(CYL(0, rad, h, soft ? 12 : 7), duneMat);
+    d.position.set(L.x + Math.cos(a) * r, h * 0.42 - 20, L.z + Math.sin(a) * r);
     d.rotation.y = rand(0, TAU);
     vAdd(d);
   }
@@ -8784,7 +8848,10 @@ class Car {
     if ((by && by.isPlayer) || this.isBoss || this.isPlayer) slowmo(this.isBoss ? 1.2 : 0.55);
     fxDebris(at, this.isBoss ? 26 : 14, this.spec.body);
     camShake(this.isBoss ? 1.6 : 0.9, at);
-    if (this.isBoss) {
+    // your own kill on the tanker gets the replay; the replay sets the rest off
+    const cam = this.isBoss && kcWanted(by);
+    if (cam) KC.pending = this;
+    if (this.isBoss && !cam) {
       for (let k = 1; k <= 5; k++) setTimeout(() => {
         if (!scene) return;
         const p = this.worldPoint(_v3.set(rand(-2, 2), 1.5, rand(-8, 8))).clone();
@@ -8796,6 +8863,8 @@ class Car {
     // the crash site — respawn puts the car back here, not at the back
     this.wreck = { si: this.si, lat: lateralOf(this.pos, this.si), lap: this.lapCount };
     if (by && by !== this && !by.remote) by.kills++;
+    if (by && by.isPlayer && by !== this) thrillKill(this);
+    if (this.isPlayer) { comboBreak(true); if (by && by !== this) grudgeOn(by); }
     this.wrecks++;
     this.lives--;
     mpWrecked(this, by, cause);
@@ -8836,6 +8905,7 @@ function flipVehicle(target, by) {
   } else if (by && by.isPlayer) {
     slowmo(0.4);
     announce('FLIPPED THEM', target.name);
+    thrillFlip(target);
   }
   feed((by ? by.name : 'THE WEDGE') + ' &nbsp;&#9656;&nbsp; <b>' + target.name + '</b> &nbsp;FLIPPED', '#c8ccd2');
 }
@@ -8931,6 +9001,7 @@ function contactCars(A, B, H, report) {
   const vn = rvx * nx + rvz * nz;
   if (vn >= 0) return;                              // already pulling apart
   const closing = -vn;
+  A.touchT = B.touchT = G.time;                     // a touch is not a near miss
 
   // ---- normal impulse. Restitution is low: armour plate thuds, it does not
   // bounce, and the mass ratio means the truck barely notices the coupe.
@@ -9916,6 +9987,542 @@ function updateTraps(dt, t) {
     }
   }
 }
+/* ========================= §12b  THRILLS ===========================
+   What makes the next corner worth it:
+
+     COMBO     drifts, near misses, flips and kills chain into a multiplier
+               (x2 after two, up to x5). The chain lives four seconds past
+               the last thing you did, a drift in progress holds it open,
+               and getting wrecked breaks it. Every link tops up nitrous.
+     GRUDGES   whoever wrecks you is marked REVENGE. Taking them out pays
+               the kill twice. In single player the last car to wreck you is
+               your nemesis, and it is marked again the next time it lines up.
+     GHOST     a see-through replay of your best lap (or the fastest friend's
+               on the leaderboard), with the gap to it on the HUD.
+     MEDALS    bronze, silver and gold lap times per circuit, paid once each.
+     KILL CAM  wreck the Juggernaut yourself and the last moments replay
+               slowly from the side before the race goes on.
+   ================================================================== */
+
+/* the tallies one race keeps, read by payday */
+const THR = {};
+function thrillsReset() {
+  THR.comboPts = 0; THR.comboBest = 0; THR.bestMult = 1;
+  THR.nearMiss = 0; THR.flips = 0; THR.revenge = 0;
+  THR.medal = null;
+  COMBO.n = 0; COMBO.mult = 1; COMBO.t = 0; COMBO.pts = 0;
+  if (COMBO.el) COMBO.el.className = '';
+  GHOST.rec = null;
+  KC.pending = null; KC.on = false; KC.n = 0; KC.head = 0;
+  if (KC.mirror !== undefined) { MIRROR.on = KC.mirror; KC.mirror = undefined; }
+  document.body.classList.remove('killcam');
+}
+
+/* ------------------------------ combo ------------------------------ */
+const COMBO = { n: 0, mult: 1, t: 0, pts: 0, el: null, pop: null };
+const COMBO_WINDOW = 4.0;
+
+function initThrills() {
+  const hud = HUD.hud;
+  if (!hud || COMBO.el) return;
+  COMBO.el = document.createElement('div');
+  COMBO.el.id = 'combo';
+  COMBO.el.innerHTML = '<div class="cm"><b id="comboX">x1</b> COMBO</div><div class="cp" id="comboPts">0</div><i id="comboBar"></i>';
+  hud.appendChild(COMBO.el);
+  COMBO.pop = document.createElement('div');
+  COMBO.pop.id = 'comboPop';
+  hud.appendChild(COMBO.pop);
+  GHOST.el = document.createElement('div');
+  GHOST.el.id = 'ghostDelta';
+  hud.appendChild(GHOST.el);
+  const kc = document.createElement('div');
+  kc.id = 'kcBars';
+  kc.innerHTML = '<div class="kt"></div><div class="kb"><span>KILL CAM</span><em>ENTER TO SKIP</em></div>';
+  document.getElementById('stage').appendChild(kc);
+}
+
+function comboAdd(label, pts, nos) {
+  const p = G.player;
+  if (!p || !p.alive || (G.state !== 'racing')) return;
+  const before = COMBO.mult;
+  COMBO.n++;
+  COMBO.mult = Math.min(5, 1 + Math.floor(COMBO.n / 2));
+  COMBO.t = COMBO_WINDOW;
+  const got = Math.round(pts * COMBO.mult);
+  COMBO.pts += got;
+  THR.comboPts += got;
+  if (COMBO.pts > THR.comboBest) THR.comboBest = COMBO.pts;
+  if (COMBO.mult > THR.bestMult) THR.bestMult = COMBO.mult;
+  // the reward you can feel straight away: nitrous, more of it deeper in
+  if (nos) p.nos = Math.min(1, p.nos + nos * (1 + 0.25 * (COMBO.mult - 1)));
+
+  // the pop: a line of text, a rising two-note chime, and on a new
+  // multiplier a short white kick through the post stack
+  const d = document.createElement('div');
+  d.className = 'cpi' + (COMBO.mult > before ? ' up' : '');
+  d.innerHTML = label + ' <b>+' + got.toLocaleString('en-US') + '</b>';
+  COMBO.pop.appendChild(d);
+  while (COMBO.pop.children.length > 3) COMBO.pop.removeChild(COMBO.pop.firstChild);
+  setTimeout(() => d.remove(), 1500);
+  const f = 360 * Math.pow(1.19, COMBO.mult - 1);
+  SFX.tone(f, 0.08, 'square', 0.07);
+  setTimeout(() => SFX.tone(f * 1.5, 0.16, 'triangle', 0.08), 55);
+  if (COMBO.mult > before) {
+    GFX.flash = Math.max(GFX.flash, 0.10);
+    camShake(0.18, null);
+    COMBO.el.classList.remove('kick'); void COMBO.el.offsetWidth; COMBO.el.classList.add('kick');
+  }
+}
+
+function comboBreak(why) {
+  if (COMBO.n >= 3 && why) feed('COMBO BROKEN &middot; <b>x' + COMBO.mult + '</b> ' + COMBO.pts.toLocaleString('en-US'), '#ff6b5e');
+  COMBO.n = 0; COMBO.mult = 1; COMBO.t = 0; COMBO.pts = 0;
+}
+
+function comboTick(dt) {
+  const p = G.player;
+  if (!p) return;
+  // a drift in progress is still the chain going
+  if (COMBO.n && p.driftT > 0.3) COMBO.t = Math.max(COMBO.t, 1.2);
+  if (COMBO.t > 0) {
+    COMBO.t -= dt;
+    if (COMBO.t <= 0) {
+      if (COMBO.n >= 3) feed('COMBO <b>x' + COMBO.mult + '</b> &nbsp;' + COMBO.pts.toLocaleString('en-US'), '#8fd8ff');
+      comboBreak(false);
+    }
+  }
+  const on = COMBO.n >= 2;
+  COMBO.el.classList.toggle('on', on);
+  if (on) {
+    $('comboX').textContent = 'x' + COMBO.mult;
+    $('comboPts').textContent = COMBO.pts.toLocaleString('en-US');
+    $('comboBar').style.width = clamp(COMBO.t / COMBO_WINDOW * 100, 0, 100).toFixed(0) + '%';
+  }
+}
+
+/* near misses: drawing past another car at speed with daylight — and
+   nothing else — between you */
+const _nf = new THREE.Vector3(), _nl = new THREE.Vector3();
+function nearMissTick() {
+  const p = G.player;
+  if (!p || !p.alive || p.airY > 0.3) return;
+  const f = p.forward(_nf), l = p.left(_nl);
+  const spd = p.speed;
+  for (const c of G.cars) {
+    if (c === p) continue;
+    if (!c.alive) { c._nmA = undefined; continue; }
+    const dx = c.pos.x - p.pos.x, dz = c.pos.z - p.pos.z;
+    const along = dx * f.x + dz * f.z, side = dx * l.x + dz * l.z;
+    const prev = c._nmA;
+    c._nmA = along;
+    if (prev === undefined || !(prev > 0 && along <= 0)) continue;
+    const gap = Math.abs(side) - (p.hitWid + c.hitWid);
+    const rel = spd - (c.vel.x * f.x + c.vel.z * f.z);
+    const clean = G.time - (p.touchT || -9) > 0.8 && G.time - (c.touchT || -9) > 0.8;
+    if (gap > -0.15 && gap < 1.7 && rel > 5 && spd > 20 && clean) {
+      THR.nearMiss++;
+      if (c.isBoss) comboAdd('SHAVED THE TANKER', 450, 0.14);
+      else comboAdd('NEAR MISS', 150, 0.07);
+    }
+  }
+}
+
+/* a car the player took out, whoever's machine it lived on */
+function thrillKill(victim) {
+  if (!victim) return;
+  if (victim.isBoss) { comboAdd('JUGGERNAUT DOWN', 1500, 0.5); return; }
+  if (victim.grudge) {
+    grudgeClear(victim);
+    THR.revenge++;
+    // after the wreck's own headline, not under it
+    const who = mpEsc(victim.pname || victim.driver);
+    setTimeout(() => { if (G.state === 'racing') announce('REVENGE', who + ' &middot; KILL PAYS DOUBLE'); }, 900);
+    comboAdd('REVENGE', 800, 0.45);
+    if (!MP.on && CAREER.nemesis === victim.key) { CAREER.nemesis = null; saveCareer(); }
+    return;
+  }
+  comboAdd('KILL', 500, 0.30);
+}
+
+function thrillFlip(target) { THR.flips++; comboAdd('FLIPPED', 250, 0.15); }
+
+/* ------------------------------ grudges ---------------------------- */
+function grudgeMark(car, nemesis) {
+  if (!car || car.isBoss || car.isPlayer || car.grudge) return;
+  car.grudge = true;
+  const { c, x } = makeCanvas(256, 80);
+  x.font = 'bold 34px Impact, "Arial Narrow Bold", sans-serif';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.lineWidth = 7; x.strokeStyle = 'rgba(0,0,0,.85)';
+  x.strokeText('REVENGE', 128, 30); x.fillStyle = '#ff3b30'; x.fillText('REVENGE', 128, 30);
+  x.fillStyle = '#ff3b30';
+  x.beginPath(); x.moveTo(108, 54); x.lineTo(148, 54); x.lineTo(128, 74); x.closePath(); x.fill();
+  const t = new THREE.CanvasTexture(c);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthWrite: false, depthTest: false, transparent: true, toneMapped: false }));
+  s.scale.set(5.4, 1.7, 1);
+  s.position.set(0, car.pname ? 4.6 : 3.6, 0);
+  s.renderOrder = 7;
+  car.mesh.add(s);
+  car.grudgeTag = s;
+  const who = mpEsc(car.pname || car.driver);
+  if (nemesis) hint('YOUR NEMESIS IS ON THE GRID &mdash; <b>' + who + '</b> &middot; TAKE THEM OUT FOR DOUBLE', 5);
+  else feed('<b>' + who + '</b> IS MARKED &middot; REVENGE PAYS DOUBLE', '#ff3b30');
+}
+
+function grudgeClear(car) {
+  car.grudge = false;
+  if (car.grudgeTag) {
+    car.mesh.remove(car.grudgeTag);
+    car.grudgeTag.material.map.dispose(); car.grudgeTag.material.dispose();
+    car.grudgeTag = null;
+  }
+}
+
+/* the player has just been wrecked by `by` */
+function grudgeOn(by) {
+  if (!by || by.isBoss || by.isPlayer) return;
+  grudgeMark(by, false);
+  if (!MP.on && by.key) { CAREER.nemesis = by.key; saveCareer(); }
+}
+
+/* at the start of a single-player race: is the nemesis lining up? */
+function grudgeGrid() {
+  if (MP.on || !CAREER.nemesis) return;
+  const c = G.cars.find((k) => !k.isPlayer && !k.isBoss && k.key === CAREER.nemesis);
+  if (c) setTimeout(() => { if (G.cars.indexOf(c) >= 0 && c.alive) grudgeMark(c, true); }, 1500);
+}
+
+/* ------------------------------ medals ------------------------------
+   Lap times, from the AI's own clean flying lap in a Revenant on an empty
+   circuit (measured 2026-10-04): gold is matching it, silver 6% off it,
+   bronze 15%. Racing a full field with weapons, gold takes a real lap. */
+const MEDALS = {
+  yard: [63.0, 66.5, 72.0],
+  canyon: [98.5, 104.5, 113.0],
+  boneyard: [107.0, 113.5, 123.0],
+  deadwater: [95.5, 101.0, 109.5],
+};
+const MEDAL_NAME = ['', 'BRONZE', 'SILVER', 'GOLD'];
+const MEDAL_COL = ['', '#c8834a', '#c9ced6', '#f6c41b'];
+const MEDAL_PAY = [0, 500, 1000, 2000];
+
+function medalFor(circuit, t) {
+  const m = MEDALS[circuit];
+  if (!m || !(t > 15)) return 0;
+  return t <= m[0] ? 3 : t <= m[1] ? 2 : t <= m[2] ? 1 : 0;
+}
+function medalOf(circuit) { return (CAREER.medals && CAREER.medals[circuit]) | 0; }
+
+/* a timed lap was just completed */
+function medalCheck(circuit, t) {
+  const lvl = medalFor(circuit, t), have = medalOf(circuit);
+  if (lvl <= have) return;
+  let pay = 0;
+  for (let k = have + 1; k <= lvl; k++) pay += MEDAL_PAY[k];
+  CAREER.medals[circuit] = lvl;
+  CAREER.cash += pay;
+  saveCareer();
+  THR.medal = { lvl: lvl, pay: pay + (THR.medal ? THR.medal.pay : 0) };
+  announce(MEDAL_NAME[lvl] + ' MEDAL', circuitByKey(circuit).name + ' &middot; +' + money(pay));
+  feed('<b style="color:' + MEDAL_COL[lvl] + '">' + MEDAL_NAME[lvl] + ' MEDAL</b> &middot; ' + fmtTime(t), MEDAL_COL[lvl]);
+  SFX.pickA();
+}
+
+/* "GOLD 1:03.00 · SILVER 1:06.50 · BRONZE 1:12.00", the one you hold lit */
+function medalLine(circuit) {
+  const m = MEDALS[circuit];
+  if (!m) return '';
+  const have = medalOf(circuit);
+  return [3, 2, 1].map((lv) => '<span class="md' + (have >= lv ? ' got' : '') + '" style="--mc:' + MEDAL_COL[lv] + '">' +
+    (have >= lv ? '&#9679; ' : '&#9675; ') + MEDAL_NAME[lv] + ' ' + fmtTime(m[3 - lv]) + '</span>').join('');
+}
+
+/* ------------------------------ ghost ------------------------------
+   Ten samples a second of the player's lap: x, z (decimetres), yaw
+   (centiradians) and lap progress (1/10000). The best lap per circuit is
+   kept on this device, and travels with the lap time to the leaderboard,
+   where friends can race it. */
+const GHOST = {
+  mode: 'best',          // best | friend | off
+  rec: null,
+  play: null,            // { d: Int32Array, t, car, who }
+  mesh: null, meshKey: null, el: null,
+  friend: {},            // circuit -> { d, t, car, who } once fetched
+};
+const GHOST_HZ = 10;
+const GHOST_KEY = 'raceToDeath.ghost.v1.';
+
+function ghostBegin() {
+  if (MP.on) { GHOST.rec = null; return; }
+  GHOST.rec = [];
+}
+
+function ghostRecord() {
+  const p = G.player;
+  if (!GHOST.rec || !p) return;
+  // sample k belongs at k / GHOST_HZ seconds into the lap
+  if (GHOST.rec.length / 4 > (G.raceT - G.lapStart) * GHOST_HZ) return;
+  if (GHOST.rec.length > 4000 * 4) { GHOST.rec = null; return; }   // a lap nobody is timing
+  GHOST.rec.push(Math.round(p.pos.x * 10), Math.round(p.pos.z * 10), Math.round(p.yaw * 100), Math.round(clamp(p.u, 0, 1) * 10000));
+}
+
+function ghostEncode(arr) { return arr.join(','); }
+function ghostDecode(s) {
+  if (typeof s !== 'string' || s.length < 40) return null;
+  const a = s.split(',').map((v) => parseInt(v, 10) | 0);
+  return a.length >= 40 && a.length % 4 === 0 ? Int32Array.from(a) : null;
+}
+
+/* a lap just ended; was it the best one? */
+function ghostLap(t, isBest) {
+  if (isBest && GHOST.rec && GHOST.rec.length >= 40) {
+    const s = ghostEncode(GHOST.rec);
+    try { localStorage.setItem(GHOST_KEY + G.circuit, JSON.stringify({ t: t, car: G.player.key, d: s })); } catch (e) {}
+    GHOST.lastEnc = s;
+  }
+  ghostBegin();
+}
+
+function ghostMine(circuit) {
+  try {
+    const o = JSON.parse(localStorage.getItem(GHOST_KEY + circuit) || 'null');
+    const d = o && ghostDecode(o.d);
+    return d ? { d: d, t: o.t, car: ROSTER[o.car] ? o.car : 'revenant', who: 'YOUR BEST' } : null;
+  } catch (e) { return null; }
+}
+
+/* the fastest lap on the board that is not mine and carries a ghost */
+function ghostFetchFriend(circuit, then) {
+  if (!NET.available()) return;
+  NET.connect().then((ok) => {
+    if (!ok) return;
+    NET.get('lb/' + circuit).then((rows) => {
+      let best = null;
+      for (const k in (rows || {})) {
+        const r = rows[k];
+        if (!r || k === NET.uid || !(r.t > 15) || typeof r.g !== 'string') continue;
+        if (!best || r.t < best.t) best = { t: r.t, car: r.car, g: r.g, who: cleanName(r.n) || 'A FRIEND' };
+      }
+      const d = best && ghostDecode(best.g);
+      GHOST.friend[circuit] = d ? { d: d, t: best.t, car: ROSTER[best.car] ? best.car : 'revenant', who: best.who } : false;
+      if (then) then();
+    }).catch(() => {});
+  });
+}
+
+function ghostChoice(circuit) {
+  if (GHOST.mode === 'off' || MP.on) return null;
+  if (GHOST.mode === 'friend') {
+    const f = GHOST.friend[circuit];
+    if (f) return f;
+  }
+  return ghostMine(circuit);
+}
+
+function ghostLabel(circuit) {
+  if (GHOST.mode === 'off') return 'OFF';
+  if (GHOST.mode === 'friend') {
+    const f = GHOST.friend[circuit];
+    if (f) return f.who + ' ' + fmtTime(f.t);
+    if (f === undefined && NET.available()) return 'FASTEST FRIEND (LOADING)';
+    const m = ghostMine(circuit);
+    return 'NO FRIEND GHOST YET' + (m ? ' &middot; YOURS ' + fmtTime(m.t) : '');
+  }
+  const m = ghostMine(circuit);
+  return m ? 'YOUR BEST ' + fmtTime(m.t) : 'SET A LAP FIRST';
+}
+
+function ghostCycle() {
+  const order = NET.available() ? ['best', 'friend', 'off'] : ['best', 'off'];
+  GHOST.mode = order[(order.indexOf(GHOST.mode) + 1) % order.length];
+  CAREER.ghost = GHOST.mode; saveCareer();
+  if (GHOST.mode === 'friend' && GHOST.friend[G.circuit] === undefined) {
+    ghostFetchFriend(G.circuit, () => { if (G.state === 'grid') showGrid(); });
+  }
+  SFX.beep(false);
+}
+
+// at 0.26 a ghost 100 m up the road vanished into a bright desert; it has to
+// read at that distance and still not hide the road when you sit inside it
+// lit, so it still reads as a car rather than a flat blue cut-out
+const GHOST_MAT = new THREE.MeshLambertMaterial({ color: 0x4fb8ff, emissive: 0x0e3352, transparent: true, opacity: 0.5, depthWrite: false });
+
+/* the race is starting: pick what to chase and put it on the circuit */
+function ghostSetup() {
+  GHOST.play = ghostChoice(G.circuit);
+  if (GHOST.mesh && (!GHOST.play || GHOST.meshKey !== GHOST.play.car)) {
+    scene.remove(GHOST.mesh); GHOST.mesh = null; GHOST.meshKey = null;
+  }
+  if (GHOST.play && !GHOST.mesh) {
+    const built = buildCarMesh(ROSTER[GHOST.play.car]);
+    built.group.traverse((o) => {
+      if (o.isMesh) { o.material = GHOST_MAT; o.castShadow = false; o.receiveShadow = false; }
+      if (o.isLight || o.isSprite || o.isPoints) o.visible = false;
+    });
+    GHOST.mesh = built.group;
+    GHOST.meshKey = GHOST.play.car;
+    GHOST.mesh.renderOrder = 3;
+    scene.add(GHOST.mesh);
+  }
+  if (GHOST.mesh) GHOST.mesh.visible = false;
+  if (GHOST.el) GHOST.el.className = '';
+}
+
+function ghostTick() {
+  const g = GHOST.play, m = GHOST.mesh, p = G.player;
+  if (!g || !m || !p || G.lapStart <= 0 || MP.on) { if (m) m.visible = false; if (GHOST.el) GHOST.el.className = ''; return; }
+  const d = g.d, n = d.length / 4;
+  const lt = G.raceT - G.lapStart;
+  const fi = lt * GHOST_HZ;
+  const i = Math.floor(fi);
+  if (i >= n - 1) { m.visible = false; }
+  else {
+    const f = fi - i, a = i * 4, b = a + 4;
+    const x = lerp(d[a], d[b], f) / 10, z = lerp(d[a + 1], d[b + 1], f) / 10;
+    const ya = d[a + 2] / 100, yb = d[b + 2] / 100;
+    m.position.set(x, 0, z);
+    m.rotation.set(0, ya + angDiff(ya, yb) * f, 0);
+    // fade it out when you are sitting inside it
+    const near = Math.hypot(x - p.pos.x, z - p.pos.z);
+    GHOST_MAT.opacity = 0.5 * clamp((near - 2) / 6, 0.2, 1);
+    m.visible = true;
+  }
+  // the gap: how long the ghost took to get as far round as you are now
+  if (lt < 2 || p.u > 0.985 || !p.alive) { GHOST.el.className = ''; return; }
+  const want = Math.round(p.u * 10000);
+  let lo = 0, hi = n - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (d[mid * 4 + 3] < want) lo = mid + 1; else hi = mid; }
+  if (lo <= 0 || lo >= n - 1) { GHOST.el.className = ''; return; }
+  const u0 = d[(lo - 1) * 4 + 3], u1 = d[lo * 4 + 3];
+  const gt = (lo - 1 + clamp((want - u0) / Math.max(1, u1 - u0), 0, 1)) / GHOST_HZ;
+  const delta = lt - gt;
+  GHOST.el.className = 'on ' + (delta <= 0 ? 'ahead' : 'behind');
+  GHOST.el.innerHTML = '<span>' + mpEsc(g.who) + '</span>' + (delta <= 0 ? '&minus;' : '+') + Math.abs(delta).toFixed(2);
+}
+
+function ghostHide() {
+  if (GHOST.mesh) GHOST.mesh.visible = false;
+  if (GHOST.el) GHOST.el.className = '';
+}
+
+/* ------------------------------ kill cam ----------------------------
+   The last two and a half seconds of every car, every frame, in a ring.
+   Wreck the tanker and the ring plays back at 40% from a camera circling
+   it, then the explosion goes off for real and the race carries on. */
+const KC_FRAMES = 150;
+const KC = { head: 0, n: 0, on: false, pending: null, t: 0, len: 0, boss: null, a0: 0 };
+
+function kcRecord() {
+  if (MP.on) return;
+  for (const c of G.cars) {
+    const R = c._kc || (c._kc = new Float32Array(KC_FRAMES * 8));
+    const o = KC.head * 8, m = c.mesh;
+    R[o] = m.position.x; R[o + 1] = m.position.y; R[o + 2] = m.position.z;
+    R[o + 3] = m.quaternion.x; R[o + 4] = m.quaternion.y; R[o + 5] = m.quaternion.z; R[o + 6] = m.quaternion.w;
+    R[o + 7] = m.visible ? 1 : 0;
+    c._kcFrom = c._kcFrom === undefined ? KC.n : c._kcFrom;
+  }
+  KC.head = (KC.head + 1) % KC_FRAMES;
+  KC.n++;
+}
+
+function kcWanted(by) { return !MP.on && by && by.isPlayer && KC.n > 40; }
+
+/* the frame `back` frames before the newest */
+function kcApply(back) {
+  for (const c of G.cars) {
+    const R = c._kc;
+    if (!R) continue;
+    const age = KC.n - (c._kcFrom || 0);
+    if (back >= age) { c.mesh.visible = false; continue; }
+    const o = ((KC.head - 1 - back + KC_FRAMES * 4) % KC_FRAMES) * 8;
+    c.mesh.position.set(R[o], R[o + 1], R[o + 2]);
+    c.mesh.quaternion.set(R[o + 3], R[o + 4], R[o + 5], R[o + 6]);
+    c.mesh.visible = R[o + 7] > 0.5;
+  }
+}
+
+function kcStart(boss) {
+  KC.on = true; KC.boss = boss; KC.t = 0;
+  KC.span = Math.min(KC.n, KC_FRAMES) - 1;
+  KC.len = KC.span / 60 / 0.4;              // played back at 40%
+  KC.a0 = G.player.yaw + Math.PI * 0.6;
+  // the real explosion already went off; take its debris out of the picture
+  updateParticles(99); updateFlashes(99); updateRings(99);
+  for (let i = DEBRIS.live.length - 1; i >= 0; i--) {
+    const d = DEBRIS.live[i]; d.mesh.visible = false;
+    DEBRIS.live.splice(i, 1); DEBRIS.pool.push(d);
+  }
+  ghostHide();
+  HUD.hud.classList.add('hidden');
+  document.body.classList.add('killcam');
+  KC.mirror = MIRROR.on; MIRROR.on = false;   // the whole screen is the shot
+  GFX.flash = 0; CAM.shake = 0;
+  SFX.drive(null); SFX.field([], null);
+  SFX.tone(110, 0.9, 'sawtooth', 0.06, 40);
+  // a tap skips it too; a short grace so the tap that fired the rocket does not
+  setTimeout(() => window.addEventListener('pointerdown', kcTap, { once: true }), 400);
+}
+function kcTap() { if (KC.on) { KC.t = KC.len; kcEnd(); } }
+
+function kcFrame(dt) {
+  KC.t += dt;
+  const k = clamp(KC.t / KC.len, 0, 1);
+  const back = Math.round((1 - k) * KC.span);
+  kcApply(back);
+  const bm = KC.boss.mesh;
+  bm.visible = back > 0;
+  const tx = bm.position.x, tz = bm.position.z;
+  const a = KC.a0 + k * 1.1;
+  camera.position.set(tx + Math.sin(a) * 24, 6.5 + k * 3, tz + Math.cos(a) * 24);
+  camera.lookAt(tx, 2.2, tz);
+  placeSun(tx, tz);
+  GFX.speedBlur = 0; GFX.flash = 0;
+  if (KC.t >= KC.len + 0.15) kcEnd();
+}
+
+function kcEnd() {
+  if (!KC.on) return;
+  KC.on = false;
+  document.body.classList.remove('killcam');
+  if (KC.mirror !== undefined) { MIRROR.on = KC.mirror; KC.mirror = undefined; }
+  HUD.hud.classList.remove('hidden');
+  for (const c of G.cars) {
+    if (c.remote) continue;
+    if (c.alive) { c.mesh.visible = true; c.updateVisuals(0); }
+    else c.mesh.visible = false;
+  }
+  const boss = KC.boss;
+  const at = boss.worldPoint(_v3.set(0, 1.2, 0)).clone();
+  fxExplosion(at, 3.2);
+  fxDebris(at, 26, boss.spec.body);
+  camShake(1.6, at);
+  for (let k = 1; k <= 5; k++) setTimeout(() => {
+    if (!scene) return;
+    const q = boss.worldPoint(_v3.set(rand(-2, 2), 1.5, rand(-8, 8))).clone();
+    fxExplosion(q, 1.8);
+    camShake(0.7, q);
+  }, 170 * k);
+  resetCamera(G.player);
+  slowmo(1.0);
+}
+
+/* skip: any of the usual go keys */
+function kcKey(e) {
+  if (!KC.on) return false;
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') { e.preventDefault(); KC.t = KC.len; kcEnd(); }
+  return true;
+}
+
+/* ------------------------------ per tick ---------------------------- */
+function thrillsTick(dt) {
+  if (G.state !== 'racing') return;
+  comboTick(dt);
+  nearMissTick();
+  ghostRecord();
+  ghostTick();
+  kcRecord();
+}
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
    drift swings the frame instead of welding it to the bumper. Speed pushes
@@ -10413,6 +11020,10 @@ const CAREER = {
   up: {},                     // carKey -> { armour: 0..3, ... }
   name: '',
   stats: { races: 0, wins: 0, kills: 0, bestDrift: 0 },
+  medals: {},                 // circuit -> 0..3 (none, bronze, silver, gold)
+  nemesis: null,              // the last car that wrecked you in single player
+  ghost: 'best',              // which ghost to race: best | friend | off
+  daily: null,                // today's attempts, best score and the streak (§13b)
 };
 
 function loadCareer() {
@@ -10435,6 +11046,16 @@ function loadCareer() {
     if (s.stats && typeof s.stats === 'object') {
       for (const k in CAREER.stats) if (typeof s.stats[k] === 'number') CAREER.stats[k] = s.stats[k];
     }
+    if (s.medals && typeof s.medals === 'object') {
+      for (const k in s.medals) CAREER.medals[k] = clamp(s.medals[k] | 0, 0, 3);
+    }
+    if (typeof s.nemesis === 'string' && ROSTER[s.nemesis]) CAREER.nemesis = s.nemesis;
+    if (s.ghost === 'best' || s.ghost === 'friend' || s.ghost === 'off') CAREER.ghost = s.ghost;
+    if (s.daily && typeof s.daily === 'object') {
+      const d = s.daily;
+      CAREER.daily = { day: d.day | 0, tries: d.tries | 0, best: typeof d.best === 'number' ? d.best : null,
+                       done: !!d.done, streak: d.streak | 0, last: d.last | 0 };
+    }
   } catch (e) {}
 }
 
@@ -10447,6 +11068,10 @@ function cleanName(s) {
 }
 
 function owns(key) { return !!CAREER.owned[key]; }
+/* Online is stock and open: every car, nobody's upgrades. The room borrows
+   the garage (G.garageBack is set), and while it does every car can be
+   driven. Single player still needs the car bought. */
+function drivable(key) { return owns(key) || !!G.garageBack; }
 function upLevel(key, id) { return (CAREER.up[key] && CAREER.up[key][id]) | 0; }
 function upgradesOf(key) {
   const o = {};
@@ -10497,6 +11122,10 @@ function payday(p, opts) {
   const drift = Math.round(((p.driftScore || 0) + (p.driftBank || 0)) / 8);
   if (drift > 0) lines.push(['DRIFTING', drift]);
   if (opts.bossKill) lines.push(['THE JUGGERNAUT', 3000]);
+  const combo = Math.round((THR.comboPts || 0) / 10);
+  if (combo > 0) lines.push(['COMBOS &middot; BEST x' + (THR.bestMult || 1), combo]);
+  if (THR.revenge) lines.push(['REVENGE' + (THR.revenge > 1 ? ' x' + THR.revenge : '') + ' &middot; KILLS PAID TWICE', THR.revenge * 350]);
+  for (const l of (opts.extra || [])) lines.push(l);
   let total = lines.reduce((a, l) => a + l[1], 0);
   const mult = opts.mult || 1;
   if (mult !== 1) {
@@ -10506,6 +11135,11 @@ function payday(p, opts) {
   }
   total = Math.round(total);
   CAREER.cash += total;
+  // a medal is paid the moment the lap is done; it shows here with the rest
+  if (THR.medal) {
+    lines.push([MEDAL_NAME[THR.medal.lvl] + ' MEDAL &middot; PAID ON THE LAP', THR.medal.pay]);
+    total += THR.medal.pay;
+  }
   CAREER.stats.races++;
   if (opts.finished && p.rank === 1) CAREER.stats.wins++;
   CAREER.stats.kills += kills;
@@ -10521,9 +11155,11 @@ function paydayHtml(pay) {
   const nx = nextUnlock();
   if (nx) {
     const need = CAR_PRICE[nx] - CAREER.cash;
+    const f = clamp(CAREER.cash / Math.max(1, CAR_PRICE[nx]), 0, 1);
     h += '<div class="nx">' + (need <= 0
       ? '<b>' + ROSTER[nx].car + '</b> IS YOURS TO BUY IN THE GARAGE'
-      : 'NEXT UNLOCK &middot; <b>' + ROSTER[nx].car + '</b> &middot; ' + money(need) + ' TO GO') + '</div>';
+      : 'NEXT UNLOCK &middot; <b>' + ROSTER[nx].car + '</b> &middot; ' + money(need) + ' TO GO') +
+      '<i class="nxb"><b style="width:' + Math.round(f * 100) + '%"></b></i></div>';
   }
   return h + '</div>';
 }
@@ -10532,7 +11168,7 @@ function paydayHtml(pay) {
 /* ENTER in the garage: race the car if you own it, buy it if you can */
 function garageGo(after) {
   const k = GARAGE[G.sel];
-  if (owns(k)) { G.playerCar = k; saveState(); (after || showGrid)(); return; }
+  if (drivable(k)) { G.playerCar = k; saveState(); (after || showGrid)(); return; }
   const price = CAR_PRICE[k] || 0;
   if (CAREER.cash < price) {
     SFX.deny();
@@ -10612,6 +11248,260 @@ function shopBuy() {
 function shopBack() {
   const b = SHOP.back; SHOP.back = null;
   (b || showGarage)();
+}
+/* ========================== §13b  DAILY ============================
+   One set-up a day, the same for everybody: the date seeds the circuit, the
+   car, the job and a twist. Three attempts count; your best goes on the
+   day's board. Meet the goal and it pays, more for every day in a row.
+   Everybody drives the same stock car, so the board is about driving.
+   Days turn over at midnight UTC, so friends in different places share one.
+   ================================================================== */
+const DAILY = { on: false, ch: null, R: null, practice: false };
+const DAILY_TRIES = 3;
+
+const DAILY_KINDS = {
+  win:      { name: 'WIN IT',            goal: () => 'Take the chequered flag first',            unit: '',            low: true },
+  kills:    { name: 'BODY COUNT',        goal: (t) => 'Wreck ' + t + ' cars before the flag',     unit: ' WRECKED' },
+  drift:    { name: 'SIDEWAYS',          goal: (t) => 'Bank ' + t.toLocaleString('en-US') + ' drift points', unit: ' PTS' },
+  flip:     { name: 'TOSSED',            goal: (t) => 'Flip ' + t + ' cars with the wedge',       unit: ' FLIPPED' },
+  nearmiss: { name: 'THREAD THE NEEDLE', goal: (t) => 'Make ' + t + ' near misses',               unit: ' NEAR MISSES' },
+};
+const DAILY_MODS = {
+  nonos:   { name: 'NO NITROUS',  what: 'the bottle is empty' },
+  onelife: { name: 'ONE LIFE',    what: 'wrecked means out' },
+  boss:    { name: 'JUGGERNAUT',  what: 'the tanker is out at 30 seconds' },
+  glass:   { name: 'GLASS CAR',   what: 'half the armour' },
+};
+
+function dayKey(d) {
+  d = d || new Date(Date.now() + (NET.offset || 0));
+  return d.getUTCFullYear() * 10000 + (d.getUTCMonth() + 1) * 100 + d.getUTCDate();
+}
+function dayDate(k) { return new Date(Date.UTC(Math.floor(k / 10000), Math.floor(k / 100) % 100 - 1, k % 100)); }
+function dayBefore(k) { return dayKey(new Date(dayDate(k).getTime() - 86400000)); }
+function dayLabel(k) {
+  const d = dayDate(k);
+  return d.getUTCDate() + ' ' + ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'][d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+
+/* the day's set-up, from nothing but the date */
+function dailyFor(k) {
+  const rnd = seededRandom(Math.imul(k, 2654435761) >>> 0);
+  const pk = (a) => a[Math.floor(rnd() * a.length) % a.length];
+  const C = pk(CIRCUITS);
+  const kind = pk(['win', 'kills', 'drift', 'flip', 'nearmiss', 'win', 'kills', 'drift']);
+  const car = kind === 'flip' ? 'flipcar' : pk(GARAGE.filter((g) => g !== 'flipcar'));
+  const laps = kind === 'win' ? 2 : pk([2, 3]);
+  const mods = [];
+  if (rnd() < 0.7) {
+    let pool = Object.keys(DAILY_MODS);
+    if (kind === 'drift') pool = pool.filter((m) => m !== 'nonos' || rnd() < 0.5);
+    mods.push(pk(pool));
+  }
+  const target = kind === 'kills' ? 2 + laps
+    : kind === 'drift' ? laps * 2500
+    : kind === 'flip' ? 2 + laps
+    : kind === 'nearmiss' ? laps * 6
+    : 1;
+  const rivals = GARAGE.filter((g) => g !== car);
+  while (rivals.length > 5) rivals.splice(Math.floor(rnd() * rivals.length), 1);
+  return { day: k, circuit: C.key, kind: kind, car: car, laps: laps, mods: mods, target: target, rivals: rivals };
+}
+
+function dailyHas(m) { return DAILY.on && DAILY.ch && DAILY.ch.mods.indexOf(m) >= 0; }
+
+/* this device's record of today */
+function dailyRec() {
+  const k = dayKey();
+  let D = CAREER.daily;
+  if (!D || typeof D !== 'object') D = CAREER.daily = { day: 0, tries: 0, best: null, done: false, streak: 0, last: 0 };
+  if (D.day !== k) { D.day = k; D.tries = 0; D.best = null; D.done = false; }
+  // a streak that skipped a day is over, whatever it was
+  if (D.last && D.last !== k && D.last !== dayBefore(k)) D.streak = 0;
+  return D;
+}
+
+function dailyBetter(kind, a, b) {
+  if (b === null || b === undefined) return a;
+  if (a === null || a === undefined) return b;
+  return DAILY_KINDS[kind].low ? Math.min(a, b) : Math.max(a, b);
+}
+function dailyFmt(kind, s) {
+  if (s === null || s === undefined) return '&mdash;';
+  if (kind === 'win') return fmtTime(s);
+  return Math.round(s).toLocaleString('en-US') + DAILY_KINDS[kind].unit;
+}
+function dailyPayFor(streak) { return 1500 + 250 * Math.min(Math.max(streak - 1, 0), 8); }
+
+/* ------------------------------ screen ------------------------------ */
+const DBOARD = { rows: null, day: 0 };
+
+function showDaily() {
+  G.state = 'daily';
+  HUD.hud.classList.add('hidden');
+  DAILY.on = false;
+  const k = dayKey(), ch = dailyFor(k), D = dailyRec(), KD = DAILY_KINDS[ch.kind];
+  const C = circuitByKey(ch.circuit), left = Math.max(0, DAILY_TRIES - D.tries);
+  const mods = ch.mods.length ? ch.mods.map((m) => '<b style="color:#ff8478">' + DAILY_MODS[m].name + '</b> &mdash; ' + DAILY_MODS[m].what).join('<br>') : 'No twist today. Just drive.';
+  let board = '';
+  if (!NET.available()) board = '<div class="blurb" style="opacity:.55">The shared daily board lives on the online version of the game.</div>';
+  else if (!DBOARD.rows || DBOARD.day !== k) board = '<div class="blurb" style="opacity:.55">LOADING TODAY&rsquo;S BOARD&hellip;</div>';
+  else if (!DBOARD.rows.length) board = '<div class="blurb" style="opacity:.55">Nobody has posted today. Be the first.</div>';
+  else {
+    board = '<div class="standings">' + DBOARD.rows.slice(0, 10).map((r, i) =>
+      '<div class="srow' + (r.me ? ' me' : '') + '" style="border-left-color:' + (i === 0 ? '#f6a41b' : '#555') + '">' +
+      '<div class="n">' + (i + 1) + '</div><div class="who"><b class="dn"></b></div><div class="q in">' + dailyFmt(ch.kind, r.s) + '</div></div>').join('') + '</div>';
+  }
+  const btns = [['dgo', left > 0 ? 'START &middot; ' + left + ' LEFT' : 'PRACTICE'], ['dback', 'BACK']];
+  showScreen(
+    '<h2>DAILY CHALLENGE</h2>' +
+    '<div class="tag">' + dayLabel(k) + ' &middot; THE SAME FOR EVERYBODY &middot; STREAK <b class="cash">' + D.streak + '</b></div>' +
+    '<div class="rule"></div>' +
+    '<div class="dbig">' + KD.name + '</div>' +
+    '<div class="blurb" style="margin-top:4px;font-size:15px">' + KD.goal(ch.target) + '</div>' +
+    '<div class="tag" style="margin-top:12px">' + C.name + ' &middot; ' + ch.laps + ' LAPS &middot; ' + ROSTER[ch.car].car + ' (STOCK)</div>' +
+    '<div class="blurb" style="margin-top:10px">' + mods + '</div>' +
+    '<div class="pay" style="margin-top:12px">' +
+      '<div><span>YOUR BEST TODAY</span><b>' + dailyFmt(ch.kind, D.best) + '</b></div>' +
+      '<div><span>ATTEMPTS</span><b>' + Math.min(D.tries, DAILY_TRIES) + ' / ' + DAILY_TRIES + '</b></div>' +
+      '<div><span>' + (D.done ? 'GOAL MET TODAY' : 'MEET THE GOAL') + '</span><b>' + (D.done ? 'PAID' : '+' + money(dailyPayFor(D.last === k ? D.streak : D.last === dayBefore(k) ? D.streak + 1 : 1))) + '</b></div>' +
+    '</div>' +
+    '<div class="tag" style="margin:14px 0 6px">TODAY&rsquo;S BOARD</div>' + board +
+    mpButtons(btns) +
+    '<div class="cta" data-nav="dgo">ENTER ' + (left > 0 ? 'start' : 'practice (does not count)') + ' &middot; <kbd>ESC</kbd> back</div>'
+  );
+  if (DBOARD.rows && DBOARD.day === k) {
+    const els = document.querySelectorAll('#screen .dn');
+    DBOARD.rows.slice(0, 10).forEach((r, i) => { if (els[i]) els[i].textContent = r.n + ' · ' + ((ROSTER[r.car] && ROSTER[r.car].car) || ''); });
+  }
+  if (NET.available() && DBOARD.day !== k && !DBOARD.loading) dailyLoadBoard(k, ch.kind);
+}
+
+function dailyLoadBoard(k, kind) {
+  DBOARD.loading = true;
+  NET.connect().then((ok) => {
+    if (!ok) { DBOARD.loading = false; return; }
+    NET.get('hof').then((hof) => {
+      const rows = [];
+      for (const id in (hof || {})) {
+        const r = hof[id];
+        if (!r || !r.d || r.d.day !== k || typeof r.d.s !== 'number') continue;
+        rows.push({ me: id === NET.uid, n: cleanName(r.n) || '???', s: r.d.s, car: r.d.car });
+      }
+      rows.sort((a, b) => DAILY_KINDS[kind].low ? a.s - b.s : b.s - a.s);
+      DBOARD.rows = rows; DBOARD.day = k; DBOARD.loading = false;
+      if (G.state === 'daily') showDaily();
+    }).catch(() => { DBOARD.loading = false; });
+  });
+}
+
+/* ------------------------------ racing ------------------------------ */
+function dailyGo() {
+  const k = dayKey(), ch = dailyFor(k), D = dailyRec();
+  DAILY.practice = D.tries >= DAILY_TRIES;
+  if (!DAILY.practice) {
+    if (D.last !== k) { D.streak = D.last === dayBefore(k) ? D.streak + 1 : 1; D.last = k; }
+    D.tries++;
+    saveCareer();
+  }
+  DAILY.ch = ch;
+  DAILY.R = {
+    title: DAILY.practice ? 'DAILY PRACTICE' : 'DAILY CHALLENGE', sub: dayLabel(k), laps: ch.laps, qualify: 1,
+    rivals: ch.rivals, boss: ch.mods.indexOf('boss') >= 0, bossAt: 30, bossArmour: 2200,
+    playerLives: ch.mods.indexOf('onelife') >= 0 ? 1 : 2, aiLives: 1,
+    brief: DAILY_KINDS[ch.kind].goal(ch.target),
+  };
+  const C = circuitByKey(ch.circuit);
+  const start = () => { DAILY.on = true; startRound(G.round); };
+  if (VENUE.C && VENUE.C.key === C.key) { start(); return; }
+  const b = $('boot');
+  b.textContent = 'BUILDING ' + C.name;
+  b.style.display = 'flex';
+  G.state = 'building';
+  setTimeout(() => {
+    try { clearRace(); SFX.drive(null); SFX.field([], null); buildVenue(C); warmVenue(); }
+    catch (err) { console.error(err); }
+    b.style.display = 'none';
+    start();
+  }, 60);
+}
+
+function dailyScore() {
+  const p = G.player, ch = DAILY.ch;
+  const won = G.outcome !== 'dead' && p.finished && p.rank === 1;
+  switch (ch.kind) {
+    case 'win': return won ? Math.round(p.finishTime * 1000) / 1000 : null;
+    case 'kills': return Math.max(0, p.kills - (G.killsAtStart | 0));
+    case 'drift': return Math.round((p.driftScore || 0) + (p.driftBank || 0));
+    case 'flip': return THR.flips | 0;
+    case 'nearmiss': return THR.nearMiss | 0;
+  }
+  return null;
+}
+
+function dailyResult() {
+  G.state = 'dresult';
+  HUD.hud.classList.add('hidden');
+  SFX.drive(null); SFX.field([], null);
+  updateRanks();
+  const p = G.player, ch = DAILY.ch, D = dailyRec(), KD = DAILY_KINDS[ch.kind];
+  if (!G.pay) {
+    const s = dailyScore();
+    const met = ch.kind === 'win' ? s !== null : s >= ch.target;
+    const extra = [];
+    if (!DAILY.practice && D.day === ch.day) {
+      if (s !== null && (ch.kind === 'win' || s > 0)) D.best = dailyBetter(ch.kind, s, D.best);
+      if (met && !D.done) { D.done = true; extra.push(['DAILY GOAL &middot; STREAK ' + D.streak, dailyPayFor(D.streak)]); }
+    }
+    DAILY.last = { s: s, met: met };
+    saveCareer();
+    G.pay = payday(p, { finished: p.finished, killsAtStart: G.killsAtStart, bossKill: G.bossKill, extra: extra });
+    LB.afterRace();
+    DBOARD.day = 0;            // the board is stale now
+  }
+  const L = DAILY.last, left = Math.max(0, DAILY_TRIES - D.tries);
+  const head = DAILY.practice ? 'PRACTICE' : L.met ? 'CHALLENGE MET' : 'NOT THIS TIME';
+  showScreen(
+    '<h2 style="color:' + (L.met ? '#8fe89b' : '#ece7dc') + '">' + head + '</h2>' +
+    '<div class="tag">' + KD.name + ' &middot; ' + KD.goal(ch.target) + '</div>' +
+    '<div class="rule"></div>' +
+    '<div class="dbig">' + dailyFmt(ch.kind, L.s) + '</div>' +
+    '<div class="tag" style="margin-top:6px">' + (ch.kind === 'win' && L.s === null ? 'YOU HAD TO WIN IT &middot; P' + p.rank : 'TARGET ' + (ch.kind === 'win' ? 'FIRST PLACE' : dailyFmt(ch.kind, ch.target))) + '</div>' +
+    '<div class="pay" style="margin-top:12px">' +
+      '<div><span>YOUR BEST TODAY</span><b>' + dailyFmt(ch.kind, D.best) + '</b></div>' +
+      '<div><span>ATTEMPTS LEFT</span><b>' + left + '</b></div>' +
+      '<div><span>STREAK</span><b>' + D.streak + ' DAY' + (D.streak === 1 ? '' : 'S') + '</b></div>' +
+    '</div>' +
+    paydayHtml(G.pay) +
+    mpButtons([['dagain', left > 0 ? 'TRY AGAIN' : 'PRACTICE'], ['dboard', 'DAILY BOARD'], ['dtitle', 'TITLE']]) +
+    '<div class="cta" data-nav="dagain">ENTER or <kbd>R</kbd> ' + (left > 0 ? 'try again' : 'practice') + ' &middot; <kbd>ESC</kbd> daily board</div>'
+  );
+}
+
+function dailyLeave() {
+  DAILY.on = false; DAILY.ch = null; DAILY.R = null;
+}
+
+/* keys and taps for the two daily screens, routed through the online menu
+   plumbing so the same button row works by pad, keyboard and touch */
+function dailyKey(e, k) {
+  const st = G.state;
+  if (st !== 'daily' && st !== 'dresult') return false;
+  if (e.key === 'Escape') { if (st === 'dresult') { clearRace(); dailyLeave(); showDaily(); } else showTitle(); return true; }
+  if (st === 'dresult' && k === 'r') { dailyNav('dagain'); return true; }
+  return false;
+}
+
+function dailyNav(a) {
+  switch (a) {
+    case 'daily': showDaily(); return true;
+    case 'dgo': dailyGo(); return true;
+    case 'dback': showTitle(); return true;
+    case 'dagain': dailyLeave(); dailyGo(); return true;
+    case 'dboard': clearRace(); dailyLeave(); showDaily(); return true;
+    case 'dtitle': clearRace(); dailyLeave(); SFX.drive(null); SFX.field([], null); showTitle(); return true;
+  }
+  return false;
 }
 /* =========================== §14  NET ==============================
    The wire. Two interchangeable transports behind one tiny API, so the
@@ -10821,14 +11711,17 @@ const LB = {
   loading: false,
 
   /* a personal best was just set on this circuit */
-  submitLap(circuit, t, car) {
+  submitLap(circuit, t, car, ghost) {
     if (!NET.available() || !CAREER.name || !(t > 15)) return;
     NET.connect().then((ok) => {
       if (!ok) return;
       const path = 'lb/' + circuit + '/' + NET.uid;
       NET.get(path).then((old) => {
         if (old && old.t && old.t <= t) return;
-        NET.set(path, { n: CAREER.name, t: Math.round(t * 1000) / 1000, car: car, at: netNow() });
+        const row = { n: CAREER.name, t: Math.round(t * 1000) / 1000, car: car, at: netNow() };
+        // the lap itself rides along, so friends can race it as a ghost
+        if (typeof ghost === 'string' && ghost.length < 60000) row.g = ghost;
+        NET.set(path, row);
       }).catch(() => {});
     });
   },
@@ -10839,7 +11732,11 @@ const LB = {
     NET.connect().then((ok) => {
       if (!ok) return;
       const S = CAREER.stats;
-      NET.set('hof/' + NET.uid, { n: CAREER.name, wins: S.wins | 0, kills: S.kills | 0, races: S.races | 0, drift: S.bestDrift | 0 }).catch(() => {});
+      const row = { n: CAREER.name, wins: S.wins | 0, kills: S.kills | 0, races: S.races | 0, drift: S.bestDrift | 0 };
+      // today's daily best rides in the same row (§13b)
+      const D = CAREER.daily;
+      if (D && D.day === dayKey() && typeof D.best === 'number') row.d = { day: D.day, s: D.best, car: dailyFor(D.day).car };
+      NET.set('hof/' + NET.uid, row).catch(() => {});
     });
   },
 
@@ -10974,7 +11871,7 @@ function mpButtons(list) {
 function mpTitleExtras() {
   // the title page's own buttons: play, online, leaderboard
   MP.sel = MP.sel || 0;
-  return mpButtons([['go', 'PLAY'], ['mponline', 'ONLINE'], ['mplb', 'LEADERBOARD']]);
+  return mpButtons([['go', 'PLAY'], ['daily', 'DAILY'], ['mponline', 'ONLINE'], ['mplb', 'LEADERBOARD']]);
 }
 
 function showOnline() {
@@ -11003,7 +11900,8 @@ function showOnline() {
     '<div class="tag">RACING AS <b class="cash">' + mpEsc(CAREER.name) + '</b> &middot; BALANCE <b class="cash">' + money(CAREER.cash) + '</b></div>' +
     '<div class="rule"></div>' +
     '<div class="blurb">Make a room and send your friends the code, or type in theirs. Up to four people race the ' +
-    'whole field together &mdash; AI cars, weapons and the Juggernaut. Online races pay a 25% bonus.</div>' +
+    'whole field together &mdash; AI cars, weapons and the Juggernaut. Online is <b>stock</b>: every car is open to ' +
+    'everybody and upgrades stay at home, so it comes down to driving. Online races pay a 25% bonus.</div>' +
     (MP.msg ? '<div class="blurb" style="color:#ff8478;margin-top:8px">' + MP.msg + '</div>' : '') +
     mpButtons([['mpcreate', 'CREATE ROOM'], ['mpjoin', 'JOIN ROOM'], ['mplb', 'LEADERBOARD'], ['mpname', 'NAME'], ['mpback', 'BACK']]) +
     '<div class="cta" data-nav="mpcreate">&#9664; &#9654; choose &middot; ENTER &middot; <kbd>ESC</kbd> back</div>');
@@ -11073,7 +11971,7 @@ function mpEnter() {
   mpOff(MP.offs);
   MP.meta = null; MP.players = {};
   const me = mpPath('players/' + NET.uid);
-  NET.set(me, { n: CAREER.name, car: G.playerCar, up: upgradesOf(G.playerCar), j: netNow() });
+  NET.set(me, { n: CAREER.name, car: G.playerCar, j: netNow() });
   NET.dropOnExit(me);
   NET.dropOnExit(mpPath('st/' + NET.uid));
   MP.offs.push(NET.on(mpPath('meta'), (m) => mpMeta(m)));
@@ -11113,6 +12011,7 @@ function mpLeaveRoom(gone) {
     else { NET.set(mpPath('players/' + NET.uid), null); NET.set(mpPath('st/' + NET.uid), null); }
   }
   MP.code = null; MP.meta = null; MP.players = {}; MP.host = false;
+  ensureOwnedCar();          // the room lent you every car; single player is back to yours
 }
 
 /* --------------------------- the room screen --------------------------
@@ -11134,7 +12033,7 @@ function showRoom() {
   MP.rsel = clamp(MP.rsel, 0, rows.length - 1);
   const C = circuitByKey(m.circuit);
   const val = {
-    car: ROSTER[G.playerCar].car,
+    car: ROSTER[G.playerCar].car + ' &middot; STOCK',
     circuit: C.name,
     laps: (m.laps || 2) + ' LAPS',
     boss: m.boss ? 'ON' : 'OFF',
@@ -11178,10 +12077,10 @@ function showRoom() {
 function mpSet(row, d) {
   const m = MP.meta;
   if (row === 'car') {
-    const mine = GARAGE.filter(owns);
-    let i = mine.indexOf(G.playerCar);
-    i = (i + d + mine.length) % mine.length;
-    G.playerCar = mine[i];
+    // every car, owned or not: online is stock and open
+    let i = GARAGE.indexOf(G.playerCar);
+    i = (i + d + GARAGE.length) % GARAGE.length;
+    G.playerCar = GARAGE[i];
     G.sel = GARAGE.indexOf(G.playerCar);
     saveState();
     mpSendCar();
@@ -11200,7 +12099,7 @@ function mpSet(row, d) {
 
 function mpSendCar() {
   if (!MP.code) return;
-  NET.set(mpPath('players/' + NET.uid), { n: CAREER.name, car: G.playerCar, up: upgradesOf(G.playerCar), j: (mpMine() && mpMine().j) || netNow() });
+  NET.set(mpPath('players/' + NET.uid), { n: CAREER.name, car: G.playerCar, j: (mpMine() && mpMine().j) || netNow() });
 }
 
 /* ============================ race start ============================= */
@@ -11244,6 +12143,7 @@ function mpSpawnGrid(m) {
   MP.startAt = m.startAt;
   MP.cars = {};
   MP.pay = null; MP.endAt = 0;
+  thrillsReset();
   MP.rules = { boss: !!m.boss, bossAt: 25, bossArmour: 2200 };
   G.laps = m.laps || 2;
   G.bossKill = false;
@@ -11262,8 +12162,7 @@ function mpSpawnGrid(m) {
     if (!e.ai) {
       const col2 = MP_COLORS[hi++ % 4];
       if (isMe) {
-        G.player = car;
-        applyUpgrades(car);
+        G.player = car;            // stock: no upgrades online
         car.kills = 0;
         MP.killsAtStart = 0;
       } else {
@@ -11524,6 +12423,7 @@ function mpEvent(ev) {
     case 'wreck': {
       const c = car(ev.id), by = car(ev.by);
       if (!c) return;
+      if (by && by.isPlayer) thrillKill(c);
       if (c.isBoss) {
         if (by && by.isPlayer) G.bossKill = true;
         feed('<b>THE JUGGERNAUT IS DOWN</b>', '#f6a41b');
@@ -11697,6 +12597,11 @@ MP.key = function (e, k) {
     if (e.key === 'Enter') return press();
     return false;
   }
+  if (st === 'daily' || st === 'dresult') {
+    if (left || right || up || down) return btn(left || up ? -1 : 1);
+    if (e.key === 'Enter') return press();
+    return false;
+  }
   if (st === 'lb') {
     if (left || right) { LB.circ = (LB.circ + (left ? -1 : 1) + CIRCUITS.length) % CIRCUITS.length; if (NET.state === 'ready') LB.load(); showLeaderboard(); return true; }
     if (e.key === 'Escape' || e.key === 'Enter') { (LB.back || showTitle)(); return true; }
@@ -11710,6 +12615,7 @@ MP.key = function (e, k) {
 };
 
 MP.nav = function (a) {
+  if (dailyNav(a)) return true;
   if (a.indexOf('mpset:') === 0) { const p = a.split(':'); mpSet(p[1], +p[2]); return true; }
   switch (a) {
     case 'mponline': showOnline(); return true;
@@ -11949,14 +12855,15 @@ const PAUSE = {
       get: () => PAD.rumble, set: (v) => { PAD.rumble = v; PAD.jolt(0.7); saveState(); } },
     { kind:'sep' },
     { kind:'go', label:'LEAVE THIS RACE', when: () => MP.on, go: () => mpLeaveRace() },
-    { kind:'go', label:'CHANGE VEHICLE', when: () => !MP.on, go: () => { togglePause(false); showGarage(); } },
-    { kind:'go', label:'CHANGE CIRCUIT', when: () => !MP.on, go: () => {
+    { kind:'go', label:'CHANGE VEHICLE', when: () => !MP.on && !DAILY.on, go: () => { togglePause(false); showGarage(); } },
+    { kind:'go', label:'CHANGE CIRCUIT', when: () => !MP.on && !DAILY.on, go: () => {
         togglePause(false);
         clearRace();
         SFX.drive(null); SFX.field([], null);
         showCircuit();
       } },
-    { kind:'go', label:'RESTART ROUND', when: () => !MP.on, go: () => { togglePause(false); startRound(G.round); } },
+    { kind:'go', label:'RESTART ROUND', when: () => !MP.on && !DAILY.on, go: () => { togglePause(false); startRound(G.round); } },
+    { kind:'go', label:'ABANDON THIS ATTEMPT', when: () => DAILY.on, go: () => { togglePause(false); dailyNav('dboard'); } },
     // Hidden inside an embed as well as on touch: the export is an <a download>
     // and a sandboxed frame silently refuses it, which is a button that lies.
     { kind:'go', label:'EXPORT SAVE', when: () => !TOUCH.on && !EMBEDDED, go: () => exportSave() },
@@ -11965,6 +12872,7 @@ const PAUSE = {
     { kind:'go', label:'QUIT TO TITLE', go: () => {
         togglePause(false);
         if (MP.code) mpLeaveRoom();
+        dailyLeave();
         clearRace();
         SFX.drive(null); SFX.field([], null);
         showTitle();
@@ -11981,9 +12889,9 @@ function pauseFmt(it) {
 function drawPause() {
   const R = ROUNDS[G.round], p = G.player;
   const np = MUSIC.track();
-  $('pauseSub').innerHTML = (MP.on ? 'ONLINE &middot; ROOM ' + MP.code + ' &middot; THE RACE GOES ON' : R.title) + ' &middot; ' + (VENUE.C ? VENUE.C.name : R.sub) + ' &middot; LAP ' +
+  $('pauseSub').innerHTML = (MP.on ? 'ONLINE &middot; ROOM ' + MP.code + ' &middot; THE RACE GOES ON' : curRound().title) + ' &middot; ' + (VENUE.C ? VENUE.C.name : R.sub) + ' &middot; LAP ' +
     clamp((p ? p.lapCount : 0) + 1, 1, G.laps) + ' / ' + G.laps +
-    ' &middot; P' + (p ? p.rank : 1) + (MP.on ? '' : ' &middot; ' + cutLabel(G.round)) +
+    ' &middot; P' + (p ? p.rank : 1) + (MP.on || DAILY.on ? '' : ' &middot; ' + cutLabel(G.round)) +
     (np && MUSIC.on ? '<br>&#9834; ' + np.title + ' &middot; ' + np.artist : '');
   let h = '';
   for (let i = 0; i < PAUSE.items.length; i++) {
@@ -12077,6 +12985,7 @@ function initInput() {
     KEYS[k] = true;
     if ([' ', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) >= 0) e.preventDefault();
     SFX.init(); SFX.resume(); MUSIC.start();
+    if (kcKey(e)) return;                   // the kill cam owns the keys while it rolls
 
     if (e.key === 'Escape' || (k === 'p' && !G.paused)) {
       if (G.state === 'racing' || G.state === 'countdown') { e.preventDefault(); togglePause(); return; }
@@ -12091,6 +13000,7 @@ function initInput() {
       if (G.state === 'garage') { if (G.garageBack) { const b = G.garageBack; G.garageBack = null; b(); } else showCircuit(); return; }
       if (G.state === 'grid') { showGarage(); return; }
       if (G.state === 'shop') { shopBack(); return; }
+      if (dailyKey(e, k)) return;
       if (MP.key && MP.key(e, k)) return;
     }
     if (e.key === 'Enter') {
@@ -12101,10 +13011,13 @@ function initInput() {
       if (G.state === 'grid') { beginRace(); return; }
       if (G.state === 'result') { advance(); return; }
     }
+    if (k === 'r' && G.state === 'result') { quickRestart(); return; }
+    if (k === 'h' && G.state === 'grid') { ghostCycle(); showGrid(); return; }
+    if (dailyKey(e, k)) return;
     if (G.state === 'garage') {
       if (e.key === 'ArrowLeft' || k === 'a') { garageMove(-1); return; }
       if (e.key === 'ArrowRight' || k === 'd') { garageMove(1); return; }
-      if (k === 'u') { showUpgrades(showGarage); return; }
+      if (k === 'u' && !G.garageBack) { showUpgrades(showGarage); return; }
     }
     if (G.state === 'shop') {
       if (e.key === 'ArrowUp' || k === 'w') { shopMove(-1); return; }
@@ -12118,7 +13031,7 @@ function initInput() {
     if (k === 't' && (G.state === 'grid' || G.state === 'garage' || G.state === 'result')) { showCircuit(); return; }
     if (k === 'g' && (G.state === 'grid' || G.state === 'result')) { showGarage(); return; }
     if (k === 'm') { G.muted = !G.muted; SFX.setMute(G.muted); hint(G.muted ? 'AUDIO MUTED' : 'AUDIO ON', 1.4); }
-    if (k === 'r' && G.state === 'racing' && !MP.on) startRound(G.round);
+    if (k === 'r' && G.state === 'racing' && !MP.on && !DAILY.on) startRound(G.round);
     if (k === 'c' && G.state === 'racing') {
       CAM.mode = (CAM.mode + 1) % CAM_MODES.length;
       hint('CAMERA &mdash; <b>' + CAM_MODES[CAM.mode].name + '</b>', 1.4);
@@ -12162,7 +13075,7 @@ function readPlayerInput(p) {
   // Keyboard and pad are two independent sources ORed at the point of use.
   // Neither can switch the other off — see the note at the top of §1d.
   i.hand = !!(KEYS['Control'] || KEYS['x'] || PAD.hand);
-  i.nos = !!(KEYS['q'] || KEYS['n'] || PAD.nos);
+  i.nos = !!(KEYS['q'] || KEYS['n'] || PAD.nos) && !dailyHas('nonos');
   if (KEYS[' '] || PAD.fire) fireWeapon(p);
   const guard = KEYS['Shift'] || PAD.guard;
   if (guard) { if (!G.shiftLatch) { G.shiftLatch = true; deployDefence(p); } } else G.shiftLatch = false;
@@ -12194,15 +13107,22 @@ function clearRace() {
   G.finishOrder.length = 0; G.endTimer = -1; G.outcome = null;
   G.raceT = 0; G.hurt = 0; G.lastLap = 0; G.lapStart = 0; G.slowT = 0;
   CAM.shake = 0; GFX.flash = 0;
+  ghostHide();
 }
+
+/* the round being raced: a championship round, or today's challenge */
+function curRound() { return DAILY.on ? DAILY.R : ROUNDS[G.round]; }
 
 function startRound(n) {
   G.round = n;
-  const R = ROUNDS[n];
+  const R = curRound();
   G.laps = R.laps;
   clearRace();
+  thrillsReset();
 
-  const grid = raceField(R).rivals.concat([G.playerCar]);
+  // the daily hands everybody the same stock car; a round takes yours
+  const mine = DAILY.on ? DAILY.ch.car : G.playerCar;
+  const grid = raceField(R, mine).rivals.concat([mine]);
   for (let k = 0; k < grid.length; k++) {
     const isP = k === grid.length - 1;
     const car = new Car(grid[k], isP);
@@ -12213,9 +13133,14 @@ function startRound(n) {
     if (!isP) initAI(car);
     if (isP) {
       G.player = car;
-      applyUpgrades(car);
-      if (G.carryArmour !== null) car.armour = clamp(G.carryArmour + 45, 35, car.maxArmour);
-      car.kills = G.carryKills;
+      if (DAILY.on) {
+        if (dailyHas('glass')) { car.maxArmour = Math.round(car.maxArmour * 0.5); car.armour = car.maxArmour; }
+        car.kills = 0;
+      } else {
+        applyUpgrades(car);
+        if (G.carryArmour !== null) car.armour = clamp(G.carryArmour + 45, 35, car.maxArmour);
+        car.kills = G.carryKills;
+      }
       G.killsAtStart = car.kills;
     }
     G.cars.push(car);
@@ -12232,6 +13157,8 @@ function startRound(n) {
   G.state = 'countdown';
   G.cd = 4.2;
   hideScreen();
+  ghostSetup();
+  grudgeGrid();
 }
 
 function beginRace() { startRound(G.round); }
@@ -12285,7 +13212,7 @@ function onCarWrecked(car, by, cause) {
 function onDriftBanked(car, pts) {
   if (pts > CAREER.stats.bestDrift) { CAREER.stats.bestDrift = pts; saveCareer(); }
   if (pts < 60) return;
-  feed('DRIFT <b>+' + pts + '</b>', '#8fd8ff');
+  comboAdd('DRIFT', Math.round(pts * 0.6), 0);
 }
 
 function endRace(outcome) {
@@ -12316,7 +13243,7 @@ function checkRaceEnd(dt) {
 }
 
 function spawnBoss() {
-  const R = MP.on ? MP.rules : ROUNDS[G.round];
+  const R = MP.on ? MP.rules : curRound();
   const boss = new Car('juggernaut', false);
   boss.netId = 'boss';
   if (MP.on) MP.cars.boss = boss;
@@ -12398,6 +13325,8 @@ function initTouchMenus() {
       else if (a === 'garage') showGarage();
       else if (a === 'upgrades') showUpgrades(showGarage);
       else if (a === 'shopback') shopBack();
+      else if (a === 'ghost') { ghostCycle(); showGrid(); }
+      else if (a === 'restart') quickRestart();
       else if (MP.nav && MP.nav(a)) { /* the online screens' own buttons */ }
       else if (a === 'circuit') showCircuit();
       else tapKey('Enter');
@@ -12428,7 +13357,7 @@ function initTouchMenus() {
       if (i < 0 || i >= GARAGE.length) return;
       if (i !== G.sel) {
         // first tap picks it up
-        G.sel = i; if (owns(GARAGE[i])) G.playerCar = GARAGE[i];
+        G.sel = i; if (drivable(GARAGE[i])) G.playerCar = GARAGE[i];
         SFX.beep(false);
         showGarage();
       } else {
@@ -12567,10 +13496,12 @@ function showGarage() {
   G.state = 'garage';
   HUD.hud.classList.add('hidden');
   let cards = '';
+  const online = !!G.garageBack;
   for (let i = 0; i < GARAGE.length; i++) {
-    const k = GARAGE[i], have = owns(k);
+    const k = GARAGE[i], have = drivable(k);
     let ups = '';
-    if (have) {
+    if (online) ups = 'STOCK &middot; ONLINE';
+    else if (have) {
       const lv = upgradesOf(k);
       const n = UPGRADES.reduce((a, u) => a + lv[u.id], 0);
       if (n) ups = 'UPGRADES ' + n + ' / ' + (UPGRADES.length * 3);
@@ -12578,7 +13509,7 @@ function showGarage() {
     cards += carCard(k, { sel: i === G.sel, you: i === G.sel, pick: i, locked: !have, ups: ups });
   }
   const R = ROUNDS[G.round];
-  const k = GARAGE[G.sel], have = owns(k);
+  const k = GARAGE[G.sel], have = drivable(k);
   const sub = G.garageBack
     ? 'ONLINE ROOM ' + (MP.code || '')
     : R.title + ' &middot; ' + R.sub + ' &middot; ' + R.laps + ' LAPS' + ' &middot; ' + (R.playerLives || 2) + ' LIVES &middot; ' + cutLabel(G.round);
@@ -12586,22 +13517,25 @@ function showGarage() {
     '<h2>THE GARAGE</h2>' +
     '<div class="tag">' + sub + '</div>' +
     '<div class="tag" style="margin-top:6px;opacity:.9">BALANCE <b class="cash">' + money(CAREER.cash) + '</b></div>' +
-    '<div class="blurb" style="margin-top:10px">Pick what you take to the grid. Every race pays &mdash; spend it on ' +
-    'locked cars and on upgrades. Whatever you leave behind, somebody else drives at you.</div>' +
+    (online
+      ? '<div class="blurb" style="margin-top:10px">Online races are <b>stock</b>: every car is open to everybody and ' +
+        'nobody&rsquo;s upgrades come with them, so the only edge is how you drive.</div>'
+      : '<div class="blurb" style="margin-top:10px">Pick what you take to the grid. Every race pays &mdash; spend it on ' +
+        'locked cars and on upgrades. Whatever you leave behind, somebody else drives at you.</div>') +
     '<div class="grid-cards">' + cards + '</div>' +
     '<div class="navrow"><b data-nav="prev">&#9664;</b><b data-nav="go">' +
       (have ? (G.garageBack ? 'DRIVE THIS' : 'TAKE THE GRID') : 'BUY ' + money(CAR_PRICE[k] || 0)) + '</b>' +
-      (have ? '<b data-nav="upgrades">UPGRADES</b>' : '') +
+      (have && !online ? '<b data-nav="upgrades">UPGRADES</b>' : '') +
     '<b data-nav="next">&#9654;</b></div>' +
     '<div class="cta" data-nav="go">&#9664; &#9654; or <kbd>A</kbd><kbd>D</kbd> to choose &middot; ENTER to ' +
-      (have ? 'drive' : 'buy') + ' &middot; <kbd>U</kbd> upgrades &middot; <kbd>ESC</kbd> back</div>'
+      (have ? 'drive' : 'buy') + (online ? '' : ' &middot; <kbd>U</kbd> upgrades') + ' &middot; <kbd>ESC</kbd> back</div>'
   );
 }
 
 function garageMove(d) {
   G.sel = (G.sel + d + GARAGE.length) % GARAGE.length;
   // only a car you own becomes your car; a locked one is just being looked at
-  if (owns(GARAGE[G.sel])) G.playerCar = GARAGE[G.sel];
+  if (drivable(GARAGE[G.sel])) G.playerCar = GARAGE[G.sel];
   SFX.beep(false);
   showGarage();
 }
@@ -12775,6 +13709,7 @@ function circuitCard(C, i) {
     '<div class="eng">' + pv.km.toFixed(2) + ' KM &middot; ' + (C.turns ? C.turns + ' TURNS' : 'OPEN SWEEPERS') +
     (best ? ' &middot; BEST ' + fmtTime(best) : '') + '</div>' +
     '<img class="cmap" alt="" src="' + pv.url + '">' +
+    '<div class="medals">' + medalLine(C.key) + '</div>' +
     '<div class="tagline">' + C.tags.join(' &middot; ') + '</div>' +
     '<div class="note">' + C.blurb + '</div>' +
     (sel ? '<div class="confirm">TAP AGAIN TO RACE HERE</div>' : '') +
@@ -12851,24 +13786,31 @@ function showGrid() {
     (R.playerLives || 2) + ' LIVES &middot; ' + cutLabel(G.round) +
     (G.bestLap ? ' &middot; BEST LAP ' + fmtTime(G.bestLap) : '') + '</div>' +
     '<div class="blurb" style="margin-top:14px">' + R.brief + '</div>' +
+    '<div class="medals" style="margin-top:10px">' + medalLine(G.circuit) + '</div>' +
+    '<div class="tag" style="margin-top:8px">GHOST &middot; <b class="cash">' + ghostLabel(G.circuit) + '</b></div>' +
     '<div class="grid-cards">' + cards + '</div>' +
-    '<div class="navrow"><b data-nav="circuit">CIRCUIT</b><b data-nav="garage">GARAGE</b><b data-nav="go">START</b></div>' +
-    '<div class="cta" data-nav="go">ENTER to start &middot; <kbd>G</kbd> garage &middot; <kbd>T</kbd> circuit &middot; <kbd>ESC</kbd> back</div>'
+    '<div class="navrow"><b data-nav="circuit">CIRCUIT</b><b data-nav="garage">GARAGE</b><b data-nav="ghost">GHOST</b><b data-nav="go">START</b></div>' +
+    '<div class="cta" data-nav="go">ENTER to start &middot; <kbd>G</kbd> garage &middot; <kbd>T</kbd> circuit &middot; <kbd>H</kbd> ghost &middot; <kbd>ESC</kbd> back</div>'
   );
+  if (GHOST.mode === 'friend' && GHOST.friend[G.circuit] === undefined) {
+    GHOST.friend[G.circuit] = null;              // asked once; the answer redraws this screen
+    ghostFetchFriend(G.circuit, () => { if (G.state === 'grid') showGrid(); });
+  }
 }
 
 /* who lines up: last round's qualifiers first, then the round's own entries,
    then whatever else is in the garage — minus whatever you took. The grid is
    always full, and the cars that beat you last time are on it again. */
-function raceField(R) {
+function raceField(R, mine) {
+  mine = mine || G.playerCar;
   const want = R.rivals.length;
   const rivals = [];
   const add = (k) => {
-    if (!k || k === G.playerCar || rivals.length >= want) return;
+    if (!k || k === mine || rivals.length >= want) return;
     if (rivals.indexOf(k) >= 0 || !ROSTER[k]) return;
     rivals.push(k);
   };
-  for (const k of (G.qualified || [])) add(k);
+  if (!DAILY.on) for (const k of (G.qualified || [])) add(k);
   for (const k of R.rivals) add(k);
   for (const k of GARAGE) add(k);
   return { rivals: rivals };
@@ -12882,6 +13824,7 @@ function cutLabel(n) {
 
 function showResult() {
   if (MP.on) return mpShowResult();
+  if (DAILY.on) return dailyResult();
   G.state = 'result';
   HUD.hud.classList.add('hidden');
   SFX.drive(null);
@@ -12942,6 +13885,7 @@ function showResult() {
     '<div class="standings">' + rows + '</div>' +
     '<div class="tag" style="margin-top:14px">BEST LAP ' + fmtTime(G.bestLap) +
       (G.lastLap ? ' &middot; LAST ' + fmtTime(G.lastLap) : '') + '</div>' +
+    '<div class="medals" style="margin-top:6px">' + medalLine(G.circuit) + '</div>' +
     paydayHtml(G.pay) +
     (through ? '<div class="blurb" style="margin-top:14px">Salvage crews patch you up between rounds. ' +
       'You keep your damage &mdash; they only give back what the budget allows. ' +
@@ -12949,10 +13893,10 @@ function showResult() {
       'bring in fresh entries to fill the grid.' : '') + '</div>'
       : '<div class="blurb" style="margin-top:14px">Miss the cut and the broadcast runs it again. ' +
         'Same round, same rivals, no credit for the laps you already drove.</div>') +
-    '<div class="navrow"><b data-nav="go">' +
+    '<div class="navrow"><b data-nav="restart">' + (through ? 'GO NOW' : 'RESTART') + '</b><b data-nav="go">' +
       (through ? 'ON TO ' + ROUNDS[G.round + 1].title : 'RUN IT AGAIN') + '</b></div>' +
     '<div class="cta" data-nav="go">' + (through ? 'Press ENTER for ' + ROUNDS[G.round + 1].title +
-      ' &middot; ' + cutLabel(G.round + 1) : 'Press ENTER to run it again') + '</div>'
+      ' &middot; ' + cutLabel(G.round + 1) : 'Press ENTER to run it again') + ' &middot; <kbd>R</kbd> straight back on the grid</div>'
   );
 }
 
@@ -12979,6 +13923,17 @@ function showFinale() {
     '<div class="navrow"><b data-nav="go">RACE IT AGAIN</b></div>' +
     '<div class="cta" data-nav="go">Press ENTER to race it again</div>'
   );
+}
+
+/* R on the results: no briefing, no grid — straight into the countdown for
+   whatever comes next (the same round again, or the next one) */
+function quickRestart() {
+  if (G.state !== 'result') return;
+  if (G.outcome === 'freedom') { advance(); return; }
+  if (G.through) G.round = Math.min(ROUNDS.length - 1, G.round + 1);
+  saveState();
+  SFX.beep(true);
+  startRound(G.round);
 }
 
 function advance() {
@@ -13021,7 +13976,7 @@ function tick(dt) {
     const n = Math.ceil(G.cd - 0.2);
     if (n !== G.lastCd) {
       G.lastCd = n;
-      if (n === 3) { setStartLights(1); announce('3', MP.on ? 'ONLINE &middot; ROOM ' + MP.code : ROUNDS[G.round].title); SFX.beep(false); }
+      if (n === 3) { setStartLights(1); announce('3', MP.on ? 'ONLINE &middot; ROOM ' + MP.code : curRound().title); SFX.beep(false); }
       if (n === 2) { setStartLights(3); announce('2', ''); SFX.beep(false); }
       if (n === 1) { setStartLights(5); announce('1', ''); SFX.beep(false); }
     }
@@ -13057,7 +14012,7 @@ function tick(dt) {
   if (MP.on) G.raceT = Math.max(0, (netNow() - MP.startAt) / 1000);
   else G.raceT += dt;
 
-  const R = MP.on ? MP.rules : ROUNDS[G.round];
+  const R = MP.on ? MP.rules : curRound();
   if (R.boss && !G.bossSpawned && (!MP.on || MP.host)) {
     if (!G.bossWarned && G.raceT > (R.bossAt - 5)) {
       G.bossWarned = true;
@@ -13093,16 +14048,23 @@ function tick(dt) {
     if (G.lastLapCount !== undefined && G.player.lapCount > (G.lastLapCount || 0) && G.lapStart > 0) {
       G.lastLap = G.raceT - G.lapStart;
       // a lap under 15s means the counter jumped, not a fast lap
-      if (G.lastLap > 15 && (!G.bestLap || G.lastLap < G.bestLap)) {
-        G.bestLap = G.lastLap;
-        G.bestLaps[G.circuit] = G.bestLap;
-        feed('BEST LAP <b>' + fmtTime(G.bestLap) + '</b>', '#2fd4e6');
-        saveState();
-        LB.submitLap(G.circuit, G.bestLap, G.player.key);
+      let best = false;
+      if (G.lastLap > 15) {
+        best = !G.bestLap || G.lastLap < G.bestLap;
+        if (best) {
+          G.bestLap = G.lastLap;
+          G.bestLaps[G.circuit] = G.bestLap;
+          feed('BEST LAP <b>' + fmtTime(G.bestLap) + '</b>', '#2fd4e6');
+          saveState();
+        }
+        medalCheck(G.circuit, G.lastLap);
       }
+      ghostLap(G.lastLap, best);                  // keeps the recording if it was the best
+      if (best) LB.submitLap(G.circuit, G.bestLap, G.player.key, GHOST.lastEnc);
     }
     G.lastLapCount = G.player.lapCount;
     G.lapStart = G.raceT;
+    ghostBegin();
   }
 
   for (const c of G.cars) {
@@ -13140,6 +14102,7 @@ function tick(dt) {
     }
   }
 
+  thrillsTick(dt);
   updateCamera(dt);
   if (!online) updateHUD(dt);
   checkRaceEnd(dt);
@@ -13159,6 +14122,8 @@ function frame(now) {
   // dt: the pad has to drive the pause menu too, and menu repeat rates must
   // not stretch out during a kill replay.
   PAD.poll(dt);
+  if (KC.pending && !KC.on) { const b = KC.pending; KC.pending = null; kcStart(b); }
+  if (KC.on) { kcFrame(dt); renderFrame(dt); return; }
   if (G.slowT > 0) { G.slowT -= dt; dt *= 0.30; }   // cinematic beat on a kill
   if (G.paused && !MP.on) { renderFrame(0); return; }
   try { tick(dt); } catch (err) { console.error(err); }
@@ -13189,6 +14154,8 @@ function boot() {
   initFullscreen();
   initInstall();
   loadCareer();
+  GHOST.mode = CAREER.ghost;
+  initThrills();
   applyState(loadState());
   ensureOwnedCar();
   NET.boot();
