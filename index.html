@@ -126,6 +126,24 @@ body.killcam #kcBars{display:block}
 #kcBars .kb em{font-style:normal;font-size:10px;letter-spacing:.3em;opacity:.55}
 @keyframes kcin{from{transform:scaleY(0)}}
 
+/* ---------- sport mode (§12c) ---------- */
+body.sport #armorBar, body.sport #armorBar + .sub, body.sport .cards, body.sport #lives,
+body.sport #crosshair, body.sport #bosshp{display:none !important}
+#tower{top:150px;left:22px;font-size:10.5px;letter-spacing:.08em;min-width:150px}
+body:not(.sport) #tower{display:none}
+#tower .tw{display:flex;align-items:center;gap:6px;padding:2px 6px;background:rgba(9,10,12,.62);margin-bottom:1px}
+#tower .tw b{width:16px;text-align:right;font-weight:400;opacity:.7}
+#tower .tw i{width:3px;height:12px;display:block}
+#tower .tw span{flex:1;font-weight:700}
+#tower .tw em{font-style:normal;opacity:.7;font-size:9.5px}
+#tower .tw.me{background:rgba(246,164,27,.28)}
+.sportset{display:flex;gap:18px;align-items:flex-start;justify-content:center;flex-wrap:wrap;max-width:980px;margin:0 auto}
+.sportset .standings{flex:1;min-width:300px}
+.spmap{width:300px;text-align:center}
+.spmap .cmap{width:100%;display:block}
+body.touch #tower{top:84px;left:6px;font-size:8px;min-width:96px}
+body.touch #tower .tw{padding:1px 4px}
+
 /* ---------- medals, daily ---------- */
 .medals{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:9.5px;letter-spacing:.14em;margin:6px 0 2px}
 .medals .md{opacity:.42}
@@ -650,7 +668,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.5.0 · 2026-10-04 09:27 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.6.0 · 2026-10-04 11:12 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -661,7 +679,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.5.0   (built 2026-10-04 09:27)
+   RACE TO DEATH  v3.6.0   (built 2026-10-04 11:12)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -686,7 +704,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.5.0',
+  version: '3.6.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -4385,8 +4403,141 @@ const CIRCUITS = [
   },
 ];
 
+/* ========================= SPORT CIRCUITS ===========================
+   Grand-prix layouts for SPORT MODE: no panels, no gantries, no barrels,
+   grass and kerbs instead of desert. Drawn from the shapes of real circuits
+   (traced from track maps, corner by corner, in the map's own pixels, then
+   scaled), with the same filleted-corner construction and the same checks.
+   Narrower than the combat circuits — a grand-prix road, not a killing
+   floor — and every one runs clockwise like the maps it came from.     */
+const GP_MOOD = {
+  sun: [-0.45, 0.62, 0.64], sunCol: 0xfff0d8, sunI: 6.4,
+  skyHi: 0x2f68b0, skyLo: 0xb9d2e6, haze: 0xc8d8e4, fog: 0.00046,
+  hemiSky: 0x6d9ad0, hemiGnd: 0x4f6b38, hemiI: 0.95, bounce: 0xc8e0a8, bounceI: 0.22,
+  ground: 0x5d8a3e, shoulder: 0x6f9a4c, dust: 0xdfe6d8,
+};
+const SPORT_CIRCUITS = [
+  {
+    key: 'gp_sierra', name: 'LA SIERRA', theme: 'gp', sport: true, turns: 16,
+    sub: 'GRAND PRIX · THE HILLS',
+    blurb: 'Catalunya\'s shape. The long run to turn one, the endless right of turn three, a climb ' +
+      'through the middle sector and a tight final chicane that decides the lap.',
+    tags: ['LONG STRAIGHT', 'FAST TURN 3', 'FINAL CHICANE'],
+    half: 9, scale: 3.4,
+    pts: [
+      [128, 212, 45],   //  0  T1
+      [108, 180, 40],   //  1  T2
+      [45, 140, 100],   //  2  T3, the long right
+      [72, 72, 70],     //  3
+      [215, 72, 38],    //  4  T4
+      [108, 122, 26],   //  5  T5
+      [150, 186, 40],   //  6  T6
+      [225, 190, 32],   //  7  T7
+      [256, 140, 70],   //  8  T8
+      [302, 82, 45],    //  9  T9, over the crest
+      [497, 192, 20],   // 10  T10 hairpin
+      [458, 140, 80],   // 11  T11
+      [470, 92, 34],    // 12  T12
+      [527, 92, 30],    // 13  T13
+      [540, 146, 28],   // 14  T14 chicane
+      [562, 166, 28],   // 15  T15
+      [548, 214, 60],   // 16  T16 onto the straight
+    ],
+    start: 16.6,
+    panels: [], traps: [], barrels: [], pit: [-200, 200],
+    mood: GP_MOOD,
+  },
+  {
+    key: 'gp_bay', name: 'SUNSET BAY', theme: 'gp', sport: true, turns: 16,
+    sub: 'GRAND PRIX · THE COAST',
+    blurb: 'A full-throttle run along the top to a sweeping turn one, two hairpins in the middle sector ' +
+      'and a twisting climb up the far side that rewards a tidy car.',
+    tags: ['TWO HAIRPINS', 'TWISTY FINAL SECTOR', 'FLAT-OUT TOP STRAIGHT'],
+    half: 9, scale: 4.2,
+    pts: [
+      [425, 58, 30],    //  0  T1
+      [408, 92, 35],    //  1  T2
+      [335, 100, 40],   //  2  T3
+      [328, 158, 26],   //  3  T4
+      [282, 138, 30],   //  4  T5
+      [256, 96, 18],    //  5  T6 hairpin
+      [218, 112, 40],   //  6  T7
+      [185, 152, 60],   //  7  T8
+      [140, 184, 45],   //  8  T9
+      [92, 216, 16],    //  9  T10 hairpin
+      [102, 190, 30],   // 10  T11
+      [100, 166, 30],   // 11  T12
+      [62, 148, 22],    // 12  T13
+      [108, 128, 22],   // 13  T14
+      [118, 100, 24],   // 14  T15
+      [66, 90, 26],     // 15  T16
+      [68, 58, 30],     // 16  onto the straight
+    ],
+    start: 16.5,
+    panels: [], traps: [], barrels: [], pit: [-200, 200],
+    mood: GP_MOOD,
+  },
+  {
+    key: 'gp_river', name: 'RIVERSIDE PARK', theme: 'gp', sport: true, turns: 15,
+    sub: 'GRAND PRIX · THE PARKLAND',
+    blurb: 'Two long straights with a slipstream on both, a fast sweep through the park and a knot of ' +
+      'slow corners at the bottom where the overtaking happens.',
+    tags: ['TWO STRAIGHTS', 'SLOW COMPLEX', 'BRAKING ZONES'],
+    half: 9, scale: 4.0,
+    pts: [
+      [396, 150, 30],   //  0  T1
+      [384, 116, 50],   //  1  T2
+      [352, 26, 45],    //  2  T3
+      [128, 72, 40],    //  3  T4
+      [205, 160, 70],   //  4  T5
+      [287, 182, 40],   //  5  T6
+      [282, 222, 25],   //  6  T7
+      [240, 236, 30],   //  7  T8
+      [212, 214, 25],   //  8  T9
+      [178, 262, 22],   //  9  T10
+      [160, 214, 30],   // 10  T11
+      [112, 190, 30],   // 11  T12
+      [92, 245, 40],    // 12  T13
+      [165, 288, 50],   // 13  T14
+      [238, 280, 40],   // 14  T15
+      [300, 262, 80],   // 15  onto the main straight
+    ],
+    start: 15.4,
+    panels: [], traps: [], barrels: [], pit: [-200, 200],
+    mood: GP_MOOD,
+  },
+  {
+    key: 'gp_airfield', name: 'OLD AIRFIELD', theme: 'gp', sport: true, turns: 14,
+    sub: 'GRAND PRIX · THE HOME OF IT',
+    blurb: 'Silverstone\'s shape, on the old bomber base. Copse flat, the Maggotts-Becketts snake, ' +
+      'the Hangar Straight to Stowe, and a fiddly run home through Bridge and Luffield.',
+    tags: ['MAGGOTTS-BECKETTS', 'HANGAR STRAIGHT', 'HIGH SPEED'],
+    half: 9, scale: 3.6,
+    pts: [
+      [52, 328, 70],    //  0  Copse
+      [88, 268, 120],   //  1  Maggotts
+      [126, 212, 55],   //  2  Becketts
+      [100, 172, 50],   //  3
+      [150, 128, 80],   //  4  Chapel
+      [335, 36, 60],    //  5  Stowe
+      [405, 62, 30],    //  6  Vale
+      [452, 130, 40],   //  7  Club
+      [420, 200, 40],   //  8  Abbey
+      [350, 230, 45],   //  9  Farm
+      [432, 258, 60],   // 10  Bridge
+      [470, 276, 30],   // 11  Priory
+      [478, 318, 35],   // 12  Luffield
+      [446, 348, 70],   // 13  Woodcote
+    ],
+    start: 13.5,
+    panels: [], traps: [], barrels: [], pit: [-200, 200],
+    mood: GP_MOOD,
+  },
+];
+
 function circuitByKey(k) {
   for (const C of CIRCUITS) if (C.key === k) return C;
+  for (const C of SPORT_CIRCUITS) if (C.key === k) return C;
   return CIRCUITS[0];
 }
 
@@ -4866,7 +5017,9 @@ function buildRoadMesh(C) {
   // painted edge lines + dashed centre
   edgeRibbon((i) => W_(i) - 0.62, 0.42, 0.045, 0xd8d0bc, false);
   edgeRibbon((i) => -W_(i) + 0.62, 0.42, 0.045, 0xd8d0bc, false);
-  edgeRibbon(0, 0.3, 0.045, 0xbcb49c, true);
+  // a grand-prix road has no centre line, and has kerbs
+  if (C.sport) buildKerbs();
+  else edgeRibbon(0, 0.3, 0.045, 0xbcb49c, true);
 
   // start / finish
   const { c, x } = makeCanvas(256, 64);
@@ -4942,7 +5095,8 @@ function buildBarriers() {
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     g.setIndex(idx);
     g.computeVertexNormals();
-    const wall = new THREE.Mesh(g, mat(0x9c9078, {
+    // grand-prix barriers are painted white; the rest are bare concrete
+    const wall = new THREE.Mesh(g, mat(TRACK.C && TRACK.C.sport ? 0xd9dde0 : 0x9c9078, {
       map: ct, rough: 0.95, metal: 0.05, env: 0.35, side: THREE.DoubleSide,
     }));
     wall.receiveShadow = true;
@@ -4968,7 +5122,8 @@ function buildBarriers() {
       if (side > 0) capIdx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
       else capIdx.push(o, o + 2, o + 1, o + 1, o + 2, o + 3);
       const on = Math.floor(i / 10) % 2;
-      for (let k = 0; k < 4; k++) colors.push(on ? 0.62 : 0.72, on ? 0.07 : 0.68, on ? 0.08 : 0.58);
+      if (TRACK.C && TRACK.C.sport) for (let k = 0; k < 4; k++) colors.push(on ? 0.05 : 0.80, on ? 0.20 : 0.82, on ? 0.62 : 0.84);
+      else for (let k = 0; k < 4; k++) colors.push(on ? 0.62 : 0.72, on ? 0.07 : 0.68, on ? 0.08 : 0.58);
       cq++;
     }
     const cg = new THREE.BufferGeometry();
@@ -5448,6 +5603,7 @@ function buildWorld(C) {
   if (C.theme === 'canyon') dressCanyon(C);
   else if (C.theme === 'boneyard') dressBoneyard(C);
   else if (C.theme === 'deadwater') dressDeadwater(C);
+  else if (C.theme === 'gp') dressGP(C);
   else dressOilfield();
   buildFixtures(C);
 }
@@ -6657,6 +6813,105 @@ function addHulk(b, x, z, yaw, rustM) {
   put(b, F, makeLoft(st, 12), rustM, 0, 0, 0);
   put(b, F, vBox(4, 3, 5), rustM, 0, 4.2, -Lh * 0.25);
 }
+/* ========================= §4c  GRAND PRIX =========================
+   SPORT MODE's circuits are dressed as grand-prix venues rather than
+   wasteland: green hills, trees, grandstands down the start straight and at
+   the big braking zones, a pit building, advertising hoardings on the
+   outside of corners and tyre walls where a car would go in. The kerbs and
+   the paler barriers are drawn by the track builder (§3) when C.sport.
+   ================================================================== */
+function dressGP(C) {
+  addDunes(0x5e7f45, 34, true);
+  const T = new Tiles(260);
+  const leaf = [0x2f5a2a, 0x3d6b30, 0x4a7a36, 0x56803c].map((c) => mat(c, { rough: 0.95, metal: 0, env: 0.3 }));
+  const bark = mat(0x4a3826, { rough: 1, metal: 0, env: 0.2 });
+
+  // trees: belts of them out beyond the run-off, thicker further out
+  for (let k = 0; k < 520; k++) {
+    const i = randi(0, TRACK.N - 1), s = sAt(i), side = Math.random() < 0.5 ? 1 : -1;
+    const o = (s.w + rand(30, 320)) * side;
+    const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
+    if (!propOK(x, z, 6)) continue;
+    const h = rand(7, 16), b = T.at(x, z);
+    b.place(gCyl(0.22, 0.34, h * 0.42, 6), bark, x, h * 0.21, z);
+    b.place(gCyl(0, h * 0.27, h * 0.72, 7), pick(leaf), x, h * 0.42 + h * 0.36, z, 0, rand(0, 6), 0);
+  }
+  T.build(true);
+
+  // grandstands down both sides of the start straight
+  const stand = (i, side, len) => {
+    const s = sAt(i), o = (s.w + CFG.wallSetback + 16) * side;
+    const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
+    if (!propOK(x, z, 4)) return;
+    addStand(x, z, Math.atan2(s.t.x, s.t.z) + (side > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.PI, len);
+  };
+  for (const d of [-170, -110, 40, 100, 160]) stand(idxAhead(0, d), 1, 54);
+  // the pit building opposite, behind the pit wall
+  {
+    const s = sAt(idxAhead(0, -20)), o = -(s.w + 30);
+    const x = s.p.x + s.n.x * o, z = s.p.z + s.n.z * o;
+    if (propOK(x, z, 8)) addBuilding(x, z, Math.atan2(s.t.x, s.t.z), 22, 11, 190, false);
+  }
+
+  // at every corner: a stand on the outside of the slow ones, hoardings and
+  // a tyre wall where a car that misses its braking point would end up
+  const K = C.pts.length;
+  for (let k = 0; k < K; k++) {
+    const R = C.pts[k][2];
+    if (R <= 32 && k % 2 === 0) placeOut(C, k, 30, 26, (x, z, yaw, side) =>
+      addStand(x, z, yaw + (side > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.PI, 40));
+    if (k % 2 === 1) placeOut(C, k + 0.15, 14, 8, (x, z, yaw, side) =>
+      addBillboard(x, z, yaw + (side > 0 ? -Math.PI / 2 : Math.PI / 2), 14));
+    if (R <= 45) {
+      const i = idxAt(k), s = sAt(i), side = sgnOutside(i);
+      for (let j = -3; j <= 3; j++) {
+        const sp = sAt(idxAhead(i, j * 3.2));
+        const o = (sp.w + CFG.wallSetback + 1.4) * side;
+        addTyreStack(sp.p.x + sp.n.x * o, sp.p.z + sp.n.z * o, 3);
+      }
+    }
+  }
+}
+
+/* red and white kerbs along every bend tighter than about 140 m, both
+   sides, a little into the road and a little onto the grass */
+function buildKerbs() {
+  const N = TRACK.N;
+  const on = new Uint8Array(N);
+  for (let i = 0; i < N; i++) if (Math.abs(sAt(i).k) > 0.0072) on[i] = 1;
+  // stretch each kerb a few samples either side of the bend
+  const grow = new Uint8Array(N);
+  for (let i = 0; i < N; i++) if (on[i]) for (let j = -7; j <= 7; j++) grow[(i + j + N) % N] = 1;
+  for (const side of [1, -1]) {
+    const pos = [], col = [], idx = [];
+    let q = 0;
+    for (let i = 0; i < N; i++) {
+      if (!grow[i] || !grow[(i + 1) % N]) continue;
+      const a = sAt(i), b = sAt(i + 1);
+      const i0 = (a.w - 1.0) * side, o0 = (a.w + 0.35) * side;
+      const i1 = (b.w - 1.0) * side, o1 = (b.w + 0.35) * side;
+      pos.push(a.p.x + a.n.x * i0, 0.05, a.p.z + a.n.z * i0);
+      pos.push(a.p.x + a.n.x * o0, 0.09, a.p.z + a.n.z * o0);
+      pos.push(b.p.x + b.n.x * i1, 0.05, b.p.z + b.n.z * i1);
+      pos.push(b.p.x + b.n.x * o1, 0.09, b.p.z + b.n.z * o1);
+      const red = i % 2 === 0;
+      for (let k = 0; k < 4; k++) col.push(red ? 0.70 : 0.86, red ? 0.06 : 0.86, red ? 0.06 : 0.84);
+      const o = q * 4;
+      if (side > 0) idx.push(o, o + 2, o + 1, o + 1, o + 2, o + 3);
+      else idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
+      q++;
+    }
+    if (!q) continue;
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.setIndex(idx);
+    g.computeVertexNormals();
+    const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0, side: THREE.DoubleSide }));
+    m.receiveShadow = true;
+    vAdd(m);
+  }
+}
 /* ========================== §5  POWER PANELS ======================= */
 /* Panels are deliberately placed on the OUTSIDE of corners — the side the
    racing line does not use — so arming a weapon always costs lap time. */
@@ -7557,6 +7812,7 @@ const FINISH = {
   truck:   { rough: 0.62, metal: 0.58, env: 0.75, grit: 0.12 },  // riot paint, matte
   flip:    { rough: 0.50, metal: 0.86, env: 1.05, grit: 0.06 },  // bare frame, diamond plate
   rig:     { rough: 0.86, metal: 0.40, env: 0.60, grit: 0.18 },  // the tanker
+  f1:      { rough: 0.22, metal: 0.55, env: 1.30, grit: 0.00 },  // lacquered carbon, sport mode
 };
 
 function buildCarMesh(def) {
@@ -7586,6 +7842,7 @@ function buildCarMesh(def) {
   if (def.build === 'rig') { buildRig(def, out, ch, M, wheels, g); }
   else if (def.build === 'truck') { buildTruck(def, out, ch, M, wheels, g); }
   else if (def.build === 'flip') { buildFlipCar(def, out, ch, M, wheels, g); }
+  else if (def.build === 'f1') { buildF1Car(def, out, ch, M, wheels, g); }
   else {
     const S = CAR_SHAPES[def.build] || CAR_SHAPES.muscle;
     const b = buildStockCar(def, S, out, ch, M);
@@ -7913,6 +8170,202 @@ function buildRig(def, out, ch, M, wheels, g) {
   const lampW = emissiveMat(0xfff0cc, 2.4), lampR = emissiveMat(0xff2a12, 1.0);
   for (const sx of [-1.25, 1.25]) out.headLights.push(part(ch, gBox(0.55, 0.28, 0.1), lampW, sx, 1.95, 7.1));
   for (const sx of [-1.1, 1.1]) out.brakeLights.push(part(ch, gBox(0.6, 0.3, 0.08), lampR.clone(), sx, 1.95, -9.0));
+}
+/* ========================== §6b  F1 CARS ===========================
+   SPORT MODE's five teams. They started as the Flip Car — the lightest,
+   lowest thing in the garage, a tube frame an inch off the tarmac — and
+   became grand-prix cars: the wedge is a front wing, the frame is a carbon
+   tub, and there is nothing on them that shoots, flips or drops anything.
+
+   Same physics as every other car, set up the way an F1 car is: 800 kg,
+   a thousand horsepower, slick tyres, and DOWNFORCE (df) that adds grip with
+   the square of speed, so the faster the corner the more it holds. Each team
+   leans one way:
+
+     APEX      most downforce: quickest through the fast corners
+     TEMPEST   least drag: quickest on the straights
+     COBALT    most power: quickest off the slow corners
+     SCARLET   biggest brakes and best traction: late on the brakes
+     VOLT      biggest energy store: the most, and the longest, nitrous
+
+   The AI is told about the downforce (aeroK) so it corners like it, not
+   like a muscle car.
+   ================================================================== */
+const F1_BASE = {
+  m: 800, wb: 3.6, wd: 0.45, cg: 0.26, muF: 2.15, muR: 2.25, stF: 16, stR: 19,
+  pw: 27000, br: 36000, st: 0.40, sr: 3.4, df: 1.50, cd: 0.9, esp: 3.4, cyl: 6, hp: 1000, nos: 1.8, wpn: 0,
+  gears: [2.90, 2.25, 1.85, 1.57, 1.36, 1.20, 1.07, 0.96], final: 4.9, redline: 12000, idle: 3800, wr: 0.33,
+  snd: { deep: 0.05, lope: 0.10, rasp: 1.0, turbo: true, idle: 1300, red: 8400, seed: 41 },
+};
+
+function f1Spec(o) {
+  const phys = Object.assign({}, F1_BASE, o.phys || {});
+  phys.snd = Object.assign({}, F1_BASE.snd, (o.phys && o.phys.snd) || {});
+  return Object.assign({
+    build: 'f1', f1: true, armour: 999, turn: 1.3, aggro: 0.55, ram: 0, greed: 0, bias: null, erratic: 0,
+    skill: 0.9, gripK: 1.5, aeroK: 0.00036, brakeK: 1.6, nosEff: 1,
+  }, o, { phys: phys });
+}
+
+const F1_TEAMS = {
+  apex: f1Spec({
+    key: 'apex', car: 'APEX', driver: 'LUCA FERRAND', drivers: ['LUCA FERRAND', 'KOFI MENSAH'],
+    body: 0x121416, accent: 0x00d2be, trim: 0xc0c6cc, helmet: 0xe8eaec, topSpeed: 104, num: 44,
+    trait: 'DOWNFORCE', what: 'Most downforce on the grid. Untouchable through the fast corners.',
+    aeroK: 0.00040,
+    phys: { df: 1.75, snd: { seed: 43 } },
+  }),
+  tempest: f1Spec({
+    key: 'tempest', car: 'TEMPEST', driver: 'ALEX VORNE', drivers: ['ALEX VORNE', 'SIPHO DLAMINI'],
+    body: 0x0b2a8c, accent: 0xe8302b, trim: 0x6fd0ff, helmet: 0x6fd0ff, topSpeed: 111, num: 23,
+    trait: 'TOP SPEED', what: 'Lowest drag in the pit lane. Nothing catches it down a straight.',
+    aeroK: 0.00030,
+    phys: { df: 1.25, snd: { seed: 47 } },
+  }),
+  cobalt: f1Spec({
+    key: 'cobalt', car: 'COBALT', driver: 'MATEO RUIZ', drivers: ['MATEO RUIZ', 'YUKI ARAI'],
+    body: 0x1e4fd8, accent: 0xffd21e, trim: 0xff4a1a, helmet: 0xffd21e, topSpeed: 106, num: 20,
+    trait: 'POWER', what: 'The strongest engine. Fires out of slow corners like it was launched.',
+    phys: { pw: 30500, hp: 1080, df: 1.45, snd: { seed: 53 } },
+  }),
+  scarlet: f1Spec({
+    key: 'scarlet', car: 'SCARLET', driver: 'ENZO MARCHETTI', drivers: ['ENZO MARCHETTI', 'NOAH BECK'],
+    body: 0xd0121a, accent: 0xf2f2f0, trim: 0x111111, helmet: 0xffd400, topSpeed: 106, num: 16,
+    trait: 'BRAKES & TRACTION', what: 'Biggest brakes and the best traction. Outbrakes anybody into a hairpin.',
+    brakeK: 1.8,
+    phys: { br: 44000, muR: 2.40, df: 1.5, snd: { seed: 59 } },
+  }),
+  volt: f1Spec({
+    key: 'volt', car: 'VOLT', driver: 'OLLIE PARKS', drivers: ['OLLIE PARKS', 'AMARA OSEI'],
+    body: 0xff8000, accent: 0x111214, trim: 0x47c7fc, helmet: 0x47c7fc, topSpeed: 106, num: 4,
+    trait: 'NITROUS', what: 'The biggest energy store. More nitrous, for longer, and it recharges fastest.',
+    nosEff: 1.5,
+    phys: { nos: 2.15, df: 1.45, snd: { seed: 61 } },
+  }),
+};
+Object.assign(ROSTER, F1_TEAMS);
+const SPORT_GARAGE = ['apex', 'tempest', 'cobalt', 'scarlet', 'volt'];
+
+/* ---------------------------- the model ----------------------------- */
+/* Slicks: wide, smooth, a coloured compound stripe on the sidewall, and a
+   dark rim behind a wheel cover — the same {holder, spin, face} the other
+   wheels have, so steering, spin and suspension all just work. */
+function addSlicks(g, out, list, stripe) {
+  const tyre = mat(0x16171a, { rough: 0.9, metal: 0, env: 0.3 });
+  const band = mat(stripe, { rough: 0.6, metal: 0, env: 0.4 });
+  const rim = mat(0x1c1e22, { rough: 0.4, metal: 0.8, env: 1.2 });
+  for (const w of list) {
+    const holder = new THREE.Group();
+    holder.position.set(w.x, w.r, w.z);
+    const tb = new PartBuilder();
+    tb.place(gCyl(w.r, w.r, w.w, 24), tyre, 0, 0, 0, 0, 0, Math.PI / 2);
+    for (const o of [-1, 1]) tb.place(gCyl(w.r * 0.80, w.r * 0.80, 0.012, 24), band, o * (w.w * 0.5 + 0.004), 0, 0, 0, 0, Math.PI / 2);
+    tb.place(gCyl(w.r * 0.64, w.r * 0.64, w.w + 0.03, 20), rim, 0, 0, 0, 0, 0, Math.PI / 2);
+    const spin = tb.build(holder)[0];
+    const fb = new PartBuilder();
+    for (let k = 0; k < 5; k++) fb.place(gBox(w.r * 1.1, 0.04, 0.05), rim, 0, 0, 0, (k / 5) * Math.PI, 0, 0);
+    const face = new THREE.Group();
+    face.position.x = Math.sign(w.x) * (w.w * 0.5 + 0.02);
+    fb.build(face);
+    holder.add(face);
+    holder.children.forEach((c) => { c.castShadow = true; });
+    g.add(holder);
+    out.push({ holder: holder, spin: spin, face: face, front: w.front, y0: w.r });
+  }
+}
+
+function buildF1Car(def, out, ch, M, wheels, g) {
+  const b = new PartBuilder();
+  const body = M.body, acc = M.acc, dark = M.dark;
+  const carbon = mat(0x15161a, { rough: 0.45, metal: 0.35, env: 0.9 });
+  const trim = paintMat(def.trim || def.accent, { rough: 0.4, metal: 0.6, env: 1.0 });
+
+  // floor and plank
+  b.box(carbon, 1.50, 0.04, 3.30, 0, 0.09, -0.30);
+  for (const sx of [-1, 1]) b.box(carbon, 0.06, 0.07, 2.4, sx * 0.76, 0.12, -0.40);
+
+  // the tub and the nose, one loft from the tip to the gearbox
+  b.loft(body, [
+    { z: 2.95, a: 0.09, b: 0.05, cy: 0.22, n: 2.2 },
+    { z: 2.55, a: 0.14, b: 0.09, cy: 0.28, n: 2.4 },
+    { z: 1.80, a: 0.21, b: 0.14, cy: 0.38, n: 2.6 },
+    { z: 1.10, a: 0.28, b: 0.19, cy: 0.45, n: 3.0 },
+    { z: 0.50, a: 0.36, b: 0.25, cy: 0.47, n: 3.2 },
+    { z: -0.55, a: 0.42, b: 0.29, cy: 0.49, n: 3.2 },
+    { z: -1.40, a: 0.30, b: 0.23, cy: 0.47, n: 2.8 },
+    { z: -2.05, a: 0.16, b: 0.14, cy: 0.42, n: 2.4 },
+    { z: -2.32, a: 0.09, b: 0.08, cy: 0.40, n: 2.0 },
+  ], 18);
+  // the cockpit opening, a dark slot in the top of the tub
+  b.box(dark, 0.42, 0.04, 0.80, 0, 0.745, 0.05);
+
+  // engine cover and airbox, two-tone
+  b.loft(acc, [
+    { z: 0.02, a: 0.13, b: 0.09, cy: 0.84, n: 2.4 },
+    { z: -0.35, a: 0.20, b: 0.22, cy: 0.80, n: 2.6 },
+    { z: -1.00, a: 0.17, b: 0.17, cy: 0.71, n: 2.6 },
+    { z: -1.95, a: 0.06, b: 0.08, cy: 0.58, n: 2.0 },
+  ], 14);
+  b.box(dark, 0.17, 0.12, 0.05, 0, 0.88, 0.04);                    // airbox intake
+  b.box(trim, 0.20, 0.05, 0.10, 0, 1.00, -0.08);                   // T-cam
+  b.box(body, 0.02, 0.30, 0.95, 0, 0.92, -1.30);                   // shark fin
+
+  // sidepods
+  for (const sx of [-1, 1]) {
+    b.place(makeLoft([
+      { z: 0.42, a: 0.13, b: 0.13, cy: 0.40, n: 2.6 },
+      { z: 0.05, a: 0.25, b: 0.18, cy: 0.38, n: 3.0 },
+      { z: -0.80, a: 0.23, b: 0.16, cy: 0.35, n: 3.0 },
+      { z: -1.60, a: 0.09, b: 0.08, cy: 0.28, n: 2.4 },
+    ], 14), body, sx * 0.55, 0, 0);
+    b.box(dark, 0.20, 0.17, 0.04, sx * 0.55, 0.40, 0.44);           // intake
+    b.box(acc, 0.04, 0.10, 0.90, sx * 0.80, 0.42, -0.30);           // livery stripe on the pod
+    b.box(carbon, 0.10, 0.05, 0.14, sx * 0.62, 0.66, 0.35);         // mirror
+    b.box(carbon, 0.02, 0.10, 0.02, sx * 0.55, 0.60, 0.35);
+  }
+
+  // front wing: two elements and endplates
+  b.box(body, 1.94, 0.03, 0.44, 0, 0.10, 2.86);
+  b.box(acc, 1.86, 0.025, 0.24, 0, 0.17, 2.70, -0.28, 0, 0);
+  b.box(acc, 1.70, 0.02, 0.16, 0, 0.23, 2.58, -0.45, 0, 0);
+  for (const sx of [-1, 1]) b.box(body, 0.03, 0.22, 0.58, sx * 0.97, 0.18, 2.80);
+  for (const sx of [-1, 1]) b.box(carbon, 0.03, 0.18, 0.10, sx * 0.12, 0.19, 2.75);   // pylons to the nose
+
+  // rear wing, beam wing, pylon, diffuser
+  b.box(body, 1.00, 0.03, 0.32, 0, 0.90, -2.46);
+  b.box(acc, 1.00, 0.03, 0.18, 0, 1.03, -2.38, -0.32, 0, 0);
+  for (const sx of [-1, 1]) b.box(body, 0.03, 0.46, 0.62, sx * 0.51, 0.86, -2.42);
+  b.box(carbon, 0.90, 0.03, 0.16, 0, 0.46, -2.40);
+  b.box(carbon, 0.05, 0.42, 0.12, 0, 0.66, -2.30);
+  b.box(carbon, 1.10, 0.18, 0.46, 0, 0.18, -2.22, 0.35, 0, 0);
+
+  // halo and the driver
+  b.place(new THREE.TorusGeometry(0.30, 0.026, 6, 18, Math.PI), carbon, 0, 0.80, -0.22, Math.PI / 2, 0, 0);
+  b.place(gCyl(0.025, 0.025, 0.34, 6), carbon, 0, 0.66, 0.15, 0.95, 0, 0);
+  const hm = paintMat(def.helmet || def.accent, { rough: 0.25, metal: 0.4, env: 1.3 });
+  b.place(new THREE.SphereGeometry(0.135, 14, 10), hm, 0, 0.80, -0.16);
+  b.box(dark, 0.22, 0.06, 0.06, 0, 0.82, -0.04);                     // visor
+
+  // suspension: wishbones out to each wheel
+  for (const sx of [-1, 1]) {
+    for (const [z, y] of [[1.75, 0.34], [-1.75, 0.36]]) {
+      b.place(gCyl(0.018, 0.018, 0.58, 5), carbon, sx * 0.52, y + 0.06, z, 0, 0, Math.PI / 2 - sx * 0.12);
+      b.place(gCyl(0.018, 0.018, 0.58, 5), carbon, sx * 0.52, y - 0.08, z, 0, 0, Math.PI / 2 + sx * 0.06);
+    }
+  }
+
+  // the number on the nose
+  b.box(trim, 0.16, 0.012, 0.34, 0, 0.59, 1.15);
+
+  b.build(ch);
+  addSlicks(g, wheels, [
+    { x: 0.80, z: 1.75, r: 0.34, w: 0.34, front: true }, { x: -0.80, z: 1.75, r: 0.34, w: 0.34, front: true },
+    { x: 0.78, z: -1.75, r: 0.36, w: 0.44, front: false }, { x: -0.78, z: -1.75, r: 0.36, w: 0.44, front: false },
+  ], def.stripe || 0xe8302b);
+  out.length = 5.7; out.width = 2.0;
+  out.exhausts.push(new THREE.Vector3(0, 0.50, -2.40));
+  // the rain light, the one rear lamp an F1 car has
+  out.brakeLights.push(part(ch, gBox(0.10, 0.08, 0.04), emissiveMat(0xff2a12, 1.0).clone(), 0, 0.40, -2.36));
 }
 /* ======================== §6b  PORTRAITS ===========================
    A photograph of every car for the garage and grid cards — the real
@@ -8382,6 +8835,8 @@ class Car {
     const canNos = inp.nos && this.nos > 0.05 && throttle > 0.1 && vx > 2;
     this.nosOn = canNos;
     if (canNos) this.nos = Math.max(0, this.nos - dt * 0.16 / this.nosEff);   // ~6s of boost
+    // an F1 car's energy store charges under braking, like the real thing
+    else if (this.spec.f1 && brake > 0) this.nos = Math.min(1, this.nos + dt * 0.10 * brake * this.nosEff);
     else this.nos = Math.min(1, this.nos + dt * 0.012);            // bare trickle — drift is the real source
     let boost = 1;
     if (canNos) {
@@ -8428,6 +8883,9 @@ class Car {
 
     // ---------- longitudinal forces ----------
     let FxR = Fdrive;
+    // traction control on the F1 cars: a thousand horsepower on 800 kg would
+    // otherwise light up the rears off every slow corner and every start
+    if (this.spec.f1 && FxR > 0) FxR = Math.min(FxR, muR * FzR * 0.97);
     let FxF = 0;
     if (brake > 0) {
       const bf = brake * P.br;
@@ -8826,6 +9284,7 @@ class Car {
   }
 
   applyDamage(amt, by, cause) {
+    if (SPORT.on) return;                    // grand-prix rules: contact costs time, never the car
     // online: somebody else's car is theirs to damage — see §14a
     if (this.remote) { if (this.alive && amt > 0 && this.invuln <= 0) mpRouteDamage(this, amt, by, cause); return; }
     if (!this.alive || amt <= 0 || this.invuln > 0) return;
@@ -9515,6 +9974,13 @@ function acquireTarget(car, range, cone) {
    supposed to change nothing, and measuring it said otherwise: the planner
    was the binding limit 13.8% of the time. Black Gold's rivals were tuned on
    the old rule, so they keep it, untouched. */
+/* how fast a corner of curvature k can be taken, with grip L0 at low speed
+   and, for a car with downforce, aK more of it per (m/s)^2 */
+function cornerV(L0, aK, k) {
+  const d = k - L0 * (aK || 0);
+  return d <= 1e-7 ? 999 : Math.sqrt(L0 / d);
+}
+
 function speedPlan(car, latA, brakeA, top) {
   if (TRACK.C && TRACK.C.polar) return top;
   const v = Math.max(car.speed, 10);
@@ -9525,7 +9991,7 @@ function speedPlan(car, latA, brakeA, top) {
     const s = sAt(car.si + j);
     const k = Math.abs(s.k);
     if (k < 0.0004 && s.grip >= 1) continue;
-    const vc = Math.sqrt((latA * s.grip) / Math.max(k, 0.0004));
+    const vc = cornerV(latA * s.grip, car.spec.aeroK, Math.max(k, 0.0004));
     const allow = Math.sqrt(vc * vc + 2 * brakeA * j * TRACK.step);
     if (allow < best) best = allow;
   }
@@ -9661,10 +10127,16 @@ function updateAI(car, dt, t) {
   let steer = clamp(angDiff(car.yaw, want) * 2.3 - car.yawRate * 0.34, -1, 1);
 
   /* ---------- speed ---------- */
-  const latA = 8.4 + 4.6 * skill;   // real tyres cap out near mu*g
+  // real tyres cap out near mu*g; slicks and downforce (gripK, aeroK) go further
+  const latA = (8.4 + 4.6 * skill) * (sp.gripK || 1);
   const top = sp.topSpeed * (0.85 + 0.15 * skill);
-  const vmax = Math.min(cur.k > 0.0004 ? Math.sqrt(latA / cur.k) : 999,
-    speedPlan(car, latA, 8.0 + 2.5 * skill, top));
+  // The muscle cars slow for the tightest bend anywhere in the next hundred
+  // metres or so and then cruise to it. At grand-prix speeds that was most of
+  // a straight spent at corner speed; an F1 car takes the corner it is in and
+  // leaves the ones ahead to the braking planner, which knows the distance.
+  const kNow = sp.f1 ? Math.abs(sAt(car.si).k) : cur.k;
+  const vmax = Math.min(kNow > 0.0004 ? cornerV(latA, sp.aeroK, kNow) : 999,
+    speedPlan(car, latA, (8.0 + 2.5 * skill) * (sp.brakeK || 1), top));
   const targetV = clamp(Math.min(top, vmax), 12, top);
   let throttle;
   if (spd < targetV - 1.5) throttle = 1;
@@ -10043,7 +10515,7 @@ function initThrills() {
 
 function comboAdd(label, pts, nos) {
   const p = G.player;
-  if (!p || !p.alive || (G.state !== 'racing')) return;
+  if (!p || !p.alive || (G.state !== 'racing') || SPORT.on) return;
   const before = COMBO.mult;
   COMBO.n++;
   COMBO.mult = Math.min(5, 1 + Math.floor(COMBO.n / 2));
@@ -10105,7 +10577,7 @@ function comboTick(dt) {
 const _nf = new THREE.Vector3(), _nl = new THREE.Vector3();
 function nearMissTick() {
   const p = G.player;
-  if (!p || !p.alive || p.airY > 0.3) return;
+  if (!p || !p.alive || p.airY > 0.3 || SPORT.on) return;
   const f = p.forward(_nf), l = p.left(_nl);
   const spd = p.speed;
   for (const c of G.cars) {
@@ -10522,6 +10994,300 @@ function thrillsTick(dt) {
   ghostRecord();
   ghostTick();
   kcRecord();
+}
+/* =========================== §12c  SPORT ===========================
+   SPORT MODE: grand-prix racing. Five teams, two cars each, ten on the
+   grid, on grand-prix circuits. F1's rules, not the broadcast's:
+
+     - a standing start from the five red lights
+     - no weapons, no panels, no barrels, no gantries, no Juggernaut
+     - no damage: contact costs you time and position, never the car
+     - nitrous is the energy store: it recharges under braking
+     - one to five laps, the race is over when you take the flag
+     - points for the top ten, 25-18-15-12-10-8-6-4-2-1, and one more for
+       the fastest lap; they add up into a season on this device
+
+   The grid is drawn at random for every race, so you will start in the
+   pack as often as at the front.
+   ================================================================== */
+const SPORT = { on: false, circ: 0, car: 0, laps: 3, row: 0, R: null, best: {}, towerT: 0 };
+const F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+const SPORT_ROWS = ['circuit', 'car', 'laps'];
+
+function sportC() { return SPORT_CIRCUITS[SPORT.circ] || SPORT_CIRCUITS[0]; }
+function sportCar() { return SPORT_GARAGE[SPORT.car] || SPORT_GARAGE[0]; }
+function sportRec() {
+  if (!CAREER.sport || typeof CAREER.sport !== 'object') CAREER.sport = { races: 0, wins: 0, podiums: 0, points: 0 };
+  return CAREER.sport;
+}
+
+/* a team's card: its colours, its trait and how it compares */
+function sportCard(key, opts) {
+  opts = opts || {};
+  const s = ROSTER[key], p = s.phys;
+  const bar = (label, v) => statRow(label, v);
+  return '<div class="card' + (opts.sel ? ' sel' : '') + '"' + (opts.pick === undefined ? '' : ' data-spick="' + opts.pick + '"') +
+    ' style="border-top-color:' + hexCss(s.accent) + '">' +
+    (opts.sel ? '<div class="pick">SELECTED</div>' : '') +
+    '<div class="drv">' + s.drivers.join(' &middot; ') + '</div>' +
+    '<div class="car" style="color:' + hexCss(s.accent === 0x111214 ? s.body : s.accent) + '">' + s.car + '</div>' +
+    '<div class="eng">' + p.hp.toLocaleString() + ' BHP &middot; V6 HYBRID &middot; #' + s.num + '</div>' +
+    portraitImg(key) +
+    bar('TOP SPEED', (s.topSpeed - 98) / 15) +
+    bar('DOWNFORCE', (p.df - 0.8) / 0.75) +
+    bar('POWER', (p.pw - 24000) / 8000) +
+    bar('BRAKES', (p.br - 30000) / 16000) +
+    bar('NITROUS', ((p.nos - 1.4) * (s.nosEff || 1)) / 1.3) +
+    '<div class="tagline">' + s.trait + '</div>' +
+    '<div class="note">' + s.what + '</div>' +
+    '</div>';
+}
+
+function showSport() {
+  G.state = 'sport';
+  MP.sel = 0;
+  SPORT.on = false;
+  HUD.hud.classList.add('hidden');
+  document.body.classList.remove('sport');
+  const C = sportC(), key = sportCar(), pv = circuitPreview(C);
+  const val = { circuit: C.name, car: ROSTER[key].car + ' &middot; ' + ROSTER[key].trait, laps: SPORT.laps + (SPORT.laps === 1 ? ' LAP' : ' LAPS') };
+  const lbl = { circuit: 'CIRCUIT', car: 'TEAM', laps: 'DISTANCE' };
+  let rows = '';
+  SPORT_ROWS.forEach((r, i) => {
+    rows += '<div class="srow' + (i === SPORT.row ? ' me' : '') + '" style="border-left-color:' + (i === SPORT.row ? '#f6a41b' : '#555') + '">' +
+      '<div class="who"><span style="opacity:.55">' + lbl[r] + '</span> &nbsp;<b>' + val[r] + '</b></div>' +
+      '<b class="adj" data-nav="spset:' + r + ':-1">&#9664;</b><b class="adj" data-nav="spset:' + r + ':1">&#9654;</b></div>';
+  });
+  const S = sportRec(), best = G.bestLaps[C.key];
+  showScreen(
+    '<h2>SPORT MODE</h2>' +
+    '<div class="tag">GRAND PRIX RULES &middot; TEN CARS &middot; NO WEAPONS &middot; SEASON ' + S.points + ' PTS &middot; ' + S.wins + ' WIN' + (S.wins === 1 ? '' : 'S') + '</div>' +
+    '<div class="rule"></div>' +
+    '<div class="sportset"><div class="standings">' + rows + '</div>' +
+      '<div class="spmap"><img class="cmap" alt="" src="' + pv.url + '"><div class="tag">' + C.sub + ' &middot; ' + pv.km.toFixed(2) + ' KM &middot; ' + C.turns + ' TURNS' +
+      (best ? ' &middot; BEST ' + fmtTime(best) : '') + '</div><div class="note">' + C.blurb + '</div></div></div>' +
+    '<div class="grid-cards">' + SPORT_GARAGE.map((k, i) => sportCard(k, { sel: i === SPORT.car, pick: i })).join('') + '</div>' +
+    '<div class="blurb" style="margin-top:10px">Lights out and away. No damage, no weapons &mdash; contact costs you time, never the car. ' +
+      'Nitrous is your energy store and it recharges under braking. Points for the top ten, one more for the fastest lap.</div>' +
+    mpButtons([['spgo', 'START'], ['spback', 'BACK']]) +
+    '<div class="cta" data-nav="spgo">&#9650;&#9660; row &middot; &#9664; &#9654; change &middot; ENTER start &middot; <kbd>ESC</kbd> back</div>'
+  );
+}
+
+function sportSet(row, d) {
+  if (row === 'circuit') SPORT.circ = (SPORT.circ + d + SPORT_CIRCUITS.length) % SPORT_CIRCUITS.length;
+  else if (row === 'car') SPORT.car = (SPORT.car + d + SPORT_GARAGE.length) % SPORT_GARAGE.length;
+  else if (row === 'laps') SPORT.laps = clamp(SPORT.laps + d, 1, 5);
+  SPORT.row = SPORT_ROWS.indexOf(row);
+  CAREER.sportSel = { c: SPORT.circ, k: SPORT.car, l: SPORT.laps }; saveCareer();
+  SFX.beep(false);
+  showSport();
+}
+
+/* build the circuit if it is not up, then line up */
+function sportGo() {
+  const C = sportC();
+  if (VENUE.C && VENUE.C.key === C.key) { sportStart(); return; }
+  const b = $('boot');
+  b.textContent = 'BUILDING ' + C.name;
+  b.style.display = 'flex';
+  G.state = 'building';
+  setTimeout(() => {
+    try { clearRace(); SFX.drive(null); SFX.field([], null); buildVenue(C); warmVenue(); }
+    catch (err) { console.error(err); }
+    b.style.display = 'none';
+    sportStart();
+  }, 60);
+}
+
+function sportStart() {
+  SPORT.on = true;
+  DAILY.on = false;
+  G.laps = SPORT.laps;
+  clearRace();
+  thrillsReset();
+  SPORT.R = { title: 'SPORT MODE', sub: sportC().name, laps: SPORT.laps, rivals: [], boss: false };
+  SPORT.fast = { t: 0, car: null };
+
+  // ten cars, two per team, in a random order; you are one of your team's two
+  const me = sportCar();
+  const entries = [];
+  for (const k of SPORT_GARAGE) for (let d = 0; d < 2; d++) entries.push({ k: k, d: d });
+  for (let i = entries.length - 1; i > 0; i--) { const j = randi(0, i); const t = entries[i]; entries[i] = entries[j]; entries[j] = t; }
+  const mine = entries.find((e) => e.k === me && e.d === 0);
+
+  // a staggered grid, one car per row, 8 m apart
+  entries.forEach((e, k) => {
+    const isP = e === mine;
+    const car = new Car(e.k, isP);
+    const s = car.spec;
+    car.driver = s.drivers[e.d];
+    if (!isP) car.pname = null;
+    car.placeAt(idxAhead(0, -(12 + k * 8)), (k % 2 ? -1 : 1) * 3.0);
+    car.lives = 1; car.maxLives = 1;
+    car.nosEff = s.nosEff || 1;
+    car.lapAt = 0; car.bestLap = 0; car.lastLapN = 0;
+    if (isP) { G.player = car; car.kills = 0; }
+    else initAI(car);
+    G.cars.push(car);
+  });
+  G.killsAtStart = 0;
+  SPORT.gridPos = entries.indexOf(mine) + 1;
+
+  HUD.round.textContent = 'SPORT MODE  ·  ' + sportC().name;
+  HUD.carName.textContent = G.player.spec.car + ' · ' + G.player.driver;
+  HUD.hud.classList.remove('hidden');
+  document.body.classList.add('sport');
+  SFX.setEngine(G.player.P);
+  resetCamera(G.player);
+  updateRanks();
+  G.bossKill = false; G.pay = null;
+  G.state = 'countdown';
+  G.cd = 4.2;
+  hideScreen();
+  ghostSetup();
+  setTimeout(() => { if (SPORT.on && G.state === 'countdown') hint('STARTING <b>P' + SPORT.gridPos + '</b> OF 10', 3); }, 300);
+}
+
+function sportLeave() {
+  SPORT.on = false;
+  document.body.classList.remove('sport');
+  if (SPORT.tower) SPORT.tower.innerHTML = '';
+}
+
+/* per tick in a sport race: lap times for every car, the fastest lap, and
+   the timing tower */
+function sportTick(dt) {
+  if (!SPORT.on) return;
+  for (const c of G.cars) {
+    if (c.lapCount !== c.lastLapN) {
+      if (c.lapCount > c.lastLapN && c.lapAt > 0 && c.lastLapN >= 1) {
+        const t = G.raceT - c.lapAt;
+        if (t > 15) {
+          if (!c.bestLap || t < c.bestLap) c.bestLap = t;
+          if (!SPORT.fast.t || t < SPORT.fast.t) {
+            SPORT.fast = { t: t, car: c };
+            feed('FASTEST LAP &nbsp;<b>' + mpEsc(c.isPlayer ? 'YOU' : c.driver) + '</b> &nbsp;' + fmtTime(t), '#c86bff');
+          }
+        }
+      }
+      c.lastLapN = c.lapCount;
+      c.lapAt = G.raceT;
+    }
+  }
+  SPORT.towerT -= dt;
+  if (SPORT.towerT <= 0) { SPORT.towerT = 0.25; sportTower(); }
+}
+
+/* gap to the car in front, in seconds, from how far back it is and how
+   fast the field is going round */
+function sportGap(a, b) {
+  const v = Math.max(25, (b.progress * TRACK.length) / Math.max(1, G.raceT));
+  return ((b.progress - a.progress) * TRACK.length) / v;
+}
+
+function sportTower() {
+  if (!SPORT.tower) {
+    SPORT.tower = document.createElement('div');
+    SPORT.tower.id = 'tower';
+    HUD.hud.appendChild(SPORT.tower);
+  }
+  const cars = G.cars.slice().sort((a, b) => a.rank - b.rank);
+  let h = '';
+  cars.forEach((c, i) => {
+    const code = (c.driver || '').split(' ').pop().slice(0, 3);
+    const gap = i === 0 ? 'LEADER' : (c.finished && cars[0].finished ? '+' + (c.finishTime - cars[0].finishTime).toFixed(1) : '+' + Math.max(0, sportGap(c, cars[i - 1])).toFixed(1));
+    h += '<div class="tw' + (c.isPlayer ? ' me' : '') + '"><b>' + (i + 1) + '</b><i style="background:' + hexCss(c.spec.accent === 0x111214 ? c.spec.body : c.spec.accent) + '"></i><span>' + code + '</span><em>' + gap + '</em></div>';
+  });
+  SPORT.tower.innerHTML = h;
+}
+
+/* -------------------------------- results -------------------------- */
+function sportResult() {
+  G.state = 'spresult';
+  MP.sel = 0;                              // RACE AGAIN is the one ENTER presses
+  HUD.hud.classList.add('hidden');
+  SFX.drive(null); SFX.field([], null);
+  updateRanks();
+  const p = G.player;
+  // everybody still out there is classified where they are, with the time
+  // they would have taken at the pace they were doing
+  const L = TRACK.length, end = G.laps + 1;
+  for (const c of G.cars) {
+    if (c.finished) { c.classT = c.finishTime; continue; }
+    const v = Math.max(15, (c.progress * L) / Math.max(1, G.raceT));
+    c.classT = G.raceT + Math.max(0, (end - c.progress) * L) / v;
+  }
+  const order = G.cars.slice().sort((a, b) => (b.finished - a.finished) || (a.classT - b.classT));
+  const win = order[0];
+  const pos = order.indexOf(p) + 1;
+  const pts = (F1_POINTS[pos - 1] || 0) + (SPORT.fast.car === p ? 1 : 0);
+  if (!G.pay) {
+    const S = sportRec();
+    S.races++; S.points += pts;
+    if (pos === 1) S.wins++;
+    if (pos <= 3) S.podiums++;
+    p.rank = pos;
+    const extra = [];
+    if (SPORT.fast.car === p) extra.push(['FASTEST LAP', 500]);
+    G.pay = payday(p, { finished: true, killsAtStart: 0, extra: extra });
+    LB.afterRace();
+  }
+  let rows = '';
+  const names = [];
+  order.forEach((c, i) => {
+    const pt = (F1_POINTS[i] || 0) + (SPORT.fast.car === c ? 1 : 0);
+    const t = i === 0 ? fmtTime(c.classT) : '+' + (c.classT - win.classT).toFixed(3);
+    names.push(c.isPlayer ? (CAREER.name || 'YOU') : c.driver);
+    rows += '<div class="srow' + (c.isPlayer ? ' me' : '') + '" style="border-left-color:' + hexCss(c.spec.accent === 0x111214 ? c.spec.body : c.spec.accent) + '">' +
+      '<div class="n">' + (i + 1) + '</div><div class="who"><b class="pn"></b> &nbsp;<span style="opacity:.55">' + c.spec.car + '</span>' +
+      (SPORT.fast.car === c ? ' &nbsp;<span style="color:#c86bff">FASTEST LAP ' + fmtTime(SPORT.fast.t) + '</span>' : '') + '</div>' +
+      '<div class="st">' + t + (c.finished ? '' : ' &middot; EST') + '</div><div class="q in">' + (pt ? pt + ' PTS' : '') + '</div></div>';
+  });
+  const S = sportRec();
+  showScreen(
+    '<h2>' + (pos === 1 ? 'VICTORY' : pos <= 3 ? 'PODIUM &middot; P' + pos : 'P' + pos) + '</h2>' +
+    '<div class="tag">' + sportC().name + ' &middot; ' + G.laps + (G.laps === 1 ? ' LAP' : ' LAPS') + ' &middot; FROM P' + SPORT.gridPos + ' &middot; +' + pts + ' PTS &middot; SEASON ' + S.points + ' PTS</div>' +
+    '<div class="rule"></div>' +
+    '<div class="standings">' + rows + '</div>' +
+    '<div class="tag" style="margin-top:12px">YOUR BEST LAP ' + fmtTime(p.bestLap || 0) + ' &middot; CIRCUIT BEST ' + fmtTime(G.bestLaps[G.circuit] || 0) + '</div>' +
+    paydayHtml(G.pay) +
+    mpButtons([['spagain', 'RACE AGAIN'], ['spsetup', 'SETUP'], ['sptitle', 'TITLE']]) +
+    '<div class="cta" data-nav="spagain">ENTER or <kbd>R</kbd> race again &middot; <kbd>ESC</kbd> setup</div>'
+  );
+  document.querySelectorAll('#screen .pn').forEach((el, i) => { if (names[i] !== undefined) el.textContent = names[i]; });
+}
+
+/* keys and buttons for the sport screens, on the online menu's plumbing */
+function sportKey(e, k) {
+  const st = G.state;
+  if (st !== 'sport' && st !== 'spresult') return false;
+  const up = e.key === 'ArrowUp' || k === 'w', down = e.key === 'ArrowDown' || k === 's';
+  const left = e.key === 'ArrowLeft' || k === 'a', right = e.key === 'ArrowRight' || k === 'd';
+  if (e.key === 'Escape') { if (st === 'spresult') sportNav('spsetup'); else showTitle(); return true; }
+  if (st === 'sport') {
+    if (up || down) { SPORT.row = (SPORT.row + (up ? -1 : 1) + SPORT_ROWS.length) % SPORT_ROWS.length; SFX.beep(false); showSport(); return true; }
+    if (left || right) { sportSet(SPORT_ROWS[SPORT.row], left ? -1 : 1); return true; }
+    if (e.key === 'Enter') { sportGo(); return true; }
+  } else {
+    if (k === 'r') { sportNav('spagain'); return true; }
+    if (left || right) return false;          // the button row walks itself
+    if (e.key === 'Enter') return false;
+  }
+  return false;
+}
+
+function sportNav(a) {
+  if (a.indexOf('spset:') === 0) { const p = a.split(':'); sportSet(p[1], +p[2]); return true; }
+  switch (a) {
+    case 'sport': showSport(); return true;
+    case 'spgo': sportGo(); return true;
+    case 'spback': showTitle(); return true;
+    case 'spagain': sportStart(); return true;
+    case 'spsetup': clearRace(); sportLeave(); showSport(); return true;
+    case 'sptitle': clearRace(); sportLeave(); SFX.drive(null); SFX.field([], null); showTitle(); return true;
+  }
+  return false;
 }
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
@@ -11024,6 +11790,8 @@ const CAREER = {
   nemesis: null,              // the last car that wrecked you in single player
   ghost: 'best',              // which ghost to race: best | friend | off
   daily: null,                // today's attempts, best score and the streak (§13b)
+  sport: null,                // sport mode season: races, wins, podiums, points (§12c)
+  sportSel: null,             // the last circuit, team and distance picked
 };
 
 function loadCareer() {
@@ -11051,6 +11819,10 @@ function loadCareer() {
     }
     if (typeof s.nemesis === 'string' && ROSTER[s.nemesis]) CAREER.nemesis = s.nemesis;
     if (s.ghost === 'best' || s.ghost === 'friend' || s.ghost === 'off') CAREER.ghost = s.ghost;
+    if (s.sport && typeof s.sport === 'object') {
+      CAREER.sport = { races: s.sport.races | 0, wins: s.sport.wins | 0, podiums: s.sport.podiums | 0, points: s.sport.points | 0 };
+    }
+    if (s.sportSel && typeof s.sportSel === 'object') CAREER.sportSel = { c: s.sportSel.c | 0, k: s.sportSel.k | 0, l: s.sportSel.l | 0 };
     if (s.daily && typeof s.daily === 'object') {
       const d = s.daily;
       CAREER.daily = { day: d.day | 0, tries: d.tries | 0, best: typeof d.best === 'number' ? d.best : null,
@@ -11705,6 +12477,9 @@ function localNet() {
    Each browser writes only its own rows (the database rules enforce it);
    everybody reads everything. A lap counts from single player or online
    alike — a lap is a lap. */
+/* the board covers every circuit, the grand-prix ones included */
+function lbCircuits() { return CIRCUITS.concat(SPORT_CIRCUITS); }
+
 const LB = {
   circ: 0,
   data: null,       // { laps: [...], hof: [...] } for the circuit on screen
@@ -11741,7 +12516,7 @@ const LB = {
   },
 
   load() {
-    const C = CIRCUITS[this.circ];
+    const C = lbCircuits()[this.circ];
     this.loading = true;
     this.data = null;
     Promise.all([NET.get('lb/' + C.key), NET.get('hof')]).then(([laps, hof]) => {
@@ -11770,11 +12545,11 @@ function lbTable(rows, cols) {
 function showLeaderboard() {
   G.state = 'lb';
   HUD.hud.classList.add('hidden');
-  const C = CIRCUITS[LB.circ];
+  const C = lbCircuits()[LB.circ];
   let body = '';
   if (!NET.available()) {
     // offline or inside the friends' link: this device's own bests
-    const rows = CIRCUITS.map((c) => '<div class="srow"><div class="who"><b>' + c.name + '</b></div><div class="st">' +
+    const rows = lbCircuits().map((c) => '<div class="srow"><div class="who"><b>' + c.name + '</b></div><div class="st">' +
       (G.bestLaps[c.key] ? fmtTime(G.bestLaps[c.key]) : '--:--') + '</div></div>').join('');
     body = '<div class="tag" style="margin-bottom:8px">YOUR BEST LAPS ON THIS DEVICE</div><div class="standings">' + rows + '</div>' +
       '<div class="blurb" style="margin-top:12px">The shared leaderboard lives on the online version of the game' +
@@ -11807,7 +12582,7 @@ function showLeaderboard() {
 }
 
 function openLeaderboard() {
-  LB.circ = Math.max(0, CIRCUITS.findIndex((c) => c.key === G.circuit));
+  LB.circ = Math.max(0, lbCircuits().findIndex((c) => c.key === G.circuit));
   if (!NET.available()) { showLeaderboard(); return; }
   showLeaderboard();
   NET.connect().then((ok) => { if (ok) LB.load(); else showLeaderboard(); });
@@ -11871,7 +12646,7 @@ function mpButtons(list) {
 function mpTitleExtras() {
   // the title page's own buttons: play, online, leaderboard
   MP.sel = MP.sel || 0;
-  return mpButtons([['go', 'PLAY'], ['daily', 'DAILY'], ['mponline', 'ONLINE'], ['mplb', 'LEADERBOARD']]);
+  return mpButtons([['go', 'PLAY'], ['sport', 'SPORT'], ['daily', 'DAILY'], ['mponline', 'ONLINE'], ['mplb', 'LEADERBOARD']]);
 }
 
 function showOnline() {
@@ -12597,13 +13372,13 @@ MP.key = function (e, k) {
     if (e.key === 'Enter') return press();
     return false;
   }
-  if (st === 'daily' || st === 'dresult') {
+  if (st === 'daily' || st === 'dresult' || st === 'spresult') {
     if (left || right || up || down) return btn(left || up ? -1 : 1);
     if (e.key === 'Enter') return press();
     return false;
   }
   if (st === 'lb') {
-    if (left || right) { LB.circ = (LB.circ + (left ? -1 : 1) + CIRCUITS.length) % CIRCUITS.length; if (NET.state === 'ready') LB.load(); showLeaderboard(); return true; }
+    if (left || right) { LB.circ = (LB.circ + (left ? -1 : 1) + lbCircuits().length) % lbCircuits().length; if (NET.state === 'ready') LB.load(); showLeaderboard(); return true; }
     if (e.key === 'Escape' || e.key === 'Enter') { (LB.back || showTitle)(); return true; }
     return false;
   }
@@ -12616,6 +13391,7 @@ MP.key = function (e, k) {
 
 MP.nav = function (a) {
   if (dailyNav(a)) return true;
+  if (sportNav(a)) return true;
   if (a.indexOf('mpset:') === 0) { const p = a.split(':'); mpSet(p[1], +p[2]); return true; }
   switch (a) {
     case 'mponline': showOnline(); return true;
@@ -12632,7 +13408,7 @@ MP.nav = function (a) {
     case 'mpleave': mpLeaveRoom(); showOnline(); return true;
     case 'mproom': mpToRoom(); return true;
     case 'lbprev': case 'lbnext':
-      LB.circ = (LB.circ + (a === 'lbprev' ? -1 : 1) + CIRCUITS.length) % CIRCUITS.length;
+      LB.circ = (LB.circ + (a === 'lbprev' ? -1 : 1) + lbCircuits().length) % lbCircuits().length;
       if (NET.state === 'ready') LB.load();
       showLeaderboard(); return true;
     case 'lbback': (LB.back || showTitle)(); return true;
@@ -12855,14 +13631,16 @@ const PAUSE = {
       get: () => PAD.rumble, set: (v) => { PAD.rumble = v; PAD.jolt(0.7); saveState(); } },
     { kind:'sep' },
     { kind:'go', label:'LEAVE THIS RACE', when: () => MP.on, go: () => mpLeaveRace() },
-    { kind:'go', label:'CHANGE VEHICLE', when: () => !MP.on && !DAILY.on, go: () => { togglePause(false); showGarage(); } },
-    { kind:'go', label:'CHANGE CIRCUIT', when: () => !MP.on && !DAILY.on, go: () => {
+    { kind:'go', label:'SPORT SETUP', when: () => SPORT.on, go: () => { togglePause(false); sportNav('spsetup'); } },
+    { kind:'go', label:'CHANGE VEHICLE', when: () => !MP.on && !DAILY.on && !SPORT.on, go: () => { togglePause(false); showGarage(); } },
+    { kind:'go', label:'CHANGE CIRCUIT', when: () => !MP.on && !DAILY.on && !SPORT.on, go: () => {
         togglePause(false);
         clearRace();
         SFX.drive(null); SFX.field([], null);
         showCircuit();
       } },
-    { kind:'go', label:'RESTART ROUND', when: () => !MP.on && !DAILY.on, go: () => { togglePause(false); startRound(G.round); } },
+    { kind:'go', label:'RESTART RACE', when: () => SPORT.on, go: () => { togglePause(false); sportStart(); } },
+    { kind:'go', label:'RESTART ROUND', when: () => !MP.on && !DAILY.on && !SPORT.on, go: () => { togglePause(false); startRound(G.round); } },
     { kind:'go', label:'ABANDON THIS ATTEMPT', when: () => DAILY.on, go: () => { togglePause(false); dailyNav('dboard'); } },
     // Hidden inside an embed as well as on touch: the export is an <a download>
     // and a sandboxed frame silently refuses it, which is a button that lies.
@@ -12873,6 +13651,7 @@ const PAUSE = {
         togglePause(false);
         if (MP.code) mpLeaveRoom();
         dailyLeave();
+        sportLeave();
         clearRace();
         SFX.drive(null); SFX.field([], null);
         showTitle();
@@ -12891,7 +13670,7 @@ function drawPause() {
   const np = MUSIC.track();
   $('pauseSub').innerHTML = (MP.on ? 'ONLINE &middot; ROOM ' + MP.code + ' &middot; THE RACE GOES ON' : curRound().title) + ' &middot; ' + (VENUE.C ? VENUE.C.name : R.sub) + ' &middot; LAP ' +
     clamp((p ? p.lapCount : 0) + 1, 1, G.laps) + ' / ' + G.laps +
-    ' &middot; P' + (p ? p.rank : 1) + (MP.on || DAILY.on ? '' : ' &middot; ' + cutLabel(G.round)) +
+    ' &middot; P' + (p ? p.rank : 1) + (MP.on || DAILY.on || SPORT.on ? '' : ' &middot; ' + cutLabel(G.round)) +
     (np && MUSIC.on ? '<br>&#9834; ' + np.title + ' &middot; ' + np.artist : '');
   let h = '';
   for (let i = 0; i < PAUSE.items.length; i++) {
@@ -13001,6 +13780,7 @@ function initInput() {
       if (G.state === 'grid') { showGarage(); return; }
       if (G.state === 'shop') { shopBack(); return; }
       if (dailyKey(e, k)) return;
+      if (sportKey(e, k)) return;
       if (MP.key && MP.key(e, k)) return;
     }
     if (e.key === 'Enter') {
@@ -13014,6 +13794,7 @@ function initInput() {
     if (k === 'r' && G.state === 'result') { quickRestart(); return; }
     if (k === 'h' && G.state === 'grid') { ghostCycle(); showGrid(); return; }
     if (dailyKey(e, k)) return;
+    if (sportKey(e, k)) return;
     if (G.state === 'garage') {
       if (e.key === 'ArrowLeft' || k === 'a') { garageMove(-1); return; }
       if (e.key === 'ArrowRight' || k === 'd') { garageMove(1); return; }
@@ -13031,7 +13812,8 @@ function initInput() {
     if (k === 't' && (G.state === 'grid' || G.state === 'garage' || G.state === 'result')) { showCircuit(); return; }
     if (k === 'g' && (G.state === 'grid' || G.state === 'result')) { showGarage(); return; }
     if (k === 'm') { G.muted = !G.muted; SFX.setMute(G.muted); hint(G.muted ? 'AUDIO MUTED' : 'AUDIO ON', 1.4); }
-    if (k === 'r' && G.state === 'racing' && !MP.on && !DAILY.on) startRound(G.round);
+    if (k === 'r' && G.state === 'racing' && SPORT.on) sportStart();
+    else if (k === 'r' && G.state === 'racing' && !MP.on && !DAILY.on) startRound(G.round);
     if (k === 'c' && G.state === 'racing') {
       CAM.mode = (CAM.mode + 1) % CAM_MODES.length;
       hint('CAMERA &mdash; <b>' + CAM_MODES[CAM.mode].name + '</b>', 1.4);
@@ -13111,7 +13893,7 @@ function clearRace() {
 }
 
 /* the round being raced: a championship round, or today's challenge */
-function curRound() { return DAILY.on ? DAILY.R : ROUNDS[G.round]; }
+function curRound() { return SPORT.on ? SPORT.R : DAILY.on ? DAILY.R : ROUNDS[G.round]; }
 
 function startRound(n) {
   G.round = n;
@@ -13342,6 +14124,13 @@ function initTouchMenus() {
       else { SFX.beep(true); tapKey('Enter'); }
       return;
     }
+    const spk = e.target.closest && e.target.closest('[data-spick]');
+    if (spk && G.state === 'sport') {
+      e.preventDefault();
+      const i = parseInt(spk.getAttribute('data-spick'), 10);
+      if (i !== SPORT.car) sportSet('car', i - SPORT.car);
+      return;
+    }
     const ur = e.target.closest && e.target.closest('[data-up]');
     if (ur && G.state === 'shop') {
       e.preventDefault();
@@ -13450,6 +14239,7 @@ function carCard(key, opts) {
 
 function showTitle() {
   G.state = 'title';
+  sportLeave();
   HUD.hud.classList.add('hidden');
   const save = loadState();
   showScreen(
@@ -13824,6 +14614,7 @@ function cutLabel(n) {
 
 function showResult() {
   if (MP.on) return mpShowResult();
+  if (SPORT.on) return sportResult();
   if (DAILY.on) return dailyResult();
   G.state = 'result';
   HUD.hud.classList.add('hidden');
@@ -14103,6 +14894,7 @@ function tick(dt) {
   }
 
   thrillsTick(dt);
+  sportTick(dt);
   updateCamera(dt);
   if (!online) updateHUD(dt);
   checkRaceEnd(dt);
@@ -14155,13 +14947,18 @@ function boot() {
   initInstall();
   loadCareer();
   GHOST.mode = CAREER.ghost;
+  if (CAREER.sportSel) {
+    SPORT.circ = clamp(CAREER.sportSel.c | 0, 0, SPORT_CIRCUITS.length - 1);
+    SPORT.car = clamp(CAREER.sportSel.k | 0, 0, SPORT_GARAGE.length - 1);
+    SPORT.laps = clamp(CAREER.sportSel.l | 0 || 3, 1, 5);
+  }
   initThrills();
   applyState(loadState());
   ensureOwnedCar();
   NET.boot();
   showTitle();
   // photographs for the garage and grid cards, made quietly behind the title
-  queuePortraits(GARAGE.concat(['juggernaut']));
+  queuePortraits(GARAGE.concat(['juggernaut'], SPORT_GARAGE));
   $('boot').style.display = 'none';
   requestAnimationFrame(frame);
 }
