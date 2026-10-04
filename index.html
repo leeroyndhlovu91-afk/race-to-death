@@ -158,6 +158,7 @@ body.sport #tyreBox{display:flex}
 #tyreBox em{display:block;height:4px;background:rgba(255,255,255,.12);margin-top:4px}
 #tyreBox em b{display:block;height:100%}
 #tyreBox u{text-decoration:none;font-size:10px;letter-spacing:.16em;padding:3px 7px;border:1px solid rgba(236,231,220,.3)}
+#tyreBox .dmgc{flex:0 0 auto;margin-right:2px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
 #tyreBox u.req{background:#ffcf3a;color:#111;border-color:#ffcf3a}
 #tyreBox u.on{background:#5fd07a;color:#111;border-color:#5fd07a}
 body.touch #tyreBox{bottom:auto;top:96px;right:8px;transform:scale(.8);transform-origin:top right}
@@ -177,6 +178,7 @@ body.touch #tower .tw{padding:1px 4px}
 .mlist b{display:block;cursor:pointer;padding:12px 20px 11px;border-left:3px solid rgba(236,231,220,.18);
   background:linear-gradient(90deg,rgba(12,13,16,.78),rgba(12,13,16,.30));font-weight:400;transition:all .12s}
 .mlist b span{display:block;font:400 28px/1 var(--title);letter-spacing:.08em}
+.mlist b span i.dlv{font-style:normal;color:var(--amber)}
 .mlist b em{display:block;font-style:normal;font-size:10.5px;letter-spacing:.14em;opacity:.55;margin-top:5px;text-transform:uppercase}
 .mlist b.hi{border-left-color:var(--amber);background:linear-gradient(90deg,rgba(246,164,27,.20),rgba(12,13,16,.35));
   transform:translateX(6px)}
@@ -816,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.9.0 · 2026-10-04 17:52 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.10.0 · 2026-10-04 18:43 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -827,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.9.0   (built 2026-10-04 17:52)
+   RACE TO DEATH  v3.10.0   (built 2026-10-04 18:43)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -852,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.9.0',
+  version: '3.10.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -7577,46 +7579,84 @@ function spText(x, t, cx, cy, size, col, font, track) {
   if (x.letterSpacing !== undefined) x.letterSpacing = '0px';
 }
 
-/* one sponsor board into the rectangle (ox, oy, w, h) */
+/* Text that is told how much room it has. The boards were laid out for a
+   narrow face that most machines do not have; in plain Arial the words ran
+   over the logo and off the edge. Every line is measured now and shrunk until
+   it fits its box, so nothing overlaps whatever font the machine draws with.
+   Returns the width it ended up. */
+function spFit(x, t, cx, cy, maxW, size, col, font, track, align) {
+  let s = size, w = 0;
+  const tr = track || 0;
+  for (let k = 0; k < 30; k++) {
+    x.font = (font || '700 ') + s + 'px "Arial Narrow", Impact, sans-serif';
+    if (x.letterSpacing !== undefined) x.letterSpacing = (tr * s / size) + 'px';
+    w = x.measureText(t).width;
+    if (x.letterSpacing === undefined) w += tr * (s / size) * t.length;
+    if (w <= maxW) break;
+    s *= 0.95;
+  }
+  x.fillStyle = col;
+  x.textAlign = align || 'center'; x.textBaseline = 'middle';
+  x.fillText(t, cx, cy);
+  if (x.letterSpacing !== undefined) x.letterSpacing = '0px';
+  return w;
+}
+
+/* one sponsor board into the rectangle (ox, oy, w, h). Each has a logo zone
+   on the left and a text zone that starts where the logo ends, with a margin
+   either side, so the two never touch. */
 function drawBoard(x, key, ox, oy, w, h) {
   x.save();
   x.beginPath(); x.rect(ox, oy, w, h); x.clip();
-  const cy = oy + h / 2;
+  const cy = oy + h / 2, m = h * 0.12;
+  const zone = (logoW) => { const l = ox + m + logoW + m, r = ox + w - m; return { l: l, r: r, w: r - l, c: (l + r) / 2 }; };
   if (key === 'ndhlovu') {
     const g = x.createLinearGradient(ox, oy, ox, oy + h);
     g.addColorStop(0, '#0d2a4a'); g.addColorStop(1, '#071628');
     x.fillStyle = g; x.fillRect(ox, oy, w, h);
     x.fillStyle = '#d4a63a'; x.fillRect(ox, oy + h - h * 0.06, w, h * 0.06);
-    drawElephant(x, ox + h * 0.78, oy + h * 0.88, h * 0.95, '#d4a63a', '#fff6e0');
-    spText(x, 'NDHLOVU CAPITAL', ox + w * 0.58, cy - h * 0.10, h * 0.42, '#f2e6c8', '800 ', h * 0.02);
-    spText(x, 'INVESTMENT GROUP', ox + w * 0.58, cy + h * 0.27, h * 0.16, '#d4a63a', '600 ', h * 0.08);
+    const s = h * 0.78;
+    drawElephant(x, ox + m + s * 0.62, oy + h * 0.84, s, '#d4a63a', '#fff6e0');
+    const Z = zone(s * 1.42);
+    spFit(x, 'NDHLOVU CAPITAL', Z.c, cy - h * 0.10, Z.w, h * 0.40, '#f2e6c8', '800 ', h * 0.02);
+    spFit(x, 'INVESTMENT GROUP', Z.c, cy + h * 0.25, Z.w * 0.8, h * 0.15, '#d4a63a', '600 ', h * 0.07);
   } else if (key === 'games') {
     const g = x.createLinearGradient(ox, oy, ox + w, oy);
     g.addColorStop(0, '#3a0a5c'); g.addColorStop(1, '#a3168a');
     x.fillStyle = g; x.fillRect(ox, oy, w, h);
     for (let i = 0; i < 14; i++) {                   // studio lights
       x.fillStyle = 'rgba(255,214,90,' + (0.25 + (i % 3) * 0.2) + ')';
-      x.beginPath(); x.arc(ox + w * (i + 0.5) / 14, oy + h * 0.1, h * 0.035, 0, Math.PI * 2); x.fill();
+      x.beginPath(); x.arc(ox + w * (i + 0.5) / 14, oy + h * 0.09, h * 0.03, 0, Math.PI * 2); x.fill();
     }
-    drawElephant(x, ox + w * 0.11, oy + h * 0.86, h * 0.72, '#ffd65a', false);
-    spText(x, 'THE ELEPHANT GAMES', ox + w * 0.58, cy, h * 0.40, '#ffd65a', '900 ', h * 0.01);
-    spText(x, 'SATURDAY NIGHT · LIVE', ox + w * 0.58, cy + h * 0.32, h * 0.13, '#ffffff', '600 ', h * 0.06);
+    const s = h * 0.66;
+    drawElephant(x, ox + m + s * 0.62, oy + h * 0.84, s, '#ffd65a', false);
+    const Z = zone(s * 1.42);
+    spFit(x, 'THE ELEPHANT GAMES', Z.c, cy - h * 0.02, Z.w, h * 0.36, '#ffd65a', '900 ', h * 0.01);
+    spFit(x, 'SATURDAY NIGHT · LIVE', Z.c, cy + h * 0.30, Z.w * 0.7, h * 0.13, '#ffffff', '600 ', h * 0.05);
   } else if (key === 'prime') {
     x.fillStyle = '#05080b'; x.fillRect(ox, oy, w, h);
     // a candle chart running through it
-    x.strokeStyle = 'rgba(40,220,140,.35)'; x.lineWidth = Math.max(1, h * 0.02);
+    x.strokeStyle = 'rgba(40,220,140,.30)'; x.lineWidth = Math.max(1, h * 0.02);
     x.beginPath();
     for (let i = 0; i <= 40; i++) {
       const px = ox + (w * i) / 40, py = cy + Math.sin(i * 0.7) * h * 0.18 - (i / 40) * h * 0.22;
       if (i) x.lineTo(px, py); else x.moveTo(px, py);
     }
     x.stroke();
-    spText(x, 'PRIME', ox + w * 0.25, cy, h * 0.46, '#28dc8c', '900 ', h * 0.02);
-    spText(x, 'TERMINAL', ox + w * 0.67, cy, h * 0.40, '#e8edf2', '300 ', h * 0.02);
+    // the two words measured as one line, centred together, a gap between
+    const size = h * 0.42, gap = h * 0.22, room = w - m * 2;
+    x.font = '900 ' + size + 'px "Arial Narrow", Impact, sans-serif';
+    const a = x.measureText('PRIME').width;
+    x.font = '300 ' + size + 'px "Arial Narrow", Impact, sans-serif';
+    const b = x.measureText('TERMINAL').width;
+    const k = Math.min(1, room / (a + gap + b));
+    const l = ox + (w - (a + gap + b) * k) / 2;
+    spFit(x, 'PRIME', l, cy, a * k + 1, size * k, '#28dc8c', '900 ', 0, 'left');
+    spFit(x, 'TERMINAL', l + (a + gap) * k, cy, b * k + 1, size * k, '#e8edf2', '300 ', 0, 'left');
   } else if (key === 'watch') {
     x.fillStyle = '#0d3b2e'; x.fillRect(ox, oy, w, h);
     // a watch face
-    const r = h * 0.32, wx = ox + h * 0.62;
+    const r = h * 0.32, wx = ox + m + r;
     x.strokeStyle = '#d6b45a'; x.lineWidth = h * 0.05;
     x.beginPath(); x.arc(wx, cy, r, 0, Math.PI * 2); x.stroke();
     for (let k = 0; k < 12; k++) {
@@ -7625,17 +7665,19 @@ function drawBoard(x, key, ox, oy, w, h) {
       x.fillRect(wx + Math.cos(a) * r * 0.78 - 1.5, cy + Math.sin(a) * r * 0.78 - 1.5, 3, 3);
     }
     x.lineWidth = h * 0.03; x.beginPath(); x.moveTo(wx, cy); x.lineTo(wx + r * 0.5, cy - r * 0.35); x.moveTo(wx, cy); x.lineTo(wx, cy - r * 0.7); x.stroke();
-    spText(x, 'ORVANNE', ox + w * 0.58, cy - h * 0.06, h * 0.40, '#f0e2b6', '400 ', h * 0.12);
-    spText(x, 'GENÈVE · SINCE 1871', ox + w * 0.58, cy + h * 0.28, h * 0.13, '#d6b45a', '600 ', h * 0.05);
+    const Z = zone(r * 2);
+    spFit(x, 'ORVANNE', Z.c, cy - h * 0.06, Z.w, h * 0.40, '#f0e2b6', '400 ', h * 0.12);
+    spFit(x, 'GENÈVE · SINCE 1871', Z.c, cy + h * 0.28, Z.w * 0.75, h * 0.13, '#d6b45a', '600 ', h * 0.05);
   } else if (key === 'shades') {
     x.fillStyle = '#f4f2ee'; x.fillRect(ox, oy, w, h);
     // the frames
-    const sx = ox + h * 0.75, gw = h * 0.36;
+    const gw = h * 0.36, sx = ox + m + gw * 1.1;
     x.fillStyle = '#101010';
     for (const d of [-1, 1]) { x.beginPath(); x.ellipse(sx + d * gw * 0.62, cy, gw * 0.5, gw * 0.36, 0, 0, Math.PI * 2); x.fill(); }
     x.fillRect(sx - gw * 0.15, cy - gw * 0.2, gw * 0.3, gw * 0.08);
-    spText(x, 'SOLSTICE', ox + w * 0.60, cy - h * 0.05, h * 0.44, '#101010', '300 ', h * 0.14);
-    spText(x, 'LUXURY EYEWEAR', ox + w * 0.60, cy + h * 0.30, h * 0.13, '#8a6a2a', '600 ', h * 0.08);
+    const Z = zone(gw * 2.2);
+    spFit(x, 'SOLSTICE', Z.c, cy - h * 0.05, Z.w, h * 0.44, '#101010', '300 ', h * 0.14);
+    spFit(x, 'LUXURY EYEWEAR', Z.c, cy + h * 0.30, Z.w * 0.7, h * 0.13, '#8a6a2a', '600 ', h * 0.08);
   }
   x.restore();
 }
@@ -7714,7 +7756,14 @@ function decalTex(key, w, h, bg) {
   const id = 'd:' + key + ':' + w + 'x' + h + ':' + (bg || '');
   if (SPON[id]) return SPON[id];
   const { c, x } = makeCanvas(w, h);
-  if (key === 'ndhlovu') {
+  if (key === 'ndhlovu1') {
+    // one line, for the rear wing: the elephant, then the name, side by side
+    if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w, h); }
+    const s = h * 0.86;
+    drawElephant(x, h * 0.12 + s * 0.62, h * 0.9, s, '#d4a63a', '#fff6e0');
+    const l = h * 0.12 + s * 1.42 + h * 0.15;
+    spFit(x, 'NDHLOVU CAPITAL', (l + w - h * 0.15) / 2, h * 0.53, w - h * 0.15 - l, h * 0.62, '#ffffff', '800 ', h * 0.03);
+  } else if (key === 'ndhlovu') {
     if (bg) { x.fillStyle = bg; x.fillRect(0, 0, w, h); }
     drawElephant(x, h * 0.62, h * 0.9, h * 0.9, '#d4a63a', '#fff6e0');
     spText(x, 'NDHLOVU', w * 0.62, h * 0.38, h * 0.40, '#ffffff', '800 ');
@@ -9230,18 +9279,29 @@ function buildF1Car(def, out, ch, M, wheels, g) {
     b.box(carbon, 0.03, 0.18, 0.10, sx * 0.12, 0.19, 2.75);
   }
 
-  // rear wing: main plane, endplates, beam wing, swan-neck pylon
-  b.box(body, 1.02, 0.035, 0.32, 0, 0.90, -2.46);
+  // rear wing: wide enough for the title sponsor on one line. Main plane,
+  // endplates with their louvres and a lit edge, two beam-wing elements, a
+  // pair of swan-neck pylons, and the gurney strip along the trailing edge
+  const RW = 0.80;                                     // half the span
+  b.box(body, RW * 2, 0.035, 0.34, 0, 0.90, -2.46);
+  b.box(trim, RW * 2 - 0.06, 0.02, 0.025, 0, 0.925, -2.62);
   for (const sx of [-1, 1]) {
-    b.box(body, 0.03, 0.48, 0.64, sx * 0.52, 0.86, -2.42);
-    b.box(acc, 0.034, 0.10, 0.64, sx * 0.52, 1.06, -2.42);
+    b.box(body, 0.03, 0.52, 0.70, sx * RW, 0.86, -2.44);
+    b.box(acc, 0.034, 0.10, 0.70, sx * RW, 1.08, -2.44);
+    b.box(carbon, 0.034, 0.05, 0.70, sx * RW, 0.62, -2.44);
+    for (let k = 0; k < 4; k++) b.box(dark, 0.036, 0.012, 0.16, sx * RW, 0.70 + k * 0.05, -2.24);
+    b.box(carbon, 0.04, 0.46, 0.08, sx * 0.20, 0.68, -2.32, 0.10, 0, 0);
   }
-  b.box(carbon, 0.92, 0.03, 0.16, 0, 0.46, -2.40);
-  b.box(carbon, 0.05, 0.44, 0.12, 0, 0.66, -2.30);
+  b.box(carbon, RW * 2 - 0.30, 0.03, 0.16, 0, 0.46, -2.40);
+  b.box(carbon, RW * 2 - 0.40, 0.025, 0.12, 0, 0.53, -2.48, -0.25, 0, 0);
+  // the gearbox and the rear crash structure the rain light hangs off
+  b.box(carbon, 0.30, 0.22, 0.50, 0, 0.36, -2.05);
+  b.box(carbon, 0.16, 0.12, 0.34, 0, 0.36, -2.40);
 
   // diffuser and strakes; the exhaust in heat-blued titanium, wastegates either side
-  b.box(carbon, 1.12, 0.18, 0.46, 0, 0.18, -2.22, 0.35, 0, 0);
-  for (let k = -2; k <= 2; k++) b.box(carbon, 0.015, 0.16, 0.40, k * 0.22, 0.18, -2.22, 0.35, 0, 0);
+  b.box(carbon, 1.24, 0.18, 0.50, 0, 0.18, -2.24, 0.35, 0, 0);
+  for (let k = -3; k <= 3; k++) b.box(k % 3 ? carbon : trim, 0.015, 0.17, 0.44, k * 0.19, 0.18, -2.24, 0.35, 0, 0);
+  for (const sx of [-1, 1]) b.box(carbon, 0.02, 0.26, 0.52, sx * 0.62, 0.22, -2.22, 0.35, 0, 0);
   b.place(gCyl(0.062, 0.07, 0.30, 12), ti, 0, 0.50, -2.28, Math.PI / 2, 0, 0);
   b.place(gCyl(0.045, 0.045, 0.31, 10), dark, 0, 0.50, -2.28, Math.PI / 2, 0, 0);
   for (const sx of [-1, 1]) b.place(gCyl(0.028, 0.03, 0.22, 8), ti, sx * 0.16, 0.44, -2.26, Math.PI / 2, 0, 0);
@@ -9268,14 +9328,23 @@ function buildF1Car(def, out, ch, M, wheels, g) {
   // the DRS flap is its own part so it can open on the straights
   const flap = new THREE.Group();
   flap.position.set(0, 1.0, -2.30);
-  part(flap, gBox(1.02, 0.03, 0.20), acc, 0, 0, -0.09, -0.30, 0, 0);
+  part(flap, gBox(1.56, 0.03, 0.20), acc, 0, 0, -0.09, -0.30, 0, 0);
   ch.add(flap);
   out.drsFlap = flap;
 
   // decals: the title sponsor on both pods and the rear wing, numbers on nose and fin
   for (const sx of [-1, 1]) f1Decal(ch, 'ndhlovu', 0.62, 0.23, sx * 0.795, 0.41, -0.55, 0, sx * Math.PI / 2, 0);
-  f1Decal(ch, 'ndhlovu', 0.82, 0.30, 0, 0.90, -2.302, 0, 0, 0, '#0d2a4a');
-  f1Decal(ch, 'ndhlovu', 0.82, 0.30, 0, 0.90, -2.618, 0, Math.PI, 0, '#0d2a4a');
+  // the rear wing carries the title sponsor in one line, on its top face
+  // (what the chase camera looks down on) and on its trailing edge
+  {
+    const m = new THREE.MeshBasicMaterial({ map: decalTex('ndhlovu1', 512, 72, '#0d2a4a'), polygonOffset: true, polygonOffsetFactor: -2, toneMapped: true });
+    part(ch, new THREE.PlaneGeometry(1.50, 0.21), m, 0, 0.919, -2.46, -Math.PI / 2, 0, 0).castShadow = false;
+    part(ch, new THREE.PlaneGeometry(1.44, 0.20), m, 0, 0.79, -2.662, 0, Math.PI, 0).castShadow = false;
+    // a slim board under the trailing edge to carry it, so it is not in the air
+    part(ch, gBox(1.52, 0.22, 0.02), carbon, 0, 0.79, -2.645);
+  }
+  // the team's name on the outside of each endplate
+  for (const sx of [-1, 1]) f1Decal(ch, 'txt:' + def.car, 0.56, 0.16, sx * (0.80 + 0.018), 0.86, -2.44, 0, sx * Math.PI / 2, 0);
   f1Decal(ch, 'num:' + def.num, 0.30, 0.12, 0, 0.615, 1.30, -Math.PI / 2 + 0.12, 0, 0);
   for (const sx of [-1, 1]) f1Decal(ch, 'num:' + def.num, 0.40, 0.16, sx * 0.012, 0.95, -1.30, 0, sx * Math.PI / 2, 0);
 
@@ -9290,8 +9359,8 @@ function buildF1Car(def, out, ch, M, wheels, g) {
   out.hitWid = 1.05 * F1_SCALE;
   out.exhausts.push(new THREE.Vector3(0, 0.50, -2.46));
   // the rain light and the LED strips on the endplates, all lit by braking
-  out.brakeLights.push(part(ch, gBox(0.14, 0.09, 0.04), emissiveMat(0xff2a12, 1.0).clone(), 0, 0.40, -2.36));
-  for (const sx of [-1, 1]) out.brakeLights.push(part(ch, gBox(0.012, 0.30, 0.04), emissiveMat(0xff2a12, 1.0).clone(), sx * 0.537, 0.86, -2.70));
+  out.brakeLights.push(part(ch, gBox(0.18, 0.10, 0.04), emissiveMat(0xff2a12, 1.0).clone(), 0, 0.36, -2.58));
+  for (const sx of [-1, 1]) out.brakeLights.push(part(ch, gBox(0.012, 0.34, 0.04), emissiveMat(0xff2a12, 1.0).clone(), sx * 0.817, 0.86, -2.78));
 }
 /* ======================== §6b  PORTRAITS ===========================
    A photograph of every car for the garage and grid cards — the real
@@ -9696,12 +9765,14 @@ class Car {
         this.vel.z -= smp.n.z * nv * 1.05;
         const impact = Math.abs(nv);
         const along = Math.atan2(smp.t.x, smp.t.z) + (this.vel.x * smp.t.x + this.vel.z * smp.t.z < 0 ? Math.PI : 0);
-        this.yaw += angDiff(this.yaw, along) * clamp(impact * 0.04, 0.05, 0.5);
-        this.yawRate *= 0.7;
+        // eased round over several frames, not snapped in one: a big glance
+        // used to swing the nose half the way in a single frame
+        this.yaw += angDiff(this.yaw, along) * clamp(impact * 0.015, 0.02, 0.16);
+        this.yawRate *= 0.82;
         if (impact > 6 && this.wallCd <= 0) {
           this.wallCd = 0.35;
           this.vel.multiplyScalar(clamp(1 - impact * 0.006, 0.88, 0.99));
-          this.applyDamage(0, null, 'wall');
+          f1WallHit(this, impact, smp.n.x * sg, smp.n.z * sg);
           fxSpark(_v4.set(this.pos.x - smp.n.x * 1.2 * sg, 1.0, this.pos.z - smp.n.z * 1.2 * sg).clone(), 8 + Math.min(14, impact), 0xffd089);
           SFX.clang(this.pos, impact / 16);
           if (this.isPlayer) camShake(clamp(impact * 0.03, 0.08, 0.6), this.pos);
@@ -9812,13 +9883,14 @@ class Car {
     }
 
     let Fdrive = 0;
-    if (this.shiftT <= 0) Fdrive = throttle * P.pw * tq * gearScale * boost;
+    if (this.shiftT <= 0) Fdrive = throttle * P.pw * tq * gearScale * boost * (this.ai && !this.isPlayer && !this.remote ? DIFF_K().power : 1);
     if (throttle < 0) Fdrive = throttle * P.pw * 0.42;     // reverse
     if (this.oiled > 0) Fdrive *= 0.5;
 
     // ---------- loads ----------
     const W = P.m * G_ACC;
-    const down = P.df * speed * speed * 2.2;
+    const DG = this.f1d ? f1DmgGrip(this) : null;     // SPORT MODE damage (§12f)
+    const down = P.df * speed * speed * 2.2 * (DG ? DG.down : 1);
     let FzF = W * P.wd + down * 0.45;
     let FzR = W * (1 - P.wd) + down * 0.55;
     const transfer = P.m * this.ax * P.cg / P.wb;
@@ -9835,6 +9907,9 @@ class Car {
     // tyre wear and compound (§12e): 1 off a grand-prix grid
     const tg = this.tyreGrip || 1;
     let muF = P.muF * tg, muR = P.muR * tg;
+    if (DG) { muF *= DG.f; muR *= DG.r; }
+    // the difficulty (§8b): rivals get the grip their driving asks for
+    if (this.ai && !this.isPlayer && !this.remote) { const K = DIFF_K(); muF *= K.pace; muR *= K.pace; }
     if (this.oiled > 0) { muF *= 0.42; muR *= 0.38; }
     const SF = this.surf ? SURF[this.surf] : null;
     if (SF) { muF *= SF.grip; muR *= SF.grip; }
@@ -10025,7 +10100,10 @@ class Car {
       const sg = sgn(lat);
       this.pos.x -= q.n.x * over * sg; this.pos.z -= q.n.z * over * sg;
       const nv = this.vel.x * q.n.x + this.vel.z * q.n.z;
-      if (sgn(nv) === sg) { this.vel.x -= q.n.x * nv; this.vel.z -= q.n.z * nv; }
+      if (sgn(nv) === sg) {
+        this.vel.x -= q.n.x * nv; this.vel.z -= q.n.z * nv;
+        f1CornerHit(this, Math.abs(nv), fx, lx, _v4.x, _v4.z);
+      }
     }
   }
 
@@ -10285,6 +10363,7 @@ class Car {
     // online: somebody else's car is theirs to damage — see §14a
     if (this.remote) { if (this.alive && amt > 0 && this.invuln <= 0) mpRouteDamage(this, amt, by, cause); return; }
     if (!this.alive || amt <= 0 || this.invuln > 0) return;
+    if (this.isPlayer && by && by !== this) amt *= DIFF_K().hurt;     // §8b
     this.armour -= amt;
     this.flash = 0.12;
     if (by) this.lastHitBy = by;
@@ -10487,6 +10566,7 @@ function contactCars(A, B, H, report) {
   B.yawRate = clamp(B.yawRate, -4.5, 4.5);
 
   if (!report) return;
+  if (sport) f1CarHit(A, B, H, closing, nx, nz);
 
   const mid = new THREE.Vector3(H.cx, 1.1, H.cz);
   // the wedge: anything its nose catches goes up
@@ -10962,6 +11042,44 @@ function acquireTarget(car, range, cone) {
   }
   return best;
 }
+/* ========================== §8b  DIFFICULTY ==========================
+   EASY, MEDIUM, HARD. MEDIUM is the game as it was tuned — nothing about it
+   changes. The level moves three things:
+
+     PACE    the rivals' grip and power, and the corner speeds and top speed
+             they drive to. Both, always together: asking a car for corner
+             speed its tyres cannot give only sends it off the road (measured:
+             HARD that way was SLOWER than medium). Easy is a few per cent
+             off, hard a few on.
+     HURT    in the championship, how much the weapons and rams aimed at YOU
+             take off your armour.
+     DAMAGE  in Sport Mode, how much a hit takes off your car's wings and floor.
+
+   Online and the daily challenge are always MEDIUM: one set of rules for
+   everybody on the same leaderboard.
+   ================================================================== */
+const DIFFS = [
+  { key: 'easy', name: 'EASY', pace: 0.95, top: 0.97, power: 0.95, hurt: 0.70, dmgP: 0.60,
+    what: 'A gentler field. Rivals corner and run a little slower; hits cost you less.' },
+  { key: 'medium', name: 'MEDIUM', pace: 1.0, top: 1.0, power: 1.0, hurt: 1.0, dmgP: 1.0,
+    what: 'The game as it is meant to be raced.' },
+  { key: 'hard', name: 'HARD', pace: 1.035, top: 1.02, power: 1.04, hurt: 1.25, dmgP: 1.2,
+    what: 'Rivals on the limit everywhere, and every hit on you costs more.' },
+];
+DIFFS.forEach((D) => { D.dmg = (c) => (c && c.isPlayer ? D.dmgP : 1); });
+
+function diffIdx() {
+  if ((typeof MP !== 'undefined' && MP.on) || (typeof DAILY !== 'undefined' && DAILY.on)) return 1;
+  const d = CAREER.diff;
+  return d === 0 || d === 2 ? d : 1;
+}
+function DIFF_K() { return DIFFS[diffIdx()]; }
+function diffStep(d) {
+  const i = CAREER.diff === 0 || CAREER.diff === 2 ? CAREER.diff : 1;
+  CAREER.diff = (i + (d || 1) + 3) % 3;
+  saveCareer();
+  SFX.beep(false);
+}
 /* ============================= §9  AI ============================== */
 
 /* The fastest the car can be going HERE and still make every corner ahead of
@@ -11115,6 +11233,34 @@ function updateAI(car, dt, t) {
       if (Math.abs(bl - desired) < 9) desired = bl + (bl > 0 ? -1 : 1) * 11;
     }
   }
+  /* ---------- SPORT MODE racecraft: the car in front ----------
+     Nothing used to tell an AI car another car was there: with damage off,
+     ten of them simply leaned on each other. Now each one finds the nearest
+     car ahead in the next 45 m. If it is catching it on the same line it
+     pulls out to whichever side has the room, and until it is alongside it
+     holds a gap rather than driving into the gearbox. */
+  ai.front = null;
+  if (sp.f1 && !car.pit) {
+    let fd = 46;
+    for (const o of G.cars) {
+      if (o === car || o.pit || !o.alive) continue;
+      const d = (o.progress - car.progress) * TRACK.length;
+      if (d > 0 && d < fd) { fd = d; ai.front = o; }
+    }
+    if (ai.front) {
+      const o = ai.front, ol = lateralOf(o.pos, car.si);
+      const closing = spd - o.speed;
+      ai.frontD = fd; ai.frontLat = ol;
+      if (Math.abs(ol - desired) < 3.0 && (closing > 1.5 || fd < 14)) {
+        const hwN = sAt(car.si).w - 3.2;
+        const sideL = ol + 3.7, sideR = ol - 3.7;
+        const okL = sideL < hwN, okR = sideR > -hwN;
+        const pickL = okL && (!okR || Math.abs(sideL - desired) <= Math.abs(sideR - desired));
+        if (okL || okR) desired = lerp(desired, pickL ? sideL : sideR, clamp((46 - fd) / 30, 0.25, 0.85));
+      }
+    }
+  }
+
   /* ---------- panel commitment overrides the tidy line ---------- */
   if (ai.panel) {
     const dIdx = ((ai.panel.i - car.si) % TRACK.N + TRACK.N) % TRACK.N;
@@ -11142,8 +11288,10 @@ function updateAI(car, dt, t) {
 
   /* ---------- speed ---------- */
   // real tyres cap out near mu*g; slicks and downforce (gripK, aeroK) go further
-  const latA = (8.4 + 4.6 * skill) * (sp.gripK || 1);
-  const top = sp.topSpeed * (0.85 + 0.15 * skill);
+  // the difficulty (§8b) moves the rivals, never the player's own car
+  const DK = car.isPlayer ? DIFFS[1] : DIFF_K();
+  const latA = (8.4 + 4.6 * skill) * (sp.gripK || 1) * DK.pace;
+  const top = sp.topSpeed * (0.85 + 0.15 * skill) * DK.top;
   // The muscle cars slow for the tightest bend anywhere in the next hundred
   // metres or so and then cruise to it. At grand-prix speeds that was most of
   // a straight spent at corner speed; an F1 car takes the corner it is in and
@@ -11154,6 +11302,12 @@ function updateAI(car, dt, t) {
   let targetV = clamp(Math.min(top, vmax), 12, top);
   // behind the safety car the queue sets the pace (§12e)
   if (sp.f1 && F1R.sc) targetV = Math.min(targetV, scSpeedFor(car));
+  // still lined up behind the car in front: hold a gap, do not hit it
+  // (a car is 7.4 m long, so 17 m centre to centre is about a car's length
+  // of air between them; it closes up only as fast as it can stop)
+  if (ai.front && Math.abs(ai.frontLat - lateralOf(car.pos, car.si)) < 2.9) {
+    targetV = Math.min(targetV, Math.max(4, ai.front.speed + (ai.frontD - 17) * 0.6));
+  }
   let throttle;
   if (spd < targetV - 1.5) throttle = 1;
   else if (spd > targetV + 3.5) throttle = -1;
@@ -12035,7 +12189,7 @@ function thrillsTick(dt) {
    ================================================================== */
 const SPORT = { on: false, circ: 0, car: 0, laps: 3, row: 0, R: null, best: {}, towerT: 0 };
 const F1_POINTS = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-const SPORT_ROWS = ['circuit', 'car', 'laps', 'tyre'];
+const SPORT_ROWS = ['circuit', 'car', 'laps', 'tyre', 'diff'];
 
 function sportC() { return SPORT_CIRCUITS[SPORT.circ] || SPORT_CIRCUITS[0]; }
 function sportCar() { return SPORT_GARAGE[SPORT.car] || SPORT_GARAGE[0]; }
@@ -12075,8 +12229,8 @@ function showSport() {
   const C = sportC(), key = sportCar(), pv = circuitPreview(C);
   const T = TYRES[SPORT.tyre || 'M'];
   const val = { circuit: C.name, car: ROSTER[key].car + ' &middot; ' + ROSTER[key].trait, laps: SPORT.laps + (SPORT.laps === 1 ? ' LAP' : ' LAPS') + (SPORT.laps >= 5 ? ' &middot; ONE STOP MINIMUM' : ''),
-    tyre: '<span style="color:' + T.css + '">&#9679;</span> ' + T.name };
-  const lbl = { circuit: 'CIRCUIT', car: 'TEAM', laps: 'DISTANCE', tyre: 'START ON' };
+    tyre: '<span style="color:' + T.css + '">&#9679;</span> ' + T.name, diff: DIFF_K().name };
+  const lbl = { circuit: 'CIRCUIT', car: 'TEAM', laps: 'DISTANCE', tyre: 'START ON', diff: 'DIFFICULTY' };
   let rows = '';
   SPORT_ROWS.forEach((r, i) => {
     rows += '<div class="srow' + (i === SPORT.row ? ' me' : '') + '" style="border-left-color:' + (i === SPORT.row ? '#f6a41b' : '#555') + '">' +
@@ -12093,7 +12247,8 @@ function showSport() {
       (best ? ' &middot; BEST ' + fmtTime(best) : '') + '</div><div class="note">' + C.blurb + '</div></div></div>' +
     '<div class="grid-cards">' + SPORT_GARAGE.map((k, i) => sportCard(k, { sel: i === SPORT.car, pick: i })).join('') + '</div>' +
     '<div class="blurb" style="margin-top:10px"><b>Grand-prix rules.</b> Ten seconds on the grid &mdash; hold the throttle to rev &mdash; then five red lights. ' +
-      'Get away on the right revs or bog it. No damage, no weapons: contact costs time, never the car. ' +
+      'Get away on the right revs or bog it. No weapons. <b>Damage</b>: hits cost you front wing, rear wing and floor, and grip with them; ' +
+      'a new front wing at a pit stop is five seconds. <b>Stewards</b>: drive into somebody and it is a warning, then a 5 or 10-second penalty. ' +
       '<b>DRS</b>: within a second of the car ahead at the detection point and you can open the wing on the straight (<kbd>E</kbd>). ' +
       '<b>Track limits</b>: all four wheels past the white line is a strike and deletes the lap; three is the black-and-white flag, ' +
       'every one after is a 5-second penalty. Nitrous is the battery and charges under braking. Points 25-18-15-12-10-8-6-4-2-1.</div>' +
@@ -12107,6 +12262,7 @@ function sportSet(row, d) {
   else if (row === 'car') SPORT.car = (SPORT.car + d + SPORT_GARAGE.length) % SPORT_GARAGE.length;
   else if (row === 'laps') SPORT.laps = clamp(SPORT.laps + d, 1, 10);
   else if (row === 'tyre') { const o = 'SMH', i = o.indexOf(SPORT.tyre || 'M'); SPORT.tyre = o[(i + d + 3) % 3]; }
+  else if (row === 'diff') diffStep(d);
   SPORT.row = SPORT_ROWS.indexOf(row);
   CAREER.sportSel = { c: SPORT.circ, k: SPORT.car, l: SPORT.laps, t: SPORT.tyre || 'M' }; saveCareer();
   SFX.beep(false);
@@ -12411,6 +12567,7 @@ function f1StartPrep() {
   for (const c of G.cars) {
     c.revT = 0; c.blipT = 0; c.drsOk = false; c.drsOpen = false; c.drsZone = -1; c.drsFlapA = 0;
     c.strikes = 0; c.penalty = 0; c.offTrack = false; c.lapBad = false;
+    f1DmgReset(c);
   }
   setF1Lights(0);
 }
@@ -12537,7 +12694,7 @@ function f1RaceTick(dt) {
     c.lastIn = inZone;
     c.lastSi = c.si;
     c.drsFlapA += ((c.drsOpen ? 0.85 : 0) - c.drsFlapA) * damp(10, dt);
-    if (c.drsFlap) c.drsFlap.rotation.x = c.drsFlapA;
+    if (c.drsFlap) c.drsFlap.rotation.x = c.drsFlapA + (c.drsFlap.userData.bent || 0);
   }
   f1Hud();
 }
@@ -12685,7 +12842,8 @@ function buildPitLane() {
     const Fb = frameAt(s.p.x + s.n.x * lane, 0.03, s.p.z + s.n.z * lane, Math.atan2(s.t.x, s.t.z));
     put(pb, Fb, gBox(4.6, 0.02, 0.18), wallM, 0, 0, 3.6); put(pb, Fb, gBox(4.6, 0.02, 0.18), wallM, 0, 0, -3.6);
     // the box itself: team-coloured floor paint where the car stops
-    put(pb, Fb, gBox(4.4, 0.015, 7.0), mat(team.body, { rough: 0.7, env: 0.3 }), 0, -0.005, 0);
+    const dim = (h, k) => (((h >> 16 & 255) * k) << 16) | (((h >> 8 & 255) * k) << 8) | ((h & 255) * k);
+    put(pb, Fb, gBox(4.4, 0.015, 7.0), mat(dim(team.body, 0.45), { rough: 0.9, env: 0.15 }), 0, -0.005, 0);
   });
   const g2 = new THREE.Group(); pb.build(g2);
   g2.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
@@ -12702,54 +12860,162 @@ function buildPitLane() {
    lane, do the stop, and walk back in. Only a crew that is out is drawn.  */
 const CREW_G = {};
 function crewGeo() {
-  if (CREW_G.leg) return CREW_G;
-  CREW_G.leg = new THREE.BoxGeometry(0.17, 0.82, 0.2); CREW_G.leg.translate(0, -0.41, 0);
-  CREW_G.torso = new THREE.BoxGeometry(0.5, 0.64, 0.3);
-  CREW_G.arm = new THREE.BoxGeometry(0.13, 0.62, 0.14); CREW_G.arm.translate(0, -0.29, 0);
-  CREW_G.head = new THREE.SphereGeometry(0.16, 12, 9);
-  CREW_G.visor = new THREE.BoxGeometry(0.22, 0.08, 0.06);
-  CREW_G.boot = new THREE.BoxGeometry(0.18, 0.1, 0.3);
-  CREW_G.tyre = new THREE.CylinderGeometry(0.43, 0.43, 0.42, 18); CREW_G.tyre.rotateZ(Math.PI / 2);
+  if (CREW_G.tyre) return CREW_G;
+  CREW_G.tyre = new THREE.CylinderGeometry(0.43, 0.43, 0.42, 22); CREW_G.tyre.rotateZ(Math.PI / 2);
+  CREW_G.rim = new THREE.CylinderGeometry(0.27, 0.27, 0.44, 16); CREW_G.rim.rotateZ(Math.PI / 2);
   CREW_G.band = new THREE.TorusGeometry(0.33, 0.03, 6, 22); CREW_G.band.rotateY(Math.PI / 2);
-  CREW_G.gun = new THREE.BoxGeometry(0.12, 0.14, 0.42);
-  CREW_G.pole = new THREE.CylinderGeometry(0.025, 0.025, 2.1, 6);
+  CREW_G.pole = new THREE.CylinderGeometry(0.022, 0.022, 2.0, 6);
   CREW_G.disc = new THREE.CylinderGeometry(0.34, 0.34, 0.04, 20); CREW_G.disc.rotateX(Math.PI / 2);
-  CREW_G.jack = new THREE.BoxGeometry(0.5, 0.18, 1.5);
-  CREW_G.dark = mat(0x16181c, { rough: 0.6, env: 0.4 });
+  CREW_G.jack = new THREE.BoxGeometry(0.42, 0.14, 1.6);
   CREW_G.rubber = mat(0x141414, { rough: 0.85, env: 0.2 });
-  CREW_G.visorM = mat(0x0a0c10, { rough: 0.08, metal: 0.8, env: 1.6 });
+  CREW_G.rimM = mat(0x2a2c30, { rough: 0.35, metal: 0.8, env: 1.2 });
   CREW_G.steel = mat(0x9aa0a8, { rough: 0.35, metal: 0.85, env: 1.2 });
+  // every crew member's body is one vertex-coloured material: nine draw calls
+  // a person (one per moving part) whatever the team
+  CREW_G.skin = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.72, metalness: 0.08 });
+  CREW_G.skin.envMapIntensity = 0.6;
+  CREW_G.gloss = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.32, metalness: 0.12 });
+  CREW_G.gloss.envMapIntensity = 0.8;
   return CREW_G;
 }
-function crewMan(g, suit, trim, helmet) {
+
+/* Merge little shapes into one coloured mesh. pieces: [geo, hex, x, y, z,
+   rx, ry, rz, sx, sy, sz] — each one placed in the segment's own frame. */
+const _cm = new THREE.Matrix4(), _cq = new THREE.Quaternion(), _ce = new THREE.Euler(), _cv = new THREE.Vector3(), _cs = new THREE.Vector3();
+function crewMesh(pieces, material) {
+  // the same part of the same team's crew is the same shape: build it once
+  CREW_G.gc = CREW_G.gc || new Map();
+  const hit = CREW_G.gc.get(pieces);
+  if (hit) { const me = new THREE.Mesh(hit, material); me.castShadow = true; return me; }
+  const pos = [], nrm = [], col = [], idx = [];
+  let base = 0;
+  const nm = new THREE.Matrix3(), c = new THREE.Color(), v = new THREE.Vector3();
+  for (const p of pieces) {
+    const g = p[0];
+    _ce.set(p[5] || 0, p[6] || 0, p[7] || 0);
+    _cq.setFromEuler(_ce);
+    _cv.set(p[2] || 0, p[3] || 0, p[4] || 0);
+    _cs.set(p[8] || 1, p[9] || 1, p[10] || 1);
+    _cm.compose(_cv, _cq, _cs);
+    nm.getNormalMatrix(_cm);
+    c.copy(SRGB(p[1]));
+    const P = g.attributes.position, N = g.attributes.normal;
+    for (let i = 0; i < P.count; i++) {
+      v.fromBufferAttribute(P, i).applyMatrix4(_cm); pos.push(v.x, v.y, v.z);
+      v.fromBufferAttribute(N, i).applyMatrix3(nm).normalize(); nrm.push(v.x, v.y, v.z);
+      col.push(c.r, c.g, c.b);
+    }
+    if (g.index) for (let i = 0; i < g.index.count; i++) idx.push(base + g.index.getX(i));
+    else for (let i = 0; i < P.count; i++) idx.push(base + i);
+    base += P.count;
+  }
+  const out = new THREE.BufferGeometry();
+  out.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  out.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3));
+  out.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  out.setIndex(idx);
+  CREW_G.gc.set(pieces, out);
+  const me = new THREE.Mesh(out, material);
+  me.castShadow = true;
+  return me;
+}
+
+/* One of the crew, after the photos: a fire suit in the team's colour with a
+   contrasting panel down the chest and a belt, padded shoulders, a full-face
+   helmet with a dark visor and the team stripe, gloves and boots. Jointed at
+   the hips, knees, shoulders and elbows so he can walk, crouch and kneel.
+   The geometry for a team is made once and shared by all nineteen. */
+function crewParts(suit, trim, helmet) {
+  const key = suit + ':' + trim + ':' + helmet;
+  CREW_G.parts = CREW_G.parts || {};
+  if (CREW_G.parts[key]) return CREW_G.parts[key];
+  const S = suit, T = trim, H = helmet, D = 0x15171a, GL = 0x0e0f11, VI = 0x07080a;
+  const cyl = (r1, r2, h, s) => new THREE.CylinderGeometry(r1, r2, h, s || 10);
+  const sph = (r, a, b) => new THREE.SphereGeometry(r, a || 12, b || 9);
+  const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
+  const P = {};
+  // the body from the hips up: pelvis, belt, torso, chest panel, shoulders,
+  // neck, then the helmet and visor
+  P.body = [
+    [box(0.36, 0.18, 0.24), S, 0, 0.04, 0],
+    [box(0.37, 0.06, 0.25), D, 0, 0.14, 0],
+    [cyl(0.205, 0.175, 0.48, 14), S, 0, 0.39, 0, 0, 0, 0, 1, 1, 0.66],
+    [box(0.12, 0.40, 0.03), T, 0, 0.40, 0.128],
+    [box(0.12, 0.40, 0.03), T, 0, 0.40, -0.128],
+    [box(0.43, 0.07, 0.29), T, 0, 0.55, 0],
+    [sph(0.095), S, 0.235, 0.58, 0], [sph(0.095), S, -0.235, 0.58, 0],
+    [cyl(0.06, 0.07, 0.12, 8), S, 0, 0.67, 0],
+  ];
+  P.head = [
+    [sph(0.155, 16, 12), H, 0, 0.18, 0, 0, 0, 0, 0.94, 1.0, 1.06],
+    [box(0.035, 0.03, 0.30), T, 0, 0.30, 0],
+    [box(0.13, 0.07, 0.07), H, 0, 0.06, 0.11],
+  ];
+  P.visor = [[sph(0.152, 16, 6, 0, Math.PI * 2, Math.PI * 0.36, Math.PI * 0.2), VI, 0, 0.17, 0.004, 0, 0, 0, 0.93, 1.0, 1.05]];
+  P.visor[0][0] = new THREE.SphereGeometry(0.152, 16, 6, -Math.PI * 0.42, Math.PI * 0.84, Math.PI * 0.34, Math.PI * 0.2);
+  P.visor[0][6] = 0;
+  const thigh = cyl(0.105, 0.082, 0.44); thigh.translate(0, -0.22, 0);
+  P.thigh = [[thigh, S], [box(0.03, 0.30, 0.17), T, 0.10, -0.20, 0]];
+  const shin = cyl(0.082, 0.064, 0.42); shin.translate(0, -0.21, 0);
+  P.shin = [[shin, S], [box(0.12, 0.09, 0.27), D, 0, -0.45, 0.05], [box(0.125, 0.025, 0.28), 0x2a2c30, 0, -0.49, 0.05]];
+  P.shinR = [[shin, S], [box(0.12, 0.09, 0.27), D, 0, -0.45, 0.05], [box(0.125, 0.025, 0.28), 0x2a2c30, 0, -0.49, 0.05]];
+  P.thighR = [[thigh, S], [box(0.03, 0.30, 0.17), T, -0.10, -0.20, 0]];
+  const upper = cyl(0.072, 0.06, 0.30); upper.translate(0, -0.15, 0);
+  P.upper = [[upper, S], [box(0.15, 0.045, 0.15), T, 0, -0.08, 0]];
+  const fore = cyl(0.062, 0.05, 0.26); fore.translate(0, -0.13, 0);
+  P.fore = [[fore, S], [sph(0.058, 10, 8), GL, 0, -0.29, 0.01, 0, 0, 0, 1, 1.2, 1]];
+  // the wheel gun, in the right hand: a pistol grip, a fat body, the socket
+  // and its air line
+  P.gun = [[fore, S], [sph(0.058, 10, 8), GL, 0, -0.29, 0.01, 0, 0, 0, 1, 1.2, 1],
+    [box(0.07, 0.13, 0.06), D, 0, -0.33, 0.05],
+    [cyl(0.075, 0.075, 0.30, 12), 0xc8c8c8, 0, -0.38, 0.17, Math.PI / 2, 0, 0],
+    [cyl(0.05, 0.05, 0.08, 10), 0x2a2c30, 0, -0.38, 0.35, Math.PI / 2, 0, 0],
+    [cyl(0.018, 0.018, 0.40, 6), 0xe0b020, 0, -0.52, -0.02, 0.4, 0, 0]];
+  CREW_G.parts[key] = P;
+  return P;
+}
+
+function crewMan(g, P, isGun) {
   const m = new THREE.Group();
-  const hip = new THREE.Group(); hip.position.y = 0.9; m.add(hip);
-  const legL = part(hip, g.leg, trim, 0.11, 0, 0), legR = part(hip, g.leg, trim, -0.11, 0, 0);
-  part(legL, g.boot, g.dark, 0, -0.82, 0.05); part(legR, g.boot, g.dark, 0, -0.82, 0.05);
-  const body = new THREE.Group(); hip.add(body);
-  part(body, g.torso, suit, 0, 0.34, 0);
-  const armL = part(body, g.arm, suit, 0.32, 0.62, 0), armR = part(body, g.arm, suit, -0.32, 0.62, 0);
-  part(body, g.head, helmet, 0, 0.86, 0);
-  part(body, g.visor, g.visorM, 0, 0.87, 0.13);
-  m.userData = { hip: hip, body: body, legL: legL, legR: legR, armL: armL, armR: armR };
-  m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  const seg = (parent, list, x, y, z, mtl) => {
+    const j = new THREE.Group(); j.position.set(x, y, z); parent.add(j);
+    j.add(crewMesh(list, mtl || g.skin));
+    return j;
+  };
+  const hip = new THREE.Group(); hip.position.y = 0.93; m.add(hip);
+  const body = seg(hip, P.body, 0, 0, 0);
+  const neck = new THREE.Group(); neck.position.y = 0.68; body.add(neck);
+  neck.add(crewMesh(P.head, g.gloss)); neck.add(crewMesh(P.visor, g.gloss));
+  const thL = seg(hip, P.thigh, 0.11, 0.0, 0), thR = seg(hip, P.thighR, -0.11, 0.0, 0);
+  const shL = seg(thL, P.shin, 0, -0.44, 0), shR = seg(thR, P.shinR, 0, -0.44, 0);
+  const upL = seg(body, P.upper, 0.26, 0.58, 0), upR = seg(body, P.upper, -0.26, 0.58, 0);
+  const foL = seg(upL, P.fore, 0, -0.30, 0), foR = seg(upR, isGun ? P.gun : P.fore, 0, -0.30, 0);
+  m.userData = { hip: hip, body: body, neck: neck, thL: thL, thR: thR, shL: shL, shR: shR, upL: upL, upR: upR, foL: foL, foR: foR };
   return m;
 }
-/* stand (k=0) or kneel (k=1); arms forward a = 0..1 */
+
+/* k: 0 standing .. 1 down on one knee; a: arms 0 at the sides .. 1 reaching
+   forward; walk: the stride, -1..1 */
 function crewPose(m, k, a, walk) {
   const u = m.userData;
-  u.hip.position.y = 0.9 - k * 0.42;
-  u.legL.rotation.x = -k * 1.25 + walk; u.legR.rotation.x = -k * 0.2 - walk;
-  u.body.rotation.x = k * 0.32 + a * 0.12;
-  u.armL.rotation.x = -a * 1.15 - walk * 0.6; u.armR.rotation.x = -a * 1.15 + walk * 0.6;
+  const w = walk * 0.5;
+  u.hip.position.y = 0.93 - k * 0.43 - Math.abs(walk) * 0.03;
+  // left leg forward with the foot flat, right knee down on the ground
+  u.thL.rotation.x = -k * 1.45 - w;
+  u.shL.rotation.x = k * 1.45 + Math.max(0, w) * 0.9;
+  u.thR.rotation.x = -k * 0.12 + w;
+  u.shR.rotation.x = k * 1.55 + Math.max(0, -w) * 0.9;
+  u.body.rotation.x = k * 0.28 + a * 0.10;
+  u.neck.rotation.x = -k * 0.2;
+  u.upL.rotation.x = -a * 1.05 + w * 0.7; u.upR.rotation.x = -a * 1.05 - w * 0.7;
+  u.foL.rotation.x = -a * 0.55 - 0.15; u.foR.rotation.x = -a * 0.55 - 0.15;
+  u.upL.rotation.z = 0.08 + a * 0.08; u.upR.rotation.z = -0.08 - a * 0.08;
 }
 
 function crewBuild(k, c) {
   const g = crewGeo(), team = ROSTER[k];
   const dark = team.body === 0x121416 || team.body === 0x0b2a8c;
-  const suit = mat(team.body, { rough: 0.75, env: 0.4 });
-  const trim = mat(dark ? team.accent : 0xf0f0ee, { rough: 0.75, env: 0.4 });
-  const helmet = mat(team.accent === 0x111214 ? team.trim : team.accent, { rough: 0.25, metal: 0.3, env: 1.2 });
+  const P = crewParts(team.body, dark ? team.accent : 0xf0f0ee, team.helmet || team.accent);
   const root = new THREE.Group();
   const d = PIT.boxes[k];
   pitPoint(d, root.position); root.rotation.y = pitYaw(d);
@@ -12765,7 +13031,7 @@ function crewBuild(k, c) {
   const L = c.hitLen, W = c.hitWid;
   const men = [], tyres = [];
   const add = (role, wx, wz, face, extra) => {
-    const m = crewMan(g, suit, trim, helmet);
+    const m = crewMan(g, P, role === 'gun');
     // waiting in front of the garage (local -x), two ranks
     const n = men.length, hx = -5.6 - (n % 2) * 1.1, hz = -7.5 + Math.floor(n / 2) * 1.6;
     m.userData.home = new THREE.Vector3(hx, 0, hz);
@@ -12778,13 +13044,13 @@ function crewBuild(k, c) {
   };
   for (const q of wl) {
     const sx = q.x >= 0 ? 1 : -1, out = Math.abs(q.x) + 0.62;
-    const gun = add('gun', sx * out, q.z, -sx * Math.PI / 2, { wheel: q });
-    part(gun.userData.body, g.gun, g.steel, 0, 0.42, 0.42);
+    add('gun', sx * out, q.z, -sx * Math.PI / 2, { wheel: q });
     const off = add('off', sx * (out + 0.55), q.z + 0.75, -sx * Math.PI / 2 - sx * 0.5, { wheel: q });
     const on = add('on', sx * (out + 0.55), q.z - 0.75, -sx * Math.PI / 2 + sx * 0.5, { wheel: q });
     // the tyres they carry: the worn one comes off, the new one goes on
-    const old = new THREE.Mesh(g.tyre, g.rubber); old.visible = false; root.add(old);
-    const nw = new THREE.Group(); nw.add(new THREE.Mesh(g.tyre, g.rubber));
+    const old = new THREE.Group(); old.add(new THREE.Mesh(g.tyre, g.rubber)); old.add(new THREE.Mesh(g.rim, g.rimM));
+    old.visible = false; root.add(old);
+    const nw = new THREE.Group(); nw.add(new THREE.Mesh(g.tyre, g.rubber)); nw.add(new THREE.Mesh(g.rim, g.rimM));
     const band = mat(0xffffff, { rough: 0.5, env: 0.3 });
     const b1 = new THREE.Mesh(g.band, band); b1.position.x = 0.215; nw.add(b1);
     const b2 = new THREE.Mesh(g.band, band); b2.position.x = -0.215; nw.add(b2);
@@ -12796,13 +13062,16 @@ function crewBuild(k, c) {
   add('side', 1.5, 0.1, -Math.PI / 2); add('side', -1.5, 0.1, Math.PI / 2);
   add('wing', 1.05, L + 0.35, -Math.PI * 0.85); add('wing', -1.05, L + 0.35, Math.PI * 0.85);
   const lol = add('lolli', -W - 1.4, L + 2.3, Math.PI * 0.75);
-  const pole = new THREE.Group(); pole.position.set(0, 0.6, 0.35); lol.userData.body.add(pole);
-  part(pole, g.pole, g.steel, 0, 1.0, 0);
+  // the lollipop is held out in front, in both hands
+  const pole = new THREE.Group(); pole.position.set(0, 0.42, 0.42); lol.userData.body.add(pole);
+  part(pole, g.pole, g.steel, 0, 0.75, 0);
   const disc = mat(0xd01418, { rough: 0.5, env: 0.4, emissive: 0xd01418, ei: 0.35 });
-  part(pole, g.disc, disc, 0, 2.05, 0);
+  part(pole, g.disc, disc, 0, 1.78, 0);
   lol.userData.disc = disc;
   for (const m of men) if (m.userData.jack) {
-    const j = part(m.userData.body, g.jack, g.steel, 0, -0.55, 0.9);
+    // the long jack, handle in his hands, nose under the car
+    const j = part(m.userData.body, g.jack, g.steel, 0, -0.62, 0.95);
+    part(j, new THREE.CylinderGeometry(0.11, 0.11, 0.46, 12), CREW_G.rubber, 0, -0.06, 0.62, 0, 0, Math.PI / 2);
     m.userData.jackBar = j;
   }
   root.visible = false;
@@ -12927,7 +13196,10 @@ function pitStep(c, dt) {
     if (toBox < 0.4 && P.v < 1.2) {
       P.phase = 'stop'; P.v = 0;
       P.t = P.T = c.isPlayer ? 2.6 : rand(2.4, 3.4);
-      if (c.isPlayer) announce('PIT STOP', TYRES[c.nextTyre || 'M'].name + ' TYRES');
+      // a damaged front wing is changed with the tyres: five more seconds
+      P.nose = f1NoseChange(c) > 0;
+      if (P.nose) { P.t += 5; P.T = P.t; }
+      if (c.isPlayer) announce('PIT STOP', TYRES[c.nextTyre || 'M'].name + ' TYRES' + (P.nose ? ' &middot; NEW FRONT WING' : ''));
     }
   } else if (P.phase === 'stop') {
     P.t -= dt;
@@ -13076,7 +13348,7 @@ function pitHud() {
   }
   const p = G.player, T = TYRES[p.tyre] || TYRES.M;
   const left = Math.max(0, Math.round((1 - p.tw) * 100));
-  SPORT.tyreEl.innerHTML = '<i style="border-color:' + T.css + ';color:' + T.css + '">' + T.name[0] + '</i>' +
+  SPORT.tyreEl.innerHTML = f1DmgSvg(p) + '<i style="border-color:' + T.css + ';color:' + T.css + '">' + T.name[0] + '</i>' +
     '<span>' + T.name + ' &middot; ' + left + '%<em><b style="width:' + left + '%;background:' + (left > 40 ? '#5fd07a' : left > 20 ? '#ffcf6a' : '#ff5a4a') + '"></b></em></span>' +
     '<u class="' + (p.pit ? 'on' : p.boxReq ? 'req' : '') + '">' + (p.pit ? 'IN THE PITS' : p.boxReq ? 'BOX &rarr; ' + TYRES[p.nextTyre].name[0] : 'BOX <kbd>' + (PAD.on ? '&#9650;' : 'B') + '</kbd>') + '</u>';
 }
@@ -13226,6 +13498,205 @@ function scCleanup() {
   if (F1R.sc && F1R.sc.car && F1R.sc.phase !== 'gone') scene.remove(F1R.sc.car.mesh);
   F1R.sc = null;
 }
+/* =================== §12f  DAMAGE AND STEWARDS ====================
+   SPORT MODE cars could not be hurt. Now they can, the way EA's F1 games do
+   it on their standard setting: the car never blows up and nobody retires,
+   but hitting things costs you parts, and parts cost you lap time.
+
+     FRONT WING   left and right halves. Noses go into gearboxes and walls,
+                  so this is what breaks most. Each half droops as it gets
+                  hurt and comes off past 75%. Costs front grip and
+                  downforce: the car pushes wide in the corners.
+     REAR WING    from being hit from behind or reversing into a wall. Costs
+                  downforce at the back: loose in fast corners.
+     FLOOR        side impacts and big kerb strikes. A little grip all round.
+
+   Only the FRONT WING can be changed, at a pit stop, as in the real thing:
+   about five seconds on the stop. The other parts stay as they are.
+
+   A rub at racing speed is nothing. A proper hit is 20-50% on the part that
+   took it; it takes a big one, or several, to lose a wing.
+
+   THE STEWARDS (EA F1's collision rules). Every contact between two cars is
+   judged: whoever was driving INTO the other one — closing on them along the
+   line of the contact markedly faster than they were moving away — caused it.
+   Side by side with nobody pushing is a racing incident.
+     a light hit you caused             warning (two warnings = +5 s)
+     a heavy one, or one that broke a   +5 s time penalty
+     part on the other car
+     a very heavy one                   +10 s time penalty
+   The penalty is added to race time at the flag. One incident is judged
+   once, however long the two cars stay in contact.
+   ================================================================== */
+const _dmA = new THREE.Vector3(), _dmB = new THREE.Vector3(), _dmC = new THREE.Vector3();
+const DMG_PARTS = { fwL: 'FRONT WING (L)', fwR: 'FRONT WING (R)', rw: 'REAR WING', fl: 'FLOOR' };
+
+function f1DmgReset(c) {
+  c.f1d = { fwL: 0, fwR: 0, rw: 0, fl: 0 };
+  c.cwarn = 0; c.judged = {};
+  f1DmgLook(c);
+}
+
+/* what the damage does to the car, read by integrate() */
+function f1DmgGrip(c) {
+  const D = c.f1d;
+  if (!D) return null;
+  const fw = (Math.min(1, D.fwL) + Math.min(1, D.fwR)) * 0.5;
+  return {
+    f: 1 - fw * 0.13 - D.fl * 0.035,
+    r: 1 - D.rw * 0.10 - D.fl * 0.035,
+    down: 1 - fw * 0.22 - D.rw * 0.26 - D.fl * 0.10,
+  };
+}
+
+/* the wing halves bend down with damage and are gone past 75% */
+function f1DmgLook(c) {
+  if (!c.fwing || !c.f1d) return;
+  for (const sx of [-1, 1]) {
+    const h = c.fwing[sx], d = sx > 0 ? c.f1d.fwL : c.f1d.fwR;
+    h.visible = d < 0.75;
+    h.rotation.x = clamp((d - 0.15) * 0.45, 0, 0.22);           // the tip drops onto the road
+    h.rotation.z = -sx * clamp((d - 0.25) * 0.30, 0, 0.12);
+    h.position.y = 0.10 - clamp(d * 0.08, 0, 0.05);
+  }
+  if (c.drsFlap) c.drsFlap.userData.bent = clamp((c.f1d.rw - 0.3) * 0.8, 0, 0.45);
+}
+
+function f1DmgHit(c, part, amt, at) {
+  if (!c.f1d || amt <= 0.01 || c.pit) return;
+  const D = c.f1d, was = D[part];
+  D[part] = Math.min(1, D[part] + amt);
+  if (part === 'fwL' || part === 'fwR') {
+    // the wing breaks off: bits of carbon in the air and on the road
+    if (was < 0.75 && D[part] >= 0.75) {
+      const p = at || c.pos;
+      fxDebris(new THREE.Vector3(p.x, 0.5, p.z), 7, 0x16181c);
+      fxDebris(new THREE.Vector3(p.x, 0.5, p.z), 3, c.spec.body);
+      if (c.isPlayer) { announce('FRONT WING GONE', 'BOX FOR A NEW NOSE'); SFX.clang(c.pos, 1.2); }
+      else feed(mpEsc(c.driver) + ' &middot; <b>FRONT WING DAMAGE</b>', '#ffcf3a');
+    }
+  }
+  f1DmgLook(c);
+  if (c.isPlayer && D[part] - was > 0.08 && !(was < 0.75 && D[part] >= 0.75)) {
+    hint('<b>' + DMG_PARTS[part] + '</b> DAMAGE &mdash; ' + Math.round(D[part] * 100) + '%', 2.2);
+  }
+  // the AI comes in for a nose when it has lost a lot of it
+  if (!c.isPlayer && (D.fwL > 0.45 || D.fwR > 0.45) && !c.boxReq && G.laps + 1 - c.progress > 0.7) {
+    c.boxReq = true;
+    c.nextTyre = pickTyre(c, Math.floor(G.laps + 1 - c.progress));
+  }
+}
+
+/* where on the car a hit landed, from the point in the car's own frame */
+function f1DmgPart(c, lx, lz) {
+  if (lz > c.hitLen * 0.45) return lx >= 0 ? 'fwL' : 'fwR';
+  if (lz < -c.hitLen * 0.55) return 'rw';
+  return 'fl';
+}
+
+/* a wall: impact is the speed into it. Glancing scrapes cost nothing. */
+function f1WallHit(c, impact, wx, wz) {
+  if (!c.f1d || impact < 6) return;
+  const f = c.forward(_dmA), l = c.left(_dmB);
+  const into = f.x * wx + f.z * wz, side = l.x * wx + l.z * wz;
+  const part = into > 0.35 ? (side >= 0 ? 'fwL' : 'fwR') : into < -0.5 ? 'rw' : 'fl';
+  const k = part === 'fl' ? 0.005 : 0.028;
+  f1DmgHit(c, part, (impact - 6) * k * DIFF_K().dmg(c), _dmC.set(c.pos.x + wx * 1.4, 0, c.pos.z + wz * 1.4));
+}
+
+/* a corner of the car caught on the wall in a tight spot */
+function f1CornerHit(c, impact, fx, lx, px, pz) {
+  // a front corner is the wing; a rear one sliding into the wall is the
+  // corner of the floor, not the rear wing — that needs the car going backwards
+  if (!c.f1d || impact < 6) return;
+  const back = c.speed < -2;
+  const part = fx > 0 ? (lx > 0 ? 'fwL' : 'fwR') : back ? 'rw' : 'fl';
+  f1DmgHit(c, part, (impact - 6) * (part === 'fl' ? 0.006 : 0.028) * DIFF_K().dmg(c), _dmC.set(px, 0, pz));
+}
+
+/* two cars: damage where each one was touched, then the stewards */
+function f1CarHit(A, B, H, closing, nx, nz) {
+  if (!A.f1d || !B.f1d || A.pit || B.pit) return;
+  const local = (c) => {
+    const dx = H.cx - c.pos.x, dz = H.cz - c.pos.z;
+    const cs = Math.cos(c.yaw), sn = Math.sin(c.yaw);
+    return [dx * cs - dz * sn, dx * sn + dz * cs];
+  };
+  // rubbing is racing: nothing under 5 m/s of closing speed
+  const amt = Math.max(0, closing - 5) * 0.04;
+  const at = _dmC.set(H.cx, 0, H.cz);
+  const la = local(A), lb = local(B);
+  const pa = f1DmgPart(A, la[0], la[1]), pb = f1DmgPart(B, lb[0], lb[1]);
+  const bWas = B.f1d[pb], aWas = A.f1d[pa];
+  if (amt > 0) {
+    // the rear wing sits high and behind the tyres: a nudge from behind
+    // reaches it less than a nose reaches a gearbox
+    const k = (p) => (p === 'fl' ? 0.15 : p === 'rw' ? 0.6 : 1);
+    f1DmgHit(A, pa, amt * k(pa) * DIFF_K().dmg(A), at);
+    f1DmgHit(B, pb, amt * k(pb) * DIFF_K().dmg(B), at);
+  }
+  if (closing < 5 || G.state !== 'racing') return;
+  // Who caused it. Speed alone cannot say — two cars nose to tail at 230 km/h
+  // are both doing 230 — so it is judged the way the stewards do, by where
+  // each car was touched:
+  //   one car's NOSE into the other's GEARBOX: the car behind ran into it
+  //   side to side: whoever moved ACROSS the track into the other
+  // and the cars must actually have been closing, not just swinging round.
+  const linear = (A.vel.x - B.vel.x) * nx + (A.vel.z - B.vel.z) * nz;
+  if (linear < 2.5) return;
+  let guilty = null, victim = null;
+  const fA = la[1] > A.hitLen * 0.4, rA = la[1] < -A.hitLen * 0.3;
+  const fB = lb[1] > B.hitLen * 0.4, rB = lb[1] < -B.hitLen * 0.3;
+  if (fA && rB) { guilty = A; victim = B; }
+  else if (fB && rA) { guilty = B; victim = A; }
+  else if (!fA && !fB && !rA && !rB) {
+    const s = sAt(A.si), latA = lateralOf(A.pos, A.si), latB = lateralOf(B.pos, A.si);
+    const vA = (A.vel.x * s.n.x + A.vel.z * s.n.z) * sgn(latB - latA);   // A moving towards B
+    const vB = (B.vel.x * s.n.x + B.vel.z * s.n.z) * sgn(latA - latB);
+    if (vA - vB > 2.5) { guilty = A; victim = B; }
+    else if (vB - vA > 2.5) { guilty = B; victim = A; }
+  }
+  if (!guilty) return;                       // a racing incident: no further action
+  const key = G.cars.indexOf(victim);
+  if (guilty.judged[key] && G.raceT - guilty.judged[key] < 3) return;
+  guilty.judged[key] = G.raceT;
+  // it broke a wing off the other car
+  const broke = victim === B ? bWas < 0.75 && B.f1d[pb] >= 0.75 : aWas < 0.75 && A.f1d[pa] >= 0.75;
+  let pen = 0, warn = false;
+  if (closing > 18) pen = 10;
+  else if (closing > 11 || broke) pen = 5;
+  else { guilty.cwarn++; warn = true; if (guilty.cwarn >= 2) { guilty.cwarn = 0; pen = 5; warn = false; } }
+  if (pen) guilty.penalty = (guilty.penalty || 0) + pen;
+  const who = guilty.isPlayer ? 'YOU' : guilty.driver;
+  if (guilty.isPlayer) {
+    if (pen) announce(pen + ' SECOND PENALTY', 'CAUSING A COLLISION');
+    else hint('<b>COLLISION WARNING</b> &mdash; THE NEXT ONE IS A PENALTY', 2.6);
+  }
+  if (pen) feed('<b>+' + pen + ' S</b> &middot; ' + mpEsc(who) + ' &middot; CAUSING A COLLISION', '#ff6b5e');
+  else if (victim.isPlayer) feed(mpEsc(who) + ' &middot; <b>WARNED</b> FOR THE CONTACT', '#ffcf3a');
+}
+
+/* the pit stop changes a damaged nose: about five seconds more */
+function f1NoseChange(c) {
+  const D = c.f1d;
+  if (!D || (D.fwL < 0.15 && D.fwR < 0.15)) return 0;
+  D.fwL = 0; D.fwR = 0;
+  f1DmgLook(c);
+  return 5;
+}
+
+/* the damage readout beside the tyres: the car from above, each part coloured */
+function f1DmgSvg(c) {
+  const D = c.f1d || { fwL: 0, fwR: 0, rw: 0, fl: 0 };
+  const col = (d) => d < 0.08 ? '#4fc46a' : d < 0.35 ? '#ffd23a' : d < 0.75 ? '#ff8a2a' : '#ff3b30';
+  return '<svg class="dmgc" viewBox="0 0 40 64" width="22" height="36">' +
+    '<rect x="2" y="2" width="17" height="6" rx="1" fill="' + col(D.fwL) + '"/>' +
+    '<rect x="21" y="2" width="17" height="6" rx="1" fill="' + col(D.fwR) + '"/>' +
+    '<rect x="14" y="9" width="12" height="40" rx="5" fill="' + col(D.fl) + '" opacity=".9"/>' +
+    '<rect x="5" y="14" width="6" height="11" rx="2" fill="#2a2d33"/><rect x="29" y="14" width="6" height="11" rx="2" fill="#2a2d33"/>' +
+    '<rect x="4" y="40" width="7" height="13" rx="2" fill="#2a2d33"/><rect x="29" y="40" width="7" height="13" rx="2" fill="#2a2d33"/>' +
+    '<rect x="7" y="55" width="26" height="7" rx="1" fill="' + col(D.rw) + '"/></svg>';
+}
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
    drift swings the frame instead of welding it to the bumper. Speed pushes
@@ -13307,7 +13778,7 @@ function updateCamera(dt) {
     CAM.yaw = p.yaw;
   } else {
     _v1.set(p.pos.x - Math.sin(CAM.yaw) * CAM.dist, wantH, p.pos.z - Math.cos(CAM.yaw) * CAM.dist);
-    CAM.pos.lerp(_v1, damp(C.posLag * (SPORT.on ? 2.6 : 1), dt));
+    CAM.pos.lerp(_v1, damp(C.posLag * (SPORT.on ? 2.0 : 1), dt));
 
     // never let geometry sit between car and camera
     const from = _v2.set(p.pos.x, 1.5, p.pos.z);
@@ -13748,6 +14219,7 @@ const CAREER = {
   owned: { revenant: true, ironclad: true },
   up: {},                     // carKey -> { armour: 0..3, ... }
   name: '',
+  diff: 1,                    // 0 easy, 1 medium, 2 hard (§8b)
   stats: { races: 0, wins: 0, kills: 0, bestDrift: 0 },
   medals: {},                 // circuit -> 0..3 (none, bronze, silver, gold)
   nemesis: null,              // the last car that wrecked you in single player
@@ -13774,6 +14246,7 @@ function loadCareer() {
       }
     }
     if (typeof s.name === 'string') CAREER.name = cleanName(s.name);
+    if (s.diff === 0 || s.diff === 1 || s.diff === 2) CAREER.diff = s.diff;
     if (s.stats && typeof s.stats === 'object') {
       for (const k in CAREER.stats) if (typeof s.stats[k] === 'number') CAREER.stats[k] = s.stats[k];
     }
@@ -14625,6 +15098,7 @@ function mpTitleExtras() {
     ['daily', 'DAILY CHALLENGE', 'One set-up a day, the same for everybody. Three attempts.'],
     ['mponline', 'ONLINE', 'Race your friends with a four-letter room code.'],
     ['mplb', 'LEADERBOARD', 'The fastest laps and the best of the season.'],
+    ['diff', 'DIFFICULTY &middot; <i class="dlv">' + DIFF_K().name + '</i>', 'Easy, medium or hard &mdash; how fast the field races you. ENTER changes it.'],
     ['controls', 'CONTROLS', 'Keyboard and controller, for both modes.'],
   ]);
 }
@@ -15445,6 +15919,13 @@ function mpHighlight() {
 
 MP.nav = function (a) {
   if (a === 'controls') { showControls(); return true; }
+  if (a === 'diff') {
+    diffStep(1);
+    const s = MP.btns.indexOf('diff');
+    showTitle(); MP.sel = s; mpHighlight();
+    hint('DIFFICULTY &mdash; <b>' + DIFF_K().name + '</b> &middot; ' + DIFF_K().what, 3);
+    return true;
+  }
   if (a === 'ctlback') { showTitle(); return true; }
   if (dailyNav(a)) return true;
   if (sportNav(a)) return true;
@@ -15687,6 +16168,10 @@ const PAUSE = {
       get: () => PAD.rumble, set: (v) => { PAD.rumble = v; PAD.jolt(0.7); saveState(); } },
     { kind:'sep' },
     { kind:'go', label:'LEAVE THIS RACE', when: () => MP.on, go: () => mpLeaveRace() },
+    { kind:'opt', label:'DIFFICULTY',
+      when: () => !MP.on && !DAILY.on,
+      get: () => DIFF_K().name,
+      step: (d) => { diffStep(d || 1); } },
     { kind:'go', label:'SPORT SETUP', when: () => SPORT.on, go: () => { togglePause(false); sportNav('spsetup'); } },
     { kind:'go', label:'CHANGE VEHICLE', when: () => !MP.on && !DAILY.on && !SPORT.on, go: () => { togglePause(false); showGarage(); } },
     { kind:'go', label:'CHANGE CIRCUIT', when: () => !MP.on && !DAILY.on && !SPORT.on, go: () => {
@@ -15912,6 +16397,27 @@ function readPlayerInput(p) {
     if (PAD.axis !== 0 && !lf && !rt) i.steer = PAD.axis;
     if (PAD.throttle !== 0 && !up && !dn) i.throttle = PAD.throttle;
   }
+  // SMOOTHING. A key is all or nothing; a real wheel and pedal are not. The
+  // steering a key asks for is fed in over a fraction of a second — quicker
+  // at parking speed, gentler the faster you are going, and it comes back to
+  // centre quicker than it goes out, so a tap is a correction and not a
+  // swerve. The throttle is squeezed on rather than stamped, which keeps a
+  // thousand horsepower from snapping the rear out of every slow corner. The
+  // pad stick is analog already: only the jitter is taken off it.
+  const dt = 1 / 60, spd = Math.abs(p.speed || 0);
+  const wantS = i.steer;
+  const kb = lf || rt;
+  const analog = (PAD.on && PAD.axis !== 0) || (TOUCH.on && TOUCH.tilt && TOUCH.active);
+  if (kb || !analog) {
+    const out = Math.abs(wantS) > Math.abs(p.kSteer || 0) && sgn(wantS) === sgn(p.kSteer || wantS);
+    const rate = out ? lerp(8.0, 2.6, clamp(spd / 70, 0, 1)) : 9.0;
+    p.kSteer = (p.kSteer || 0) + clamp(wantS - (p.kSteer || 0), -rate * dt, rate * dt);
+  } else p.kSteer = (p.kSteer || 0) + (wantS - (p.kSteer || 0)) * 0.45;
+  i.steer = p.kSteer;
+  const wantT = i.throttle;
+  if ((up || dn) && wantT > (p.kThr || 0)) p.kThr = Math.min(wantT, (p.kThr || 0) + (wantT > 0 && (p.kThr || 0) >= 0 ? 4.5 : 7) * dt);
+  else p.kThr = wantT;
+  i.throttle = p.kThr;
   // Keyboard and pad are two independent sources ORed at the point of use.
   // Neither can switch the other off — see the note at the top of §1d.
   i.hand = !!(KEYS['Control'] || KEYS['x'] || PAD.hand);
