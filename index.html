@@ -267,6 +267,101 @@ kbd{display:inline-block;min-width:20px;text-align:center;padding:2px 6px;margin
   animation:blink 1.3s infinite;text-transform:uppercase}
 @keyframes blink{50%{opacity:.25}}
 .grid-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(212px,1fr));gap:10px;margin-top:16px}
+/* ---------- the garage: a showroom ---------- */
+.gar{--acc:246,164,27;width:100%}
+.ghead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding-bottom:10px;
+  border-bottom:1px solid var(--line)}
+.ghead h2{text-align:left;font-size:44px;margin:0}
+.ghead .tag{text-align:left;margin-top:4px;letter-spacing:.3em}
+.gbal{text-align:right;font-size:9.5px;letter-spacing:.32em;opacity:.75;white-space:nowrap}
+.gbal b{display:block;font:400 30px/1 var(--title);letter-spacing:.04em;color:var(--amber);margin-top:3px;opacity:1}
+.ghero{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(0,1fr);gap:22px;align-items:center;margin-top:14px}
+.gstage{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:4px;
+  background:radial-gradient(ellipse 72% 58% at 50% 66%,rgba(var(--acc),.30),transparent 72%),
+    linear-gradient(180deg,#121317 0%,#08090b 62%,#030304 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 18px 50px rgba(0,0,0,.55)}
+.gstage::after{content:"";position:absolute;left:8%;right:8%;bottom:13%;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(var(--acc),.9),transparent);filter:blur(1px);opacity:.75}
+.gstage .gbg{position:absolute;left:0;right:0;top:6%;text-align:center;font:400 118px/1 var(--title);
+  letter-spacing:.04em;color:rgba(var(--acc),.10);white-space:nowrap;pointer-events:none}
+.gstage .cpic{position:absolute;inset:0;width:100%;height:100%;margin:0;border:none;background:none;object-fit:cover;
+  -webkit-mask-image:radial-gradient(ellipse 78% 82% at 50% 52%,#000 58%,transparent 100%);
+          mask-image:radial-gradient(ellipse 78% 82% at 50% 52%,#000 58%,transparent 100%);
+  mix-blend-mode:lighten}
+.garr{position:absolute;top:50%;transform:translateY(-50%);width:40px;height:64px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:18px;background:rgba(6,7,9,.55);border:1px solid rgba(255,255,255,.12);
+  border-radius:3px;transition:background .12s,border-color .12s}
+.garr:hover{background:rgba(var(--acc),.25);border-color:rgba(var(--acc),.8)}
+.garr.l{left:10px}.garr.r{right:10px}
+.gidx{position:absolute;right:12px;bottom:9px;font-size:9px;letter-spacing:.3em;opacity:.55}
+.ginfo{min-width:0}
+.gdrv{font-size:10px;letter-spacing:.3em;opacity:.6;text-transform:uppercase}
+.gname{font:400 50px/0.95 var(--title);letter-spacing:.03em;margin:4px 0 4px;
+  text-shadow:0 0 30px rgba(var(--acc),.35)}
+.geng{font-size:9.5px;letter-spacing:.24em;color:rgb(var(--acc));margin-bottom:12px}
+.gst{display:grid;grid-template-columns:70px 1fr 74px;align-items:center;gap:10px;margin:6px 0;
+  font-size:9px;letter-spacing:.18em}
+.gst span{opacity:.55}
+.gst i{height:6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.09) 0 10%,transparent 10% 10.6%);
+  display:block;position:relative;border-radius:1px;overflow:hidden}
+.gst i b{position:absolute;left:0;top:0;bottom:0;display:block;
+  background:linear-gradient(90deg,rgba(var(--acc),.55),rgb(var(--acc)));box-shadow:0 0 10px rgba(var(--acc),.5)}
+.gst em{font-style:normal;text-align:right;opacity:.85}
+.gchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.gchips u{text-decoration:none;font-size:8.5px;letter-spacing:.2em;padding:4px 8px;border:1px solid var(--line);
+  background:rgba(255,255,255,.03)}
+.gchips u.own{color:#8fe89b;border-color:rgba(143,232,155,.4)}
+.gchips u.lck{color:var(--amber);border-color:rgba(246,164,27,.5)}
+.gchips u.fl{color:#8fd8ff;border-color:rgba(143,216,255,.4)}
+.gnote{font-size:10px;line-height:1.7;letter-spacing:.04em;opacity:.55;margin-top:10px}
+.gstrip{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;margin-top:16px}
+.gth{position:relative;cursor:pointer;padding:4px 4px 6px;background:rgba(255,255,255,.025);
+  border:1px solid var(--line);border-bottom:2px solid rgba(var(--acc),.7);transition:transform .12s,background .12s,opacity .12s;
+  opacity:.72}
+.gth:hover{opacity:1;background:rgba(255,255,255,.05)}
+.gth .cpic{display:block;width:100%;height:auto;aspect-ratio:16/9;margin:0 0 4px;border:none;background:#0b0c0f}
+.gth span{display:block;font:400 13px/1.05 var(--title);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gth i{display:block;font-style:normal;font-size:7.5px;letter-spacing:.16em;opacity:.6;margin-top:2px;white-space:nowrap}
+.gth.locked .cpic{filter:grayscale(.85) brightness(.5)}
+.gth.sel{opacity:1;transform:translateY(-3px);background:rgba(var(--acc),.12);
+  box-shadow:0 0 0 2px rgb(var(--acc)),0 8px 22px rgba(0,0,0,.55)}
+.gar .navrow{margin-top:14px}
+.gar .cta{margin-top:12px}
+/* the pad's LB / RB focus, on any button of any screen */
+.pfocus{outline:2px solid var(--cyan)!important;outline-offset:3px;box-shadow:0 0 18px rgba(47,212,230,.45)!important}
+.padh{display:block;margin-top:6px;font-size:10px;letter-spacing:.24em;opacity:.8}
+body.touch .padh{display:none}
+@media (max-width:900px){
+  .ghero{gap:14px}
+  .gname{font-size:38px}
+  .gstage .gbg{font-size:80px}
+  .gstrip{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+body.touch .ghead h2{font-size:24px}
+body.touch .ghead .tag{font-size:7px;letter-spacing:.18em}
+body.touch .gbal b{font-size:18px}
+body.touch .ghero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;margin-top:8px}
+body.touch .gname{font-size:24px}
+body.touch .geng{margin-bottom:5px;font-size:7.5px}
+body.touch .gst{grid-template-columns:52px 1fr 52px;margin:3px 0;font-size:7px;gap:6px}
+body.touch .gnote{display:none}
+body.touch .gchips{margin-top:6px}
+body.touch .gstage .gbg{font-size:54px}
+body.touch .garr{width:30px;height:46px}
+body.touch .gstrip{display:flex;overflow-x:auto;scrollbar-width:none;gap:6px;margin-top:8px;padding:4px 2px}
+body.touch .gstrip::-webkit-scrollbar{display:none}
+body.touch .gth{flex:0 0 96px}
+body.touch .gth span{font-size:10px}
+body.touch .ghead{padding-right:130px;padding-bottom:4px}
+body.touch .ghead h2{font-size:20px}
+body.touch .gbal{font-size:7px}
+body.touch .gstage{aspect-ratio:2/1}
+body.touch .ghero{grid-template-columns:minmax(0,.95fr) minmax(0,1fr)}
+body.touch .gdrv{font-size:7.5px}
+body.touch .gst{margin:2px 0}
+body.touch .gth{flex:0 0 84px;padding:3px}
+body.touch .gth i{display:none}
+body.touch .gstrip{margin-top:6px}
 .card{position:relative;padding:10px 12px 12px;background:rgba(255,255,255,.03);border:1px solid var(--line);
   border-top:3px solid #888;transition:transform .12s,background .12s}
 .card.sel{background:rgba(246,164,27,.10);box-shadow:0 0 0 2px var(--amber),0 6px 24px rgba(0,0,0,.5);
@@ -721,7 +816,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.8.0 · 2026-10-04 16:00 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.9.0 · 2026-10-04 17:52 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -732,7 +827,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.8.0   (built 2026-10-04 16:00)
+   RACE TO DEATH  v3.9.0   (built 2026-10-04 17:52)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -757,7 +852,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.8.0',
+  version: '3.9.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -2369,7 +2464,8 @@ const PAD = {
   // what readPlayerInput reads. Nothing else is allowed to.
   axis: 0,            // -1..1 steering. POSITIVE IS LEFT, to match i.steer
   throttle: 0,        // -1..1, right trigger minus left
-  hand: false, nos: false, fire: false, guard: false,
+  hand: false, nos: false, fire: false, guard: false, drs: false,
+  fidx: -1, fnav: null,   // the menu button LB / RB has put the focus on
 
   press: {},          // action -> last state, for one-shot edges
   rep: {},            // menu auto-repeat timers
@@ -2536,6 +2632,15 @@ const PAD = {
     this.nos = this.any(down, L.nos);
     this.fire = this.any(down, L.fire);
     this.guard = this.any(down, L.guard);
+    // SPORT MODE has no weapons: the fire button opens DRS, and the d-pad's
+    // free directions run the pit stop — UP calls the car in (box, box), DOWN
+    // steps the tyre for the stop. Up and down are never steering.
+    this.drs = false;
+    if (typeof SPORT !== 'undefined' && SPORT.on) {
+      this.drs = this.fire; this.fire = false; this.guard = false;
+      this.tap('box', down(BTN.UP), 'b');
+      this.tap('tyre', down(BTN.DOWN), 'PitTyre');
+    }
 
     this.tap('menu', down(BTN.MENU), 'Escape');
     this.tap('mirror', down(BTN.R3), 'v');
@@ -2567,13 +2672,67 @@ const PAD = {
     const dx = down(BTN.RIGHT) ? 1 : down(BTN.LEFT) ? -1 : (lx > 0.55 ? 1 : lx < -0.55 ? -1 : 0);
     const dy = down(BTN.DOWN) ? 1 : down(BTN.UP) ? -1 : (ly > 0.55 ? 1 : ly < -0.55 ? -1 : 0);
 
+    // the d-pad takes over from an LB / RB focus, so A presses what it shows
+    if ((dx || dy) && this.fidx >= 0) { this.fidx = -1; this.mark(); }
     this.repeat('x', dx, dt, dx > 0 ? 'ArrowRight' : 'ArrowLeft');
     this.repeat('y', dy, dt, dy > 0 ? 'ArrowDown' : 'ArrowUp');
 
-    this.tap('go', down(BTN.A), 'Enter');
+    // LB / RB walk a focus over every button on the screen, so anything the
+    // mouse can click the pad can reach; A then presses that button
+    const lb = down(BTN.LB), rb = down(BTN.RB);
+    if (lb && !this.press.lb && !this.prime) this.focus(-1);
+    if (rb && !this.press.rb && !this.prime) this.focus(1);
+    this.press.lb = lb; this.press.rb = rb;
+    const a = down(BTN.A);
+    if (a && !this.press.go && !this.prime) {
+      const el = this.focused();
+      if (el) {
+        SFX.beep(true);
+        el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+      } else tapKey('Enter');
+    }
+    this.press.go = a;
+    this.tap('del', down(BTN.X), 'Backspace');
     this.tap('back', down(BTN.B), 'Escape');
     this.tap('menu', down(BTN.MENU), 'Escape');
     this.tap('garage', down(BTN.VIEW), 'g');
+  },
+
+  /* the screen's buttons, in reading order, for LB / RB */
+  buttons() {
+    const sc = document.getElementById('screen');
+    if (!sc || sc.style.display === 'none') return [];
+    return Array.from(sc.querySelectorAll('[data-nav]')).filter((el) =>
+      !el.classList.contains('cta') && el.offsetParent !== null);
+  },
+  focused() {
+    if (this.fidx < 0) return null;
+    const els = this.buttons();
+    const el = els.find((e) => e.getAttribute('data-nav') === this.fnav) || null;
+    return el;
+  },
+  focus(d) {
+    const els = this.buttons();
+    if (!els.length) return;
+    let i = els.findIndex((e) => e.getAttribute('data-nav') === this.fnav);
+    i = i < 0 ? (d > 0 ? 0 : els.length - 1) : (i + d + els.length) % els.length;
+    this.fidx = i; this.fnav = els[i].getAttribute('data-nav');
+    this.fstate = G.state;
+    this.mark();
+    SFX.beep(false);
+  },
+  /* a screen redraw keeps the focus on the same button, if it is still there */
+  mark() {
+    if (this.fstate !== G.state) this.fidx = -1;     // a new screen starts unfocused
+    const els = this.buttons();
+    let hit = null;
+    for (const el of els) {
+      const on = this.fidx >= 0 && el.getAttribute('data-nav') === this.fnav && !hit;
+      el.classList.toggle('pfocus', on);
+      if (on) hit = el;
+    }
+    if (!hit) this.fidx = -1;
+    else try { hit.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) {}
   },
 
   /* hold a direction and it keeps stepping: 380 ms to start, then 110 */
@@ -2735,7 +2894,7 @@ const PAD = {
       this.row([BTN.R3], 'rear view') +
       this.row([BTN.VIEW], 'camera') +
       this.row([BTN.MENU], 'pause &amp; settings') +
-      '<div><kbd>A</kbd> confirm &middot; <kbd>B</kbd> back &middot; <kbd>D-PAD</kbd> choose</div>' +
+      '<div><kbd>A</kbd> confirm &middot; <kbd>B</kbd> back &middot; <kbd>D-PAD</kbd> choose &middot; <kbd>LB</kbd><kbd>RB</kbd> buttons</div>' +
       '</div>';
   },
 
@@ -2751,7 +2910,9 @@ const PAD = {
    not just the one where they happened to plug it in. */
 function padAdaptScreen(s) {
   const cta = s.querySelector('.cta');
-  if (cta) cta.innerHTML += ' &middot; PAD <kbd>A</kbd>';
+  if (cta) cta.innerHTML += '<span class="padh"><kbd>A</kbd> select <kbd>B</kbd> back' +
+    (PAD.buttons().length > 1 ? ' <kbd>LB</kbd><kbd>RB</kbd> buttons' : '') + '</span>';
+  PAD.mark();
 }
 /* ====================== §2  RENDERER / SCENE =======================
    Look target (docs/REFERENCE.md): golden-hour desert, low warm key light,
@@ -9152,7 +9313,7 @@ function buildF1Car(def, out, ch, M, wheels, g) {
    and any card already on screen is updated in place when its picture lands.
    ================================================================== */
 const PORTRAIT = {
-  W: 400, H: 225,           // what the card shows
+  W: 640, H: 360,           // what the card shows, and the garage's big stage
   urls: {},                 // key -> data: URL
   queue: [], busy: false, rig: null,
 };
@@ -10859,6 +11020,11 @@ function updateAI(car, dt, t) {
   let desired = kS * hw * 0.52 * clamp(cur.k * 520, 0, 1);
   desired += ai.lane * hw * 0.6;
   desired += Math.sin(t * 0.7 + ai.wander) * (sp.erratic || 0) * hw * 0.42;
+  // SPORT MODE: boxing this lap, so get over to the pit side before the entry
+  if (car.boxReq && SPORT.on && PIT.path) {
+    const toEntry = ((((idxAhead(0, PIT.entry) - car.si) % TRACK.N) + TRACK.N) % TRACK.N) * TRACK.step;
+    if (toEntry < 420) desired = lerp(desired, -hw * 0.72, clamp((420 - toEntry) / 220, 0, 1));
+  }
 
   /* ---------- keep off the sand, out of the water ---------- */
   // Only where the patch leaves clean road to go round it; a flood that runs
@@ -12355,7 +12521,7 @@ function f1RaceTick(dt) {
         // not on the opening lap, not behind the safety car, not until a lap after it
         c.drsOk = c.lapCount >= 2 && !F1R.sc && !F1R.drsBlock && !!ahead && sportGap(c, ahead) < 1.0;
         c.drsZone = z;
-        if (c.isPlayer && c.drsOk) hint('DRS AVAILABLE &mdash; <b>' + (TOUCH.on ? 'OPENS ITSELF' : 'PRESS E') + '</b> IN THE ZONE', 2);
+        if (c.isPlayer && c.drsOk) hint('DRS AVAILABLE &mdash; <b>' + (TOUCH.on ? 'OPENS ITSELF' : PAD.on ? 'PRESS ' + BTN_NAME[PAD_LAYOUTS[PAD.layout].fire[0]] : 'PRESS E') + '</b> IN THE ZONE', 2);
       }
     }
     const Z = zones[c.drsZone];
@@ -12365,7 +12531,7 @@ function f1RaceTick(dt) {
       c.drsOpen = false;
       if (Z && !inZone && c.lastIn) c.drsOk = false;
     } else if (c.drsOk && !c.drsOpen) {
-      const ask = c.isPlayer ? (KEYS['e'] || TOUCH.on) : c.input.throttle > 0.9;
+      const ask = c.isPlayer ? (KEYS['e'] || PAD.drs || TOUCH.on) : c.input.throttle > 0.9;
       if (ask) { c.drsOpen = true; if (c.isPlayer) SFX.tone(1300, 0.08, 'square', 0.06); }
     }
     c.lastIn = inZone;
@@ -12434,18 +12600,42 @@ function tyreTick(c, dt) {
   c.tyreGrip = tyreGripOf(c);
 }
 
-/* -------------------------------- the pit lane ----------------------- */
-function pitLane(d) {
-  // lateral offset of the pit lane centreline, d metres from the line
-  const s = sAt(idxAhead(0, d));
-  const lane = -(s.w + CFG.wallSetback + 7);
-  const ramp = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
-  return lane * ramp(PIT.entry, PIT.limitIn, d) * (1 - ramp(PIT.exitLimit, PIT.end, d));
+/* -------------------------------- the pit lane -----------------------
+   Everything here is CONTINUOUS in d. The first version snapped to the
+   nearest track sample: the car stepped from point to point (the shaking),
+   and when d and d + 1.5 landed on the same sample the heading came out as
+   atan2(0, 0) = 0 — the car and the camera swung round to face north, and at
+   pit exit it was handed back to the physics pointing the wrong way with all
+   its speed (the car thrown out). Interpolated, it glides. */
+const _ps0 = { x: 0, z: 0, nx: 0, nz: 0, w: 0 };
+function pitSample(d) {
+  const f = d / TRACK.step, i0 = Math.floor(f), t = f - i0;
+  const a = sAt(i0), b = sAt(i0 + 1);
+  _ps0.x = a.p.x + (b.p.x - a.p.x) * t; _ps0.z = a.p.z + (b.p.z - a.p.z) * t;
+  _ps0.nx = a.n.x + (b.n.x - a.n.x) * t; _ps0.nz = a.n.z + (b.n.z - a.n.z) * t;
+  const l = Math.hypot(_ps0.nx, _ps0.nz) || 1; _ps0.nx /= l; _ps0.nz /= l;
+  _ps0.w = a.w + (b.w - a.w) * t;
+  return _ps0;
 }
-function pitPoint(d, out) {
-  const i = idxAhead(0, d), s = sAt(i), o = pitLane(d);
-  out.set(s.p.x + s.n.x * o, 0, s.p.z + s.n.z * o);
+const pitRamp = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+// lateral offset of the lane, d metres from the line. lat0 is where the car
+// was on the road when it crossed the entry line, so it is not teleported to
+// the middle of the track; it leaves along the right-hand edge of the road.
+function pitLane(d, lat0) {
+  const s = pitSample(d);
+  const lane = -(s.w + CFG.wallSetback + 7), edge = -(s.w - 2.6);
+  const a = lat0 === undefined ? edge : lat0;
+  const inn = a + (lane - a) * pitRamp(PIT.entry, PIT.limitIn, d);
+  return inn + (edge - inn) * pitRamp(PIT.exitLimit, PIT.end, d);
+}
+function pitPoint(d, out, lat0) {
+  const o = pitLane(d, lat0), s = pitSample(d);
+  out.set(s.x + s.nx * o, 0, s.z + s.nz * o);
   return out;
+}
+function pitYaw(d, lat0) {
+  pitPoint(d - 1, _pa, lat0); pitPoint(d + 1, _pb2, lat0);
+  return Math.atan2(_pb2.x - _pa.x, _pb2.z - _pa.z);
 }
 
 /* the pit lane on the ground, the garages behind it — built with the venue */
@@ -12494,11 +12684,222 @@ function buildPitLane() {
     put(pb, F, gBox(0.3, 0.9, 18), mat(team.accent === 0x111214 ? team.body : team.accent, { rough: 0.4, env: 0.8, emissive: team.accent === 0x111214 ? team.body : team.accent, ei: 0.25 }), 0.7, 5.6, 0);
     const Fb = frameAt(s.p.x + s.n.x * lane, 0.03, s.p.z + s.n.z * lane, Math.atan2(s.t.x, s.t.z));
     put(pb, Fb, gBox(4.6, 0.02, 0.18), wallM, 0, 0, 3.6); put(pb, Fb, gBox(4.6, 0.02, 0.18), wallM, 0, 0, -3.6);
+    // the box itself: team-coloured floor paint where the car stops
+    put(pb, Fb, gBox(4.4, 0.015, 7.0), mat(team.body, { rough: 0.7, env: 0.3 }), 0, -0.005, 0);
   });
   const g2 = new THREE.Group(); pb.build(g2);
   g2.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   vAdd(g2);
+  PIT.crews = {};
   PIT.path = true;
+}
+
+/* ------------------------------ the pit crew ---------------------------
+   Nineteen of them a car, after the real thing: three on each wheel (gun,
+   tyre off, tyre on), a jack at each end, two holding the sidepods, two on
+   the front wing and the man with the lollipop who lets the car go. They wait
+   in front of the garage, walk out when their car is on its way down the
+   lane, do the stop, and walk back in. Only a crew that is out is drawn.  */
+const CREW_G = {};
+function crewGeo() {
+  if (CREW_G.leg) return CREW_G;
+  CREW_G.leg = new THREE.BoxGeometry(0.17, 0.82, 0.2); CREW_G.leg.translate(0, -0.41, 0);
+  CREW_G.torso = new THREE.BoxGeometry(0.5, 0.64, 0.3);
+  CREW_G.arm = new THREE.BoxGeometry(0.13, 0.62, 0.14); CREW_G.arm.translate(0, -0.29, 0);
+  CREW_G.head = new THREE.SphereGeometry(0.16, 12, 9);
+  CREW_G.visor = new THREE.BoxGeometry(0.22, 0.08, 0.06);
+  CREW_G.boot = new THREE.BoxGeometry(0.18, 0.1, 0.3);
+  CREW_G.tyre = new THREE.CylinderGeometry(0.43, 0.43, 0.42, 18); CREW_G.tyre.rotateZ(Math.PI / 2);
+  CREW_G.band = new THREE.TorusGeometry(0.33, 0.03, 6, 22); CREW_G.band.rotateY(Math.PI / 2);
+  CREW_G.gun = new THREE.BoxGeometry(0.12, 0.14, 0.42);
+  CREW_G.pole = new THREE.CylinderGeometry(0.025, 0.025, 2.1, 6);
+  CREW_G.disc = new THREE.CylinderGeometry(0.34, 0.34, 0.04, 20); CREW_G.disc.rotateX(Math.PI / 2);
+  CREW_G.jack = new THREE.BoxGeometry(0.5, 0.18, 1.5);
+  CREW_G.dark = mat(0x16181c, { rough: 0.6, env: 0.4 });
+  CREW_G.rubber = mat(0x141414, { rough: 0.85, env: 0.2 });
+  CREW_G.visorM = mat(0x0a0c10, { rough: 0.08, metal: 0.8, env: 1.6 });
+  CREW_G.steel = mat(0x9aa0a8, { rough: 0.35, metal: 0.85, env: 1.2 });
+  return CREW_G;
+}
+function crewMan(g, suit, trim, helmet) {
+  const m = new THREE.Group();
+  const hip = new THREE.Group(); hip.position.y = 0.9; m.add(hip);
+  const legL = part(hip, g.leg, trim, 0.11, 0, 0), legR = part(hip, g.leg, trim, -0.11, 0, 0);
+  part(legL, g.boot, g.dark, 0, -0.82, 0.05); part(legR, g.boot, g.dark, 0, -0.82, 0.05);
+  const body = new THREE.Group(); hip.add(body);
+  part(body, g.torso, suit, 0, 0.34, 0);
+  const armL = part(body, g.arm, suit, 0.32, 0.62, 0), armR = part(body, g.arm, suit, -0.32, 0.62, 0);
+  part(body, g.head, helmet, 0, 0.86, 0);
+  part(body, g.visor, g.visorM, 0, 0.87, 0.13);
+  m.userData = { hip: hip, body: body, legL: legL, legR: legR, armL: armL, armR: armR };
+  m.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  return m;
+}
+/* stand (k=0) or kneel (k=1); arms forward a = 0..1 */
+function crewPose(m, k, a, walk) {
+  const u = m.userData;
+  u.hip.position.y = 0.9 - k * 0.42;
+  u.legL.rotation.x = -k * 1.25 + walk; u.legR.rotation.x = -k * 0.2 - walk;
+  u.body.rotation.x = k * 0.32 + a * 0.12;
+  u.armL.rotation.x = -a * 1.15 - walk * 0.6; u.armR.rotation.x = -a * 1.15 + walk * 0.6;
+}
+
+function crewBuild(k, c) {
+  const g = crewGeo(), team = ROSTER[k];
+  const dark = team.body === 0x121416 || team.body === 0x0b2a8c;
+  const suit = mat(team.body, { rough: 0.75, env: 0.4 });
+  const trim = mat(dark ? team.accent : 0xf0f0ee, { rough: 0.75, env: 0.4 });
+  const helmet = mat(team.accent === 0x111214 ? team.trim : team.accent, { rough: 0.25, metal: 0.3, env: 1.2 });
+  const root = new THREE.Group();
+  const d = PIT.boxes[k];
+  pitPoint(d, root.position); root.rotation.y = pitYaw(d);
+  // where the wheels are on this car, in its own frame
+  c.mesh.updateMatrixWorld(true);
+  const wl = [];
+  const cy = c.yaw, cs = Math.cos(cy), sn = Math.sin(cy), v = new THREE.Vector3();
+  for (const w of c.wheels) {
+    w.holder.getWorldPosition(v);
+    const dx = v.x - c.pos.x, dz = v.z - c.pos.z;
+    wl.push({ w: w, n: wl.length, x: dx * cs - dz * sn, z: dx * sn + dz * cs });
+  }
+  const L = c.hitLen, W = c.hitWid;
+  const men = [], tyres = [];
+  const add = (role, wx, wz, face, extra) => {
+    const m = crewMan(g, suit, trim, helmet);
+    // waiting in front of the garage (local -x), two ranks
+    const n = men.length, hx = -5.6 - (n % 2) * 1.1, hz = -7.5 + Math.floor(n / 2) * 1.6;
+    m.userData.home = new THREE.Vector3(hx, 0, hz);
+    m.userData.work = new THREE.Vector3(wx, 0, wz);
+    m.userData.face = face; m.userData.role = role;
+    Object.assign(m.userData, extra || {});
+    m.position.copy(m.userData.home);
+    root.add(m); men.push(m);
+    return m;
+  };
+  for (const q of wl) {
+    const sx = q.x >= 0 ? 1 : -1, out = Math.abs(q.x) + 0.62;
+    const gun = add('gun', sx * out, q.z, -sx * Math.PI / 2, { wheel: q });
+    part(gun.userData.body, g.gun, g.steel, 0, 0.42, 0.42);
+    const off = add('off', sx * (out + 0.55), q.z + 0.75, -sx * Math.PI / 2 - sx * 0.5, { wheel: q });
+    const on = add('on', sx * (out + 0.55), q.z - 0.75, -sx * Math.PI / 2 + sx * 0.5, { wheel: q });
+    // the tyres they carry: the worn one comes off, the new one goes on
+    const old = new THREE.Mesh(g.tyre, g.rubber); old.visible = false; root.add(old);
+    const nw = new THREE.Group(); nw.add(new THREE.Mesh(g.tyre, g.rubber));
+    const band = mat(0xffffff, { rough: 0.5, env: 0.3 });
+    const b1 = new THREE.Mesh(g.band, band); b1.position.x = 0.215; nw.add(b1);
+    const b2 = new THREE.Mesh(g.band, band); b2.position.x = -0.215; nw.add(b2);
+    nw.userData.band = band; root.add(nw);
+    tyres.push({ q: q, off: off, on: on, old: old, nw: nw, sx: sx });
+  }
+  add('jackF', 0, L + 1.25, Math.PI, { jack: true });
+  add('jackR', 0, -L - 1.25, 0, { jack: true });
+  add('side', 1.5, 0.1, -Math.PI / 2); add('side', -1.5, 0.1, Math.PI / 2);
+  add('wing', 1.05, L + 0.35, -Math.PI * 0.85); add('wing', -1.05, L + 0.35, Math.PI * 0.85);
+  const lol = add('lolli', -W - 1.4, L + 2.3, Math.PI * 0.75);
+  const pole = new THREE.Group(); pole.position.set(0, 0.6, 0.35); lol.userData.body.add(pole);
+  part(pole, g.pole, g.steel, 0, 1.0, 0);
+  const disc = mat(0xd01418, { rough: 0.5, env: 0.4, emissive: 0xd01418, ei: 0.35 });
+  part(pole, g.disc, disc, 0, 2.05, 0);
+  lol.userData.disc = disc;
+  for (const m of men) if (m.userData.jack) {
+    const j = part(m.userData.body, g.jack, g.steel, 0, -0.55, 0.9);
+    m.userData.jackBar = j;
+  }
+  root.visible = false;
+  vAdd(root);
+  return { root: root, men: men, tyres: tyres, lol: lol, state: 'in', t: 0, car: c };
+}
+
+/* the crew's whole stop, driven from the car's pit state */
+function crewTick(dt) {
+  if (!PIT.crews) return;
+  for (const c of G.cars) {
+    if (!SPORT_GARAGE.includes(c.key)) continue;
+    let C = PIT.crews[c.key];
+    const P = c.pit && c.pit.phase !== 'out' ? c.pit : null;
+    const coming = P && (P.phase === 'stop' || P.box - P.d < 140);
+    if (coming && C && C.car !== c && C.state !== 'in') {
+      // the team-mate is next in: the same crew turns round for him
+      for (const T of C.tyres) { T.q.w.holder.visible = true; T.q.w = c.wheels[T.q.n]; }
+      C.car = c;
+      if (C.state === 'back') { C.state = 'out'; C.t = Math.max(0, 1.6 - C.t); }
+    }
+    if (coming && (!C || C.car !== c)) {
+      if (C && C.root.parent) C.root.parent.remove(C.root);
+      C = PIT.crews[c.key] = crewBuild(c.key, c);
+    }
+    if (!C || C.car !== c) continue;
+    if (coming && C.state === 'in') { C.state = 'out'; C.t = 0; C.root.visible = true; }
+    if (!coming && (C.state === 'out' || C.state === 'work')) { C.state = 'back'; C.t = 0; }
+    if (C.state === 'in') continue;
+    C.t += dt;
+    const walk = C.state === 'out' || C.state === 'back';
+    const f = walk ? clamp(C.t / 1.6, 0, 1) : 1;
+    const e = f * f * (3 - 2 * f);
+    const stop = P && P.phase === 'stop' ? 1 - P.t / P.T : (C.state === 'back' ? 1 : 0);
+    for (const m of C.men) {
+      const u = m.userData;
+      const from = C.state === 'back' ? u.work : u.home, to = C.state === 'back' ? u.home : u.work;
+      m.position.lerpVectors(from, to, e);
+      const moving = walk && f < 1;
+      const step = moving ? Math.sin(C.t * 11 + m.id) * 0.45 : 0;
+      // walking they face where they are going; at work, the car
+      const head = moving ? Math.atan2(to.x - from.x, to.z - from.z) : u.face;
+      m.rotation.y += angDiff(m.rotation.y, head) * damp(10, dt);
+      let kn = 0, arms = 0.15;
+      if (!moving && C.state !== 'back') {
+        if (u.role === 'gun') { kn = 1; arms = 0.9; }
+        else if (u.role === 'off' || u.role === 'on') { kn = 0.45; arms = 0.85; }
+        else if (u.jack) { kn = 0.15; arms = 0.75; }
+        else if (u.role === 'side' || u.role === 'wing') { kn = 0.3; arms = 0.6; }
+        else arms = 0.55;
+      }
+      crewPose(m, kn, arms, step);
+      if (u.jackBar) u.jackBar.rotation.x = P && P.phase === 'stop' && stop < 0.9 ? -0.12 : 0;
+    }
+    // the lollipop: red while the car is held, green to go
+    if (C.lol.userData.disc) {
+      const go = P && P.phase === 'stop' && stop > 0.88;
+      C.lol.userData.disc.color.copy(SRGB(go ? 0x18c43a : 0xd01418));
+      C.lol.userData.disc.emissive.copy(SRGB(go ? 0x18c43a : 0xd01418));
+    }
+    // the tyres: off at 15-45% of the stop, new ones on at 45-75%
+    for (const T of C.tyres) {
+      const q = T.q, inStop = P && P.phase === 'stop';
+      const wx = q.x, wz = q.z, y = 0.43 + (c.pitLift || 0);
+      if (inStop) T.nw.userData.band.color.copy(SRGB(TYRES[c.nextTyre || 'M'].col));
+      // old tyre: from the hub out to the tyre-off man
+      if (inStop && stop > 0.15) {
+        const k = clamp((stop - 0.15) / 0.3, 0, 1);
+        T.old.visible = true;
+        T.old.position.set(wx + T.sx * (0.4 + k * 1.0), y - k * 0.02, wz + k * 0.7);
+      } else T.old.visible = false;
+      // new tyre: held by the tyre-on man, then onto the hub
+      const held = new THREE.Vector3(T.on.position.x - T.sx * 0.35, 0.75, T.on.position.z + 0.2);
+      if (inStop && stop > 0.45) {
+        const k = clamp((stop - 0.45) / 0.3, 0, 1);
+        T.nw.position.set(held.x + (wx - held.x) * k, held.y + (y - held.y) * k, held.z + (wz - held.z) * k);
+        T.nw.visible = k < 1;
+      } else {
+        T.nw.position.copy(held);
+        T.nw.visible = C.state !== 'back' && !(inStop && stop >= 0.75);
+      }
+      q.w.holder.visible = !(inStop && stop > 0.15 && stop < 0.75);
+    }
+    if (C.state === 'back' && C.t > 1.7) {
+      C.state = 'in'; C.root.visible = false;
+      for (const T of C.tyres) T.q.w.holder.visible = true;
+    }
+  }
+}
+function crewCleanup() {
+  if (!PIT.crews) return;
+  for (const k in PIT.crews) {
+    const C = PIT.crews[k];
+    for (const T of C.tyres) T.q.w.holder.visible = true;
+    if (C.root.parent) C.root.parent.remove(C.root);
+  }
+  PIT.crews = {};
 }
 
 function inPitSpan(i) {
@@ -12509,7 +12910,8 @@ function inPitSpan(i) {
 
 /* the car is taken in at the entry line and driven down the lane */
 function pitBegin(c) {
-  c.pit = { d: PIT.entry, v: Math.max(10, c.speed), phase: 'in', t: 0, box: PIT.boxes[c.key] || -40 };
+  c.pit = { d: PIT.entry, v: Math.max(10, c.speed), phase: 'in', t: 0, T: 1, box: PIT.boxes[c.key] || -40,
+    lat0: clamp(lateralOf(c.pos, c.si), -sAt(c.si).w, sAt(c.si).w), yaw0: c.yaw, yb: 1 };
   c.boxReq = false;
   if (c.isPlayer) hint('PIT LANE &mdash; <b>LIMITER ON</b>', 2);
 }
@@ -12524,7 +12926,7 @@ function pitStep(c, dt) {
     P.v = P.v > want ? Math.max(want, P.v - 16 * dt) : Math.min(want, P.v + 6 * dt);
     if (toBox < 0.4 && P.v < 1.2) {
       P.phase = 'stop'; P.v = 0;
-      P.t = c.isPlayer ? 2.4 : rand(2.2, 3.4);
+      P.t = P.T = c.isPlayer ? 2.6 : rand(2.4, 3.4);
       if (c.isPlayer) announce('PIT STOP', TYRES[c.nextTyre || 'M'].name + ' TYRES');
     }
   } else if (P.phase === 'stop') {
@@ -12548,9 +12950,11 @@ function pitStep(c, dt) {
     if (gap > 0 && gap < 11) { P.v = Math.min(P.v, gap < 8.5 ? 0 : o.pit.v); if (P.phase === 'in' && gap < 8.5 && P.box - P.d < 9) P.wait = true; }
   }
   P.d += P.v * dt;
-  pitPoint(P.d, _pa); pitPoint(P.d + 1.5, _pb2);
-  c.pos.copy(_pa);
-  c.yaw = Math.atan2(_pb2.x - _pa.x, _pb2.z - _pa.z);
+  const yaw = pitYaw(P.d, P.lat0);
+  pitPoint(P.d, c.pos, P.lat0);
+  // the nose comes round onto the lane's line over half a second, not in a frame
+  P.yb *= Math.exp(-dt * 5);
+  c.yaw = yaw + angDiff(yaw, P.yaw0) * P.yb;
   const f = c.forward(_v1);
   c.vel.set(f.x * P.v, 0, f.z * P.v);
   c.yawRate = 0; c.steer = 0;
@@ -12565,7 +12969,18 @@ function pitStep(c, dt) {
   else if (c.u < 0.25 && nu > 0.75) c.lapCount--;
   c.u = nu; c.progress = c.lapCount + c.u;
   c.updateVisuals(dt);
-  if (P.d >= PIT.end) { c.pit = null; }       // back on the circuit, under its own power
+  // up on the jacks for the tyre change
+  const lift = P.phase === 'stop' ? (1 - P.t / P.T < 0.08 ? (1 - P.t / P.T) / 0.08 : 1 - P.t / P.T > 0.9 ? 0 : 1) * 0.09 : 0;
+  c.pitLift = lift;
+  c.mesh.position.y += lift;
+  if (P.d >= PIT.end) {
+    // back on the circuit, under its own power: pointing down the road, at
+    // the speed the lane let it go, with nothing left over from before
+    c.pit = null; c.pitLift = 0;
+    c.yaw = yaw; c.yawRate = 0; c.steer = 0;
+    c.vel.set(Math.sin(yaw) * P.v, 0, Math.cos(yaw) * P.v);
+    if (c.ai) { c.ai.stuckT = 0; c.ai.reverseT = 0; }
+  }
 }
 
 /* ------------------------------ strategy ------------------------------ */
@@ -12591,6 +13006,7 @@ function aiPitThink(c) {
 
 /* --------------------------------- the race ---------------------------- */
 function pitRaceStart() {
+  crewCleanup();
   for (const c of G.cars) {
     c.used = {}; c.stops = 0; c.pit = null; c.boxReq = false; c.nextTyre = null;
     if (c.isPlayer) tyreSet(c, SPORT.tyre || 'M');
@@ -12614,6 +13030,7 @@ function pitRaceTick(dt) {
     if (Math.random() < dt * 2) aiPitThink(c);
   }
   scTick(dt);
+  crewTick(dt);
   pitHud();
 }
 function inSpanIdx(i, a, b) { return a <= b ? i > a && i <= b : i > a || i <= b; }
@@ -12626,7 +13043,18 @@ function pitKey(k) {
     if (p.pit) return true;
     p.boxReq = !p.boxReq;
     if (p.boxReq && !p.nextTyre) p.nextTyre = pickTyre(p, Math.max(1, Math.floor(G.laps + 1 - p.progress)));
-    hint(p.boxReq ? 'BOX, BOX &mdash; <b>' + TYRES[p.nextTyre].name + '</b> &middot; 1 SOFT &middot; 2 MEDIUM &middot; 3 HARD' : 'STAYING OUT', 2.4);
+    hint(p.boxReq ? 'BOX, BOX &mdash; <b>' + TYRES[p.nextTyre].name + '</b> &middot; ' +
+      (PAD.on ? '<kbd>&#9660;</kbd> CHANGE TYRE &middot; <kbd>&#9650;</kbd> CANCEL' : '1 SOFT &middot; 2 MEDIUM &middot; 3 HARD') : 'STAYING OUT', 2.4);
+    SFX.beep(false);
+    return true;
+  }
+  if (k === 'PitTyre') {
+    // the pad's d-pad DOWN: steps through the compounds, and calls the car in
+    // if it was not already
+    if (p.pit) return true;
+    if (!p.boxReq) return pitKey('b');
+    p.nextTyre = { S: 'M', M: 'H', H: 'S' }[p.nextTyre || 'M'];
+    hint('BOX, BOX &mdash; <b>' + TYRES[p.nextTyre].name + '</b>', 1.6);
     SFX.beep(false);
     return true;
   }
@@ -12650,7 +13078,7 @@ function pitHud() {
   const left = Math.max(0, Math.round((1 - p.tw) * 100));
   SPORT.tyreEl.innerHTML = '<i style="border-color:' + T.css + ';color:' + T.css + '">' + T.name[0] + '</i>' +
     '<span>' + T.name + ' &middot; ' + left + '%<em><b style="width:' + left + '%;background:' + (left > 40 ? '#5fd07a' : left > 20 ? '#ffcf6a' : '#ff5a4a') + '"></b></em></span>' +
-    '<u class="' + (p.pit ? 'on' : p.boxReq ? 'req' : '') + '">' + (p.pit ? 'IN THE PITS' : p.boxReq ? 'BOX &rarr; ' + TYRES[p.nextTyre].name[0] : 'BOX <kbd>B</kbd>') + '</u>';
+    '<u class="' + (p.pit ? 'on' : p.boxReq ? 'req' : '') + '">' + (p.pit ? 'IN THE PITS' : p.boxReq ? 'BOX &rarr; ' + TYRES[p.nextTyre].name[0] : 'BOX <kbd>' + (PAD.on ? '&#9650;' : 'B') + '</kbd>') + '</u>';
 }
 
 /* ------------------------------ the safety car ---------------------------- */
@@ -12794,6 +13222,7 @@ function scSpeedFor(c) {
 }
 
 function scCleanup() {
+  crewCleanup();
   if (F1R.sc && F1R.sc.car && F1R.sc.phase !== 'gone') scene.remove(F1R.sc.car.mesh);
   F1R.sc = null;
 }
@@ -12917,8 +13346,23 @@ function updateCamera(dt) {
   CAM.kickBack *= 1 - damp(9, dt);
   CAM.kickUp *= 1 - damp(9, dt);
 
-  camera.position.set(CAM.pos.x + sx, CAM.pos.y + sy, CAM.pos.z + sz);
-  camera.lookAt(CAM.look);
+  // SPORT MODE pit stop: as the car rolls into its box the camera rises to
+  // the broadcast shot — high on the pit-wall side, looking down on the car
+  // and the crew working on it — and settles back behind it on the way out
+  let px = CAM.pos.x, py = CAM.pos.y, pz = CAM.pos.z;
+  let lx = CAM.look.x, ly = CAM.look.y, lz = CAM.look.z;
+  const P = SPORT.on && p.pit;
+  const wantPit = P && (P.phase === 'stop' || (P.phase === 'in' && P.box - P.d < 16)) ? 1 : 0;
+  CAM.pitW = (CAM.pitW || 0) + (wantPit - (CAM.pitW || 0)) * damp(wantPit ? 2.4 : 1.6, dt);
+  if (CAM.pitW > 0.002) {
+    const w = CAM.pitW * CAM.pitW * (3 - 2 * CAM.pitW);
+    const L = p.left(_v2), F = p.forward(_v1);
+    const tx = p.pos.x + L.x * 6.5 + F.x * 3.0, tz = p.pos.z + L.z * 6.5 + F.z * 3.0, ty = 7.2;
+    px += (tx - px) * w; py += (ty - py) * w; pz += (tz - pz) * w;
+    lx += (p.pos.x - F.x * 0.4 - lx) * w; ly += (0.4 - ly) * w; lz += (p.pos.z - F.z * 0.4 - lz) * w;
+  }
+  camera.position.set(px + sx, py + sy, pz + sz);
+  camera.lookAt(lx, ly, lz);
   // roll the frame slightly with body roll + shake
   camera.rotateZ(CAM.roll - p.roll * 0.35);
 
@@ -14217,7 +14661,11 @@ function showControls() {
         k('<kbd>LEFT STICK</kbd>', 'steer') + k(pb(L.hand, []), 'handbrake') + k(pb(L.nos, []), 'nitrous') +
         k(pb(L.fire, []), 'fire') + k(pb(L.guard, []), 'deploy guard') +
         k(pb([BTN.R3], []), 'rear view') + k(pb([BTN.VIEW], []), 'camera') + k(pb([BTN.MENU], []), 'pause &amp; settings') +
-        '<h4>MENUS</h4>' + k('<kbd>A</kbd>', 'select') + k('<kbd>B</kbd>', 'back') + k('<kbd>D-PAD</kbd>', 'move') +
+        '<h4>SPORT MODE</h4>' +
+        k(pb(L.fire, []), 'open DRS in the zone') + k('<kbd>D-PAD &#9650;</kbd>', 'box &mdash; pit this lap') +
+        k('<kbd>D-PAD &#9660;</kbd>', 'change the tyre for the stop') + k(pb(L.thr.length ? L.thr : [BTN.RT], []) + ' on the grid', 'rev for the start') +
+        '<h4>MENUS</h4>' + k('<kbd>A</kbd>', 'select') + k('<kbd>B</kbd>', 'back') + k('<kbd>D-PAD</kbd> / <kbd>STICK</kbd>', 'move') +
+        k('<kbd>LB</kbd> <kbd>RB</kbd>', 'jump between the buttons on any screen') + k('<kbd>VIEW</kbd>', 'garage') +
         '<div class="blurb" style="margin-top:10px;opacity:.6">' + (PAD.on ? 'Controller connected. Change the layout in the pause menu.' : 'No controller connected &mdash; plug one in and press any button.') + '</div>' +
       '</div>' +
     '</div>' +
@@ -14266,7 +14714,7 @@ function showTextIn(title, sub, val, max, ok, back) {
   showScreen('<h2>' + title + '</h2><div class="tag">' + sub + '</div><div class="rule"></div>' +
     '<div style="text-align:center"><input id="tin" class="tin" maxlength="' + max + '" autocomplete="off" spellcheck="false"></div>' +
     '<div class="navrow"><b data-nav="tinback">BACK</b><b data-nav="tinok">OK</b></div>' +
-    '<div class="cta" data-nav="tinok">TYPE &middot; ENTER &middot; <kbd>ESC</kbd> back</div>');
+    '<div class="cta" data-nav="tinok">' + (PAD.on ? '<kbd>&#9650;</kbd><kbd>&#9660;</kbd> letter &middot; <kbd>&#9654;</kbd> next &middot; <kbd>&#9664;</kbd> delete &middot; <kbd>A</kbd> OK' : 'TYPE &middot; ENTER') + ' &middot; <kbd>ESC</kbd> back</div>');
   const el = $('tin');
   el.value = val || '';
   MP.tin = { ok: () => ok(el.value), back: back };
@@ -14965,7 +15413,27 @@ MP.key = function (e, k) {
   }
   if (st === 'textin') {
     if (e.key === 'Escape' && MP.tin) { MP.tin.back(); return true; }
-    return false;
+    // the pad spells it out: up / down the letter, right the next one,
+    // left (or X) rubs one out, A is OK. A keyboard types in the box itself
+    // and never gets here — the field stops its own keys.
+    const el = $('tin');
+    if (!el || !MP.tin) return false;
+    const ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const max = +el.getAttribute('maxlength') || 12;
+    let v = el.value.toUpperCase();
+    if (e.key === 'Enter') { MP.tin.ok(); return true; }
+    if (up || down) {
+      if (!v) v = 'A';
+      else {
+        const c = v[v.length - 1], i = ABC.indexOf(c);
+        v = v.slice(0, -1) + ABC[((i < 0 ? 0 : i) + (down ? 1 : -1) + ABC.length) % ABC.length];
+      }
+    } else if (right) { if (v.length < max) v += v ? v[v.length - 1] : 'A'; }
+    else if (left || e.key === 'Backspace') v = v.slice(0, -1);
+    else return false;
+    el.value = v;
+    SFX.beep(false);
+    return true;
   }
   return false;
 };
@@ -15858,44 +16326,75 @@ function showTitle() {
 /* G.garageBack: where ENTER and ESC go from the garage. Single player goes on
    to the grid and back to the circuits; the online room borrows the garage and
    wants its players back. */
+/* The garage is a showroom: the car you are on fills the stage, lit in its
+   own colour, with what it is and what it does beside it; the whole fleet
+   sits underneath as a strip to pick from. */
 function showGarage() {
   G.state = 'garage';
   HUD.hud.classList.add('hidden');
-  let cards = '';
   const online = !!G.garageBack;
-  for (let i = 0; i < GARAGE.length; i++) {
-    const k = GARAGE[i], have = drivable(k);
-    let ups = '';
-    if (online) ups = 'STOCK &middot; ONLINE';
-    else if (have) {
-      const lv = upgradesOf(k);
-      const n = UPGRADES.reduce((a, u) => a + lv[u.id], 0);
-      if (n) ups = 'UPGRADES ' + n + ' / ' + (UPGRADES.length * 3);
-    }
-    cards += carCard(k, { sel: i === G.sel, you: i === G.sel, pick: i, locked: !have, ups: ups });
-  }
   const R = ROUNDS[G.round];
-  const k = GARAGE[G.sel], have = drivable(k);
-  const sub = G.garageBack
-    ? 'ONLINE ROOM ' + (MP.code || '')
-    : R.title + ' &middot; ' + R.sub + ' &middot; ' + R.laps + ' LAPS' + ' &middot; ' + (R.playerLives || 2) + ' LIVES &middot; ' + cutLabel(G.round);
+  const k = GARAGE[G.sel], have = drivable(k), s = ROSTER[k], p = s.phys;
+  const rgb = (h) => ((h >> 16) & 255) + ',' + ((h >> 8) & 255) + ',' + (h & 255);
+  const acc = s.accent === 0x111214 ? s.body : s.accent;
+  let strip = '';
+  for (let i = 0; i < GARAGE.length; i++) {
+    const kk = GARAGE[i], ok = drivable(kk), ss = ROSTER[kk];
+    const a = ss.accent === 0x111214 ? ss.body : ss.accent;
+    strip += '<div class="gth' + (i === G.sel ? ' sel' : '') + (ok ? '' : ' locked') + '" data-pick="' + i + '" style="--acc:' + rgb(a) + '">' +
+      portraitImg(kk) + '<span>' + ss.car + '</span>' +
+      '<i>' + (online ? 'STOCK' : ok ? (kk === G.playerCar ? '&#9679; YOURS' : 'OWNED') : '&#128274; ' + money(CAR_PRICE[kk] || 0)) + '</i></div>';
+  }
+  let ups = '';
+  if (online) ups = 'STOCK &middot; ONLINE';
+  else if (have) {
+    const lv = upgradesOf(k);
+    const n = UPGRADES.reduce((a, u) => a + lv[u.id], 0);
+    ups = 'UPGRADES ' + n + ' / ' + (UPGRADES.length * 3);
+  }
+  const bar = (label, v, txt) => '<div class="gst"><span>' + label + '</span><i><b style="width:' +
+    Math.round(clamp(v, 0.03, 1) * 100) + '%"></b></i><em>' + txt + '</em></div>';
+  const sub = online
+    ? 'ONLINE ROOM ' + (MP.code || '') + ' &middot; STOCK CARS, NO UPGRADES'
+    : R.title + ' &middot; ' + R.sub + ' &middot; ' + R.laps + ' LAPS &middot; ' + (R.playerLives || 2) + ' LIVES &middot; ' + cutLabel(G.round);
   showScreen(
-    '<h2>THE GARAGE</h2>' +
-    '<div class="tag">' + sub + '</div>' +
-    '<div class="tag" style="margin-top:6px;opacity:.9">BALANCE <b class="cash">' + money(CAREER.cash) + '</b></div>' +
-    (online
-      ? '<div class="blurb" style="margin-top:10px">Online races are <b>stock</b>: every car is open to everybody and ' +
-        'nobody&rsquo;s upgrades come with them, so the only edge is how you drive.</div>'
-      : '<div class="blurb" style="margin-top:10px">Pick what you take to the grid. Every race pays &mdash; spend it on ' +
-        'locked cars and on upgrades. Whatever you leave behind, somebody else drives at you.</div>') +
-    '<div class="grid-cards">' + cards + '</div>' +
-    '<div class="navrow"><b data-nav="prev">&#9664;</b><b data-nav="go">' +
-      (have ? (G.garageBack ? 'DRIVE THIS' : 'TAKE THE GRID') : 'BUY ' + money(CAR_PRICE[k] || 0)) + '</b>' +
-      (have && !online ? '<b data-nav="upgrades">UPGRADES</b>' : '') +
-    '<b data-nav="next">&#9654;</b></div>' +
-    '<div class="cta" data-nav="go">&#9664; &#9654; or <kbd>A</kbd><kbd>D</kbd> to choose &middot; ENTER to ' +
-      (have ? 'drive' : 'buy') + (online ? '' : ' &middot; <kbd>U</kbd> upgrades') + ' &middot; <kbd>ESC</kbd> back</div>'
+    '<div class="gar" style="--acc:' + rgb(acc) + '">' +
+    '<div class="ghead"><div><h2>THE GARAGE</h2><div class="tag">' + sub + '</div></div>' +
+      '<div class="gbal">BALANCE<b>' + money(CAREER.cash) + '</b></div></div>' +
+    '<div class="ghero">' +
+      '<div class="gstage"><div class="gbg">' + s.car + '</div>' + portraitImg(k) +
+        '<b class="garr l" data-nav="prev">&#9664;</b><b class="garr r" data-nav="next">&#9654;</b>' +
+        '<div class="gidx">' + (G.sel + 1) + ' / ' + GARAGE.length + '</div></div>' +
+      '<div class="ginfo">' +
+        '<div class="gdrv">' + s.driver + '</div>' +
+        '<div class="gname">' + s.car + '</div>' +
+        '<div class="geng">' + (p.hp || 700).toLocaleString() + ' BHP &middot; V' + (p.cyl || 8) + ' &middot; ' + Math.round(p.m || 1500).toLocaleString() + ' KG</div>' +
+        bar('ARMOUR', s.armour / 430, Math.round(s.armour)) +
+        bar('POWER', ((p.hp || 700) - 450) / 800, (p.hp || 700)) +
+        bar('TOP END', (s.topSpeed - 50) / 45, Math.round(s.topSpeed * 3.6) + ' KM/H') +
+        bar('GRIP', (p.muR - 1.0) / 0.55, (p.muR || 1).toFixed(2) + ' G') +
+        bar('WEAPONS', ((p.wpn || 1) - 0.6) / 1.3, Math.round((p.wpn || 1) * 100) + '%') +
+        bar('THREAT', THREAT[k] || 0.7, Math.round((THREAT[k] || 0.7) * 10) + ' / 10') +
+        '<div class="gchips">' +
+          (have ? '<u class="own">' + (online ? 'OPEN TO ALL' : 'IN YOUR GARAGE') + '</u>' : '<u class="lck">&#128274; ' + money(CAR_PRICE[k] || 0) + '</u>') +
+          (ups ? '<u>' + ups + '</u>' : '') +
+          (s.flipper ? '<u class="fl">FLIPS ON CONTACT</u>' : '') +
+        '</div>' +
+        '<div class="gnote">' + s.note + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="gstrip">' + strip + '</div>' +
+    '<div class="navrow"><b data-nav="go">' +
+      (have ? (online ? 'DRIVE THIS' : 'TAKE THE GRID') : 'BUY ' + money(CAR_PRICE[k] || 0)) + '</b>' +
+      (have && !online ? '<b data-nav="upgrades">UPGRADES</b>' : '') + '</div>' +
+    '<div class="cta" data-nav="go">&#9664; &#9654; choose &middot; ENTER ' +
+      (have ? 'drive' : 'buy') + (online ? '' : ' &middot; <kbd>U</kbd> upgrades') + ' &middot; <kbd>ESC</kbd> back</div>' +
+    '</div>'
   );
+  // on a phone the strip scrolls sideways: bring the chosen car to the middle
+  // of it without scrolling the page itself
+  const st = document.querySelector('#screen .gth.sel');
+  if (st && st.parentNode) st.parentNode.scrollLeft = st.offsetLeft - st.parentNode.offsetLeft - st.parentNode.clientWidth / 2 + st.clientWidth / 2;
 }
 
 function garageMove(d) {
