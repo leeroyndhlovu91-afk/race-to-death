@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.10.0 · 2026-10-04 18:43 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.10.1 · 2026-10-05 19:23 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.10.0   (built 2026-10-04 18:43)
+   RACE TO DEATH  v3.10.1   (built 2026-10-05 19:23)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.10.0',
+  version: '3.10.1',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -1793,7 +1793,7 @@ const MUSIC = {
     try {
       for (let i = 0; i < 2; i++) {
         const a = new Audio();
-        a.preload = 'none';
+        a.preload = 'auto';
         a.volume = 0;
         a.addEventListener('ended', () => { if (this.on) this.next(); });
         // a track that will not decode must not stall the playlist
@@ -1864,6 +1864,15 @@ const MUSIC = {
     } catch (e) { return; }
     this.crossfade(outEl, inEl);
     if (typeof nowPlaying === 'function') nowPlaying(t);
+    // On a slow or lossy connection a streamed track stalls and drags.
+    // Pull the NEXT track down in the background now, while this one plays,
+    // so it comes out of the browser's cache instead of off the network.
+    try {
+      const nx = MUSIC_TRACKS[this.order[(this.at + 1) % this.order.length]];
+      if (nx && nx.src && nx.src.indexOf('data:') !== 0 && typeof fetch === 'function') {
+        setTimeout(() => { fetch(nx.src).catch(() => {}); }, 8000);
+      }
+    } catch (e) {}
   },
 
   crossfade(outEl, inEl) {
@@ -15219,7 +15228,10 @@ function mpCreate() {
   NET.get('rooms/' + code + '/meta').then((m) => {
     if (m) { mpCreate(); return; }          // taken: roll again
     MP.code = code; MP.host = true;
-    const meta = { host: NET.uid, status: 'lobby', circuit: G.circuit, laps: 2, boss: true, ver: CFG.version, made: netNow() };
+    // online races are the championship's: a room never starts on a Sport
+    // Mode circuit just because that was the last one built on this machine
+    const circ = CIRCUITS.some((c) => c.key === G.circuit) ? G.circuit : CIRCUITS[0].key;
+    const meta = { host: NET.uid, status: 'lobby', circuit: circ, laps: 2, boss: true, ver: CFG.version, made: netNow() };
     NET.set(mpPath('meta'), meta).then(() => {
       NET.dropOnExit(mpPath());              // the room goes when its host does
       mpEnter();
@@ -15305,7 +15317,7 @@ function showRoom() {
   const m = MP.meta || {};
   const rows = mpRows();
   MP.rsel = clamp(MP.rsel, 0, rows.length - 1);
-  const C = circuitByKey(m.circuit);
+  const C = CIRCUITS.find((c) => c.key === m.circuit) || CIRCUITS[0];
   const val = {
     car: ROSTER[G.playerCar].car + ' &middot; STOCK',
     circuit: C.name,
@@ -15361,7 +15373,7 @@ function mpSet(row, d) {
   } else if (MP.host && m) {
     const n = Object.assign({}, m);
     if (row === 'circuit') {
-      const i = CIRCUITS.findIndex((c) => c.key === m.circuit);
+      const i = Math.max(0, CIRCUITS.findIndex((c) => c.key === m.circuit));
       n.circuit = CIRCUITS[(i + d + CIRCUITS.length) % CIRCUITS.length].key;
     } else if (row === 'laps') n.laps = clamp((m.laps || 2) + d, 1, 5);
     else if (row === 'boss') n.boss = !m.boss;
@@ -15394,7 +15406,8 @@ function mpStart() {
 }
 
 function mpBeginRace(m) {
-  const C = circuitByKey(m.circuit);
+  sportLeave();                              // Sport Mode's rules never ride along
+  const C = CIRCUITS.find((c) => c.key === m.circuit) || CIRCUITS[0];
   const go = () => mpSpawnGrid(m);
   if (!VENUE.C || VENUE.C.key !== C.key) {
     const b = $('boot');
@@ -15424,7 +15437,10 @@ function mpSpawnGrid(m) {
   let hi = 0;
   m.grid.forEach((e, k) => {
     const isMe = e.id === NET.uid;
-    const car = new Car(e.k, isMe);
+    // a choice made just before the start can miss the host's list on a slow
+    // connection: on your own machine your car is always the one you picked,
+    // and everyone else's copy is corrected from your first update (mpSnap)
+    const car = new Car(isMe && GARAGE.includes(G.playerCar) ? G.playerCar : e.k, isMe);
     car.netId = e.id;
     car.isHuman = !e.ai;
     car.remote = !(isMe || (MP.host && e.ai));
@@ -15538,15 +15554,46 @@ function mpPack(c) {
   return [netNow(), r2(c.pos.x), r2(c.pos.z), r3(c.yaw), r2(c.vel.x), r2(c.vel.z), r3(c.yawRate), r3(c.steer),
     r2(c.airY), r3(c.tumbleX), r3(c.tumbleZ), Math.round(c.armour), f, c.lives, c.lapCount, r3(c.u),
     r2(c.finishTime || 0), Math.round(c.rpm), r2(c.load), r2(c.slip), c.kills | 0, c.maxArmour,
-    Math.round(c.driftScore || 0), r2(c.turret ? c.turret.rotation.y : 0)];
+    Math.round(c.driftScore || 0), r2(c.turret ? c.turret.rotation.y : 0), c.key, Date.now()];
 }
 
 function mpSnap(car, a) {
   if (!car || !Array.isArray(a) || a.length < 22) return;
+  // a human picked a different car from the one on the grid: swap the model
+  if (car.isHuman && typeof a[24] === 'string' && a[24] !== car.key && ROSTER[a[24]] && GARAGE.includes(a[24])) {
+    car = mpSwapModel(car, a[24]);
+  }
+  // time it by the sender's own plain clock (sent alongside); its estimate
+  // of the server clock can be corrected mid-race and jump
+  if (typeof a[25] === 'number') { a = a.slice(); a[0] = a[25]; }
   const S = car.snaps || (car.snaps = []);
   if (S.length && a[0] <= S[S.length - 1][0]) return;
+  // How far this machine's clock is from the sender's, plus the trip. The
+  // smallest value seen is the fastest trip, so it is kept as the baseline;
+  // how much later than that the rest arrive is the jitter to ride out. The
+  // shared server clock is NOT used here: on a lossy line each machine's
+  // estimate of it drifted by hundreds of milliseconds, and a friend's car
+  // was drawn from the wrong moment — frozen, then jumping, then gone.
+  const skew = Date.now() - a[0];
+  if (car.netSkew === undefined || skew < car.netSkew) car.netSkew = skew;
+  else car.netSkew += (skew - car.netSkew) * 0.02;
+  car.netJit = (car.netJit || 60) + ((skew - car.netSkew) - (car.netJit || 60)) * 0.08;
+  car.netLast = Date.now();
   S.push(a);
-  if (S.length > 30) S.splice(0, S.length - 30);
+  if (S.length > 40) S.splice(0, S.length - 40);
+}
+
+/* a remote human turned up in a different car: build that one in its place */
+function mpSwapModel(old, key) {
+  const car = new Car(key, false);
+  for (const k of ['netId', 'isHuman', 'remote', 'colorHex', 'driver', 'pname', 'lives', 'maxLives', 'snaps', 'netSkew', 'netJit']) car[k] = old[k];
+  car.placeAt(old.si || 0, 0);
+  if (old.driver) mpNameTag(car, old.driver, old.colorHex);
+  scene.remove(old.mesh);
+  const i = G.cars.indexOf(old);
+  if (i >= 0) G.cars[i] = car;
+  MP.cars[old.netId] = car;
+  return car;
 }
 
 function mpUpdate(dt) {
@@ -15563,25 +15610,51 @@ function mpUpdate(dt) {
   }
 }
 
-/* draw a car this machine does not own */
+/* where a report says the car is at time `now` (the sender's clock): on
+   from the report along its own speed and curve, for up to a second */
+function mpReckon(L0, now) {
+  const e = clamp((now - L0[0]) / 1000, 0, 1.0);
+  const sp = Math.hypot(L0[4], L0[5]), h0 = Math.atan2(L0[4], L0[5]), w = L0[6];
+  if (Math.abs(w) < 1e-3 || sp < 0.5) return { x: L0[1] + L0[4] * e, z: L0[2] + L0[5] * e, yaw: L0[3] + w * e };
+  return {
+    x: L0[1] + (sp / w) * (Math.cos(h0) - Math.cos(h0 + w * e)),
+    z: L0[2] + (sp / w) * (Math.sin(h0 + w * e) - Math.sin(h0)),
+    yaw: L0[3] + w * e,
+  };
+}
+
+/* draw a car this machine does not own. Shown a little behind its newest
+   report — as little as the connection allows — and, when reports are late,
+   carried on along its own speed and turn so it keeps moving instead of
+   freezing. What is drawn eases onto that, so a late report is a nudge
+   rather than a jump. */
 function mpPuppet(c, dt) {
   const S = c.snaps;
   if (!S || !S.length) { if (c.alive) c.updateVisuals(dt); return; }
-  const rt = netNow() - MP_DELAY;
-  let i = S.length - 1;
-  while (i > 0 && S[i][0] > rt) i--;
-  const a = S[i], b = S[i + 1];
-  let x, z, yaw;
-  if (b && rt >= a[0]) {
-    const f = clamp((rt - a[0]) / Math.max(1, b[0] - a[0]), 0, 1);
-    x = lerp(a[1], b[1], f); z = lerp(a[2], b[2], f);
-    yaw = a[3] + angDiff(a[3], b[3]) * f;
-  } else {
-    // past the newest report: carry on in a straight line, briefly
-    const L = S[S.length - 1];
-    const e = clamp((rt - L[0]) / 1000, 0, 0.25);
-    x = L[1] + L[4] * e; z = L[2] + L[5] * e; yaw = L[3] + L[6] * e;
+  // Where it is NOW, not where it was: carried on from its newest report
+  // along its own speed and its own curve (dead reckoning). Drawn behind the
+  // newest report — the old way — a friend at 230 km/h was half a second,
+  // 30 m, behind where they really were, and you bumped into a car that had
+  // already gone.
+  const L0 = S[S.length - 1];
+  const now = Date.now() - (c.netSkew || 0);                // in the sender's clock
+  const P = mpReckon(L0, now);
+  // A fresh report moves the estimate. That step is not drawn: it goes into
+  // a correction that melts away over a fraction of a second, so the car
+  // glides onto the new line — and, unlike easing the position itself,
+  // costs no lag behind a car that is moving. A big step (a respawn, a long
+  // dropout) is a straight cut.
+  if (!c.corr) c.corr = { x: 0, z: 0, yaw: 0 };
+  if (c.lastL && c.lastL !== L0) {
+    const Q = mpReckon(c.lastL, now);
+    const dx = P.x - Q.x, dz = P.z - Q.z;
+    if (Math.hypot(dx + -c.corr.x, dz + -c.corr.z) > 14) { c.corr.x = 0; c.corr.z = 0; c.corr.yaw = 0; }
+    else { c.corr.x -= dx; c.corr.z -= dz; c.corr.yaw -= angDiff(Q.yaw, P.yaw); }
   }
+  c.lastL = L0;
+  const k = Math.exp(-dt * 6);
+  c.corr.x *= k; c.corr.z *= k; c.corr.yaw *= k;
+  let x = P.x + c.corr.x, z = P.z + c.corr.z, yaw = P.yaw + c.corr.yaw;
   const L = S[S.length - 1];
   const f = L[12];
   c.pos.set(x, 0, z);
@@ -15631,7 +15704,6 @@ function mpPuppet(c, dt) {
     if (f & F_MG) { mpGhostMg(c); c.ghostCd = WEAPONS.mg.rof * 1.4; }
     else if (c.isBoss && (f & (F_BMG | F_BTUR | F_BFL))) { mpGhostBoss(c, f); c.ghostCd = 0.12; }
   }
-  if (S.length > 2 && S[1][0] < rt - 400) S.splice(0, 1);
 }
 
 function mpGhostMg(c) {
@@ -15686,6 +15758,18 @@ function mpEvent(ev) {
       if (!c || c.remote) return;
       c.applyDamage(+ev.a || 0, car(ev.by), ev.c);
       if (c.isPlayer) c.beingShot = 0.5;
+      break;
+    }
+    case 'fin': {
+      const c = car(ev.id);
+      if (!c || !c.remote || c.finished) return;
+      c.finished = true;
+      c.finishTime = +ev.ft || G.raceT;
+      if (!c.isBoss) {
+        G.finishOrder.push(c);
+        G.finishOrder.sort((p, q) => p.finishTime - q.finishTime);
+        feed('<b>' + mpEsc(c.pname || c.name) + '</b> takes the flag', '#b8b2a4');
+      }
       break;
     }
     case 'kill': {
@@ -16404,7 +16488,7 @@ function readPlayerInput(p) {
   // swerve. The throttle is squeezed on rather than stamped, which keeps a
   // thousand horsepower from snapping the rear out of every slow corner. The
   // pad stick is analog already: only the jitter is taken off it.
-  const dt = 1 / 60, spd = Math.abs(p.speed || 0);
+  const dt = G.dt || 1 / 60, spd = Math.abs(p.speed || 0);
   const wantS = i.steer;
   const kb = lf || rt;
   const analog = (PAD.on && PAD.axis !== 0) || (TOUCH.on && TOUCH.tilt && TOUCH.active);
@@ -17330,6 +17414,7 @@ function setStartLights(n) {
 /* ------------------------------- tick --------------------------------- */
 function tick(dt) {
   G.time += dt;
+  G.dt = dt;
 
   if (G.state === 'title' || G.state === 'grid' || G.state === 'circuit') {
     const s = sAt(idxAhead(0, 40));
@@ -17448,6 +17533,8 @@ function tick(dt) {
       c.finished = true;
       c.finishTime = G.raceT;
       G.finishOrder.push(c);
+      // online: tell the room as an event too — a state report can be lost
+      if (MP.on && c.netId) mpEmit({ t: 'fin', id: c.netId, ft: r2(c.finishTime) });
       if (c.isPlayer) announce(G.finishOrder[0] === c ? 'WINNER' : 'P' + c.rank + ' AT THE FLAG', 'CHEQUERED FLAG');
       else feed('<b>' + c.name + '</b> takes the flag', '#b8b2a4');
     }
