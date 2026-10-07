@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.16.0 · 2026-10-07 09:17 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.16.1 · 2026-10-07 09:24 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.16.0   (built 2026-10-07 09:17)
+   RACE TO DEATH  v3.16.1   (built 2026-10-07 09:24)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.16.0',
+  version: '3.16.1',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -5295,7 +5295,7 @@ function buildRoadMesh(C) {
   const rn = TEX.asphaltN.clone(); rn.needsUpdate = true;
   rn.wrapS = rn.wrapT = THREE.RepeatWrapping; rn.repeat.set(2.4, 1);
   // a grand-prix surface is darker and finer, so the white lines stand out
-  const roadMat = mat(C.sport ? 0x8c8e92 : 0xffffff, {
+  const roadMat = mat(C.sport ? 0xaeb0b4 : 0xffffff, {
     map: rt, normal: rn, normalScale: 1.15, rough: 0.93, metal: 0.03, env: 0.35,
   });
   ribbon((i) => -W_(i), W_, 0.02, roadMat, 0.11, true);
@@ -5316,8 +5316,10 @@ function buildRoadMesh(C) {
   const lineC = C.sport ? 0xffffff : 0xd8d0bc, lineW = C.sport ? 0.5 : 0.42;
   edgeRibbon((i) => W_(i) - 0.62, lineW, 0.045, lineC, false);
   edgeRibbon((i) => -W_(i) + 0.62, lineW, 0.045, lineC, false);
-  // a grand-prix road has no centre line, and has kerbs
-  if (C.sport) buildKerbs();
+  // a grand-prix road has no centre line, and has kerbs — and the marks of
+  // a race weekend: the rubbered-in racing line, skid marks into the braking
+  // zones, and on a street circuit the town's own faded lane markings
+  if (C.sport) { buildKerbs(); buildRoadMarks(C); }
   else edgeRibbon(0, 0.3, 0.045, 0xbcb49c, true);
 
   // start / finish
@@ -5367,10 +5369,43 @@ function edgeRibbon(offset, width, y, color, dashed) {
   vAdd(mesh);
 }
 
+/* A barrier segment that would stand in the road. On the inside of a tight
+   hairpin the wall's line (the road's edge plus the set-back) folds back on
+   itself and crosses the other leg of the hairpin; those few metres of wall
+   are simply not built — the inside of a real hairpin is kerb and run-off. */
+function wallIntrudes(i, side) {
+  const N = TRACK.N, s = sAt(i);
+  const w = side > 0 ? s.wallP : s.wallN;
+  const px = s.p.x + s.n.x * w * side, pz = s.p.z + s.n.z * w * side;
+  const cx = Math.floor(px / TGRID), cz = Math.floor(pz / TGRID);
+  for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+    const a = TRACK.grid && TRACK.grid.get((cx + dx) + ',' + (cz + dz));
+    if (!a) continue;
+    for (const q of a) {
+      let di = Math.abs(q.i - i); di = Math.min(di, N - di);
+      if (di * TRACK.step < 25) continue;
+      const lat = Math.abs((px - q.p.x) * q.n.x + (pz - q.p.z) * q.n.z);
+      const along = Math.abs((px - q.p.x) * q.t.x + (pz - q.p.z) * q.t.z);
+      if (lat < q.w + 0.6 && along < TRACK.step * 1.5) return true;
+    }
+  }
+  return false;
+}
+function wallSkips() {
+  if (TRACK.skip && TRACK.skip.N === TRACK.N && TRACK.skip.C === TRACK.C) return TRACK.skip;
+  const S = { N: TRACK.N, C: TRACK.C, p: new Uint8Array(TRACK.N), n: new Uint8Array(TRACK.N) };
+  for (let i = 0; i < TRACK.N; i++) {
+    if (wallIntrudes(i, 1)) for (let j = -2; j <= 2; j++) S.p[((i + j) % TRACK.N + TRACK.N) % TRACK.N] = 1;
+    if (wallIntrudes(i, -1)) for (let j = -2; j <= 2; j++) S.n[((i + j) % TRACK.N + TRACK.N) % TRACK.N] = 1;
+  }
+  return (TRACK.skip = S);
+}
+
 function buildBarriers() {
   const N = TRACK.N, H = 1.55;
   const sport = !!(TRACK.C && TRACK.C.sport);
   if (sport) sponsorStrip();
+  const SK = sport ? wallSkips() : null;
   const ct = TEX.concrete.clone(); ct.needsUpdate = true;
   ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(1, 0.4);
   for (const side of [1, -1]) {
@@ -5380,6 +5415,7 @@ function buildBarriers() {
     for (let i = 0; i < N; i++) {
       // the pit straight's right-hand barrier is the pit wall (§12e)
       if (sport && side < 0 && inPitSpan(i)) continue;
+      if (SK && (side > 0 ? SK.p[i] : SK.n[i])) continue;
       const a = sAt(i), b = sAt(i + 1);
       const ha = hw(i) * side, hb = hw((i + 1) % N) * side;
       const ax = a.p.x + a.n.x * ha, az = a.p.z + a.n.z * ha;
@@ -5403,8 +5439,16 @@ function buildBarriers() {
     g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
     g.setIndex(idx);
     g.computeVertexNormals();
+    // the boards face the road only; the back of the wall is plain concrete
+    // (drawn double-sided, the far side of a wall across the infield showed
+    // every sponsor back to front)
+    if (sport) {
+      const back = new THREE.Mesh(g, mat(0x7a7870, { map: ct, rough: 0.95, metal: 0.05, env: 0.3, side: THREE.BackSide }));
+      back.receiveShadow = true;
+      vAdd(back);
+    }
     const wall = new THREE.Mesh(g, sport
-      ? mat(0xffffff, { map: SPON.strip, rough: 0.6, metal: 0.05, env: 0.5, side: THREE.DoubleSide })
+      ? mat(0xffffff, { map: SPON.strip, rough: 0.6, metal: 0.05, env: 0.5, side: THREE.FrontSide })
       : mat(0x9c9078, { map: ct, rough: 0.95, metal: 0.05, env: 0.35, side: THREE.DoubleSide }));
     if (sport) {
       // LED boards: they light themselves, so they read in shade and at speed
@@ -5421,6 +5465,7 @@ function buildBarriers() {
     const capPos = [], capIdx = [], colors = [];
     let cq = 0;
     for (let i = 0; i < N; i++) {
+      if (SK && (side > 0 ? SK.p[i] : SK.n[i])) continue;
       const a = sAt(i), b = sAt(i + 1);
       const ha = hw(i) * side, hb = hw((i + 1) % N) * side;
       const ax = a.p.x + a.n.x * ha, az = a.p.z + a.n.z * ha;
@@ -7816,6 +7861,93 @@ function buildTufts() {
   });
 }
 
+/* Rubber and paint on a race-weekend road. All of it is thin translucent
+   ribbons laid just over the asphalt:
+     the racing line   a dark band where the cars run, inside at the apexes,
+                       with the two darker tyre tracks along it
+     skid marks        black streaks on the way into every slow corner
+     street markings   faded dashed lane lines down the straights, as on a
+                       town street that is a circuit for the weekend      */
+function buildRoadMarks(C) {
+  const N = TRACK.N;
+  // the racing line: towards the inside of each bend, smoothed so it swings
+  // across the road through the straight before and after
+  const k = new Float32Array(N), line = new Float32Array(N);
+  for (let i = 0; i < N; i++) k[i] = sAt(i).k;
+  for (let i = 0; i < N; i++) {
+    let a = 0;
+    for (let j = -45; j <= 45; j++) a += k[(i + j + N) % N] * (1 - Math.abs(j) / 46);
+    const kk = a / 23;
+    line[i] = sgn(kk) * sAt(i).w * 0.58 * clamp(Math.abs(kk) * 420, 0, 1);
+  }
+  for (let pass = 0; pass < 3; pass++) {
+    const tmp = Float32Array.from(line);
+    for (let i = 0; i < N; i++) { let a = 0; for (let j = -12; j <= 12; j++) a += tmp[(i + j + N) % N]; line[i] = a / 25; }
+  }
+  const band = (fo, width, y, color, opacity, keep) => {
+    const pos = [], idx = [];
+    let q = 0;
+    for (let i = 0; i < N; i++) {
+      if (keep && !keep(i)) continue;
+      const a = sAt(i), b = sAt(i + 1);
+      const oa = fo(i), ob = fo((i + 1) % N);
+      pos.push(a.p.x + a.n.x * (oa + width), y, a.p.z + a.n.z * (oa + width), a.p.x + a.n.x * (oa - width), y, a.p.z + a.n.z * (oa - width));
+      pos.push(b.p.x + b.n.x * (ob + width), y, b.p.z + b.n.z * (ob + width), b.p.x + b.n.x * (ob - width), y, b.p.z + b.n.z * (ob - width));
+      const o = q * 4;
+      idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
+      q++;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setIndex(idx); g.computeVertexNormals();
+    const m = new THREE.MeshStandardMaterial({ color: SRGB(color), roughness: 0.9, metalness: 0, transparent: true, opacity: opacity, depthWrite: false,
+      polygonOffset: true, polygonOffsetFactor: -1 });
+    const me = new THREE.Mesh(g, m);
+    me.receiveShadow = true; me.renderOrder = 1;
+    vAdd(me);
+  };
+  const L = (i) => line[((i % N) + N) % N];
+  band(L, 1.6, 0.031, 0x16171a, 0.40);                             // the rubbered line
+  band((i) => L(i) + 0.85, 0.24, 0.033, 0x0c0c0d, 0.50);           // the tyre tracks in it
+  band((i) => L(i) - 0.85, 0.24, 0.033, 0x0c0c0d, 0.50);
+  // skid marks: in the 120 m before every slow corner, a few pairs of streaks
+  const pb = { pos: [], idx: [], q: 0 };
+  const streak = (i0, len, off, w) => {
+    for (let j = 0; j < len; j++) {
+      const i = i0 + j, a = sAt(i), b = sAt(i + 1);
+      const oa = L(i) + off + Math.sin(j * 0.35) * 0.06, ob = L(i + 1) + off + Math.sin((j + 1) * 0.35) * 0.06;
+      const wa = w * (j < 2 ? j / 2 : j > len - 3 ? (len - j) / 3 : 1);
+      pb.pos.push(a.p.x + a.n.x * (oa + wa), 0.034, a.p.z + a.n.z * (oa + wa), a.p.x + a.n.x * (oa - wa), 0.034, a.p.z + a.n.z * (oa - wa));
+      pb.pos.push(b.p.x + b.n.x * (ob + wa), 0.034, b.p.z + b.n.z * (ob + wa), b.p.x + b.n.x * (ob - wa), 0.034, b.p.z + b.n.z * (ob - wa));
+      const o = pb.q * 4;
+      pb.idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2);
+      pb.q++;
+    }
+  };
+  const K = C.pts.length;
+  for (let c = 0; c < K; c++) {
+    if (C.pts[c][2] > 70) continue;
+    const apex = idxAt(c);
+    for (let s = 0; s < 7; s++) {
+      const start = idxAhead(apex, -rand(20, 120)), len = randi(8, 26), off = rand(-1.4, 1.4);
+      streak(start, len, off + 0.8, 0.13); streak(start, len, off - 0.8, 0.13);
+    }
+  }
+  if (pb.q) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pb.pos, 3));
+    g.setIndex(pb.idx); g.computeVertexNormals();
+    const me = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: SRGB(0x060606), roughness: 0.8, transparent: true, opacity: 0.7, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+    me.renderOrder = 2;
+    vAdd(me);
+  }
+  // street markings: faded dashed lane lines down the straights
+  const straight = (i) => { for (let j = -8; j <= 8; j += 4) if (Math.abs(sAt(i + j).k) > 0.0018) return false; return true; };
+  const dash = (i) => straight(i) && Math.floor(i * TRACK.step / 6) % 2 === 0 && !inPitSpan(i);
+  band((i) => sAt(i).w / 3, 0.09, 0.036, 0xe8e8e4, 0.55, dash);
+  band((i) => -sAt(i).w / 3, 0.09, 0.036, 0xe8e8e4, 0.55, dash);
+}
+
 /* the catch fence along every barrier that stands at the road's edge */
 function buildCatchFence() {
   const N = TRACK.N, H0 = 1.55, H1 = 4.9;
@@ -7830,6 +7962,7 @@ function buildCatchFence() {
       const ha = side > 0 ? a.wallP : a.wallN, hb = side > 0 ? b.wallP : b.wallN;
       if (ha > a.w + CFG.wallSetback + 1 || hb > b.w + CFG.wallSetback + 1) continue;   // open run-off: no fence
       if (side < 0 && inPitSpan(i)) continue;                                           // the pit lane
+      if (side > 0 ? wallSkips().p[i] : wallSkips().n[i]) continue;                      // folded into the road
       const ax = a.p.x + a.n.x * ha * side, az = a.p.z + a.n.z * ha * side;
       const bx = b.p.x + b.n.x * hb * side, bz = b.p.z + b.n.z * hb * side;
       pos.push(ax, H0, az, ax, H1, az, bx, H0, bz, bx, H1, bz);
@@ -8080,7 +8213,10 @@ const SPON_BG = { ndhlovu: NDH_BLACK, games: '#4a0d6e', prime: '#05080b', watch:
    1024 px a board is about 100 px a metre, the same as the wall is tall. */
 function sponsorStrip() {
   if (SPON.strip) return SPON.strip;
-  const bw = 1024, gap = 96, bh = 160, n = SPON_ORDER.length;
+  // board after board, no gaps: each the art's own 4:1 (the wall is 1.55 m
+  // tall, so a board is 6.2 m long); the black margins and the plain
+  // panels between boards are gone
+  const bw = 640, gap = 0, bh = 160, n = SPON_ORDER.length;
   const { c, x } = makeCanvas((bw + gap) * n, bh);
   const t = tex(c);
   // the Blender-rendered boards (sponsors.py), drawn in as each one loads;
@@ -8092,8 +8228,7 @@ function sponsorStrip() {
     const art = typeof gpImgTex === 'function' ? gpImgTex('sp_' + k) : null;
     const img = art && art.image;
     if (img && img.complete && img.naturalWidth) {
-      x.fillStyle = '#000'; x.fillRect(ox, 0, bw, bh);
-      x.drawImage(img, ox + (bw - bh * 4) / 2, 0, bh * 4, bh);
+      x.drawImage(img, ox, 0, bw, bh);
     } else {
       drawBoard(x, k, ox + (bw - lw) / 2, (bh - lh) / 2, lw, lh);
       if (img && !img._strip) { img._strip = true; img.addEventListener('load', () => { draw(); t.needsUpdate = true; }); }
@@ -8106,7 +8241,7 @@ function sponsorStrip() {
   });
   draw();
   t.wrapT = THREE.ClampToEdgeWrapping;
-  SPON.strip = t; SPON.stripLen = n * 10.94;
+  SPON.strip = t; SPON.stripLen = n * 6.2;
   return t;
 }
 
