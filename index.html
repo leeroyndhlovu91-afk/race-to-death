@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.17.0 · 2026-10-07 10:32 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.17.1 · 2026-10-08 07:18 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.17.0   (built 2026-10-07 10:32)
+   RACE TO DEATH  v3.17.1   (built 2026-10-08 07:18)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.17.0',
+  version: '3.17.1',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -13613,22 +13613,30 @@ const PIT = { path: null, entry: -150, limitIn: -95, exitLimit: 45, end: 105, bo
 
 /* ------------------------------- tyres ------------------------------- */
 function tyreSet(c, k) {
-  c.tyre = k; c.tw = 0;
+  c.tyre = k; c.tw = 0; c.twWarned = false;
   c.used = c.used || {}; c.used[k] = true;
   c.tyreGrip = TYRES[k].grip;
   if (c.tyreBand) for (const m of c.tyreBand) m.color.copy(SRGB(TYRES[k].col));
 }
+/* worn tyres fade steadily — slower and slidier, never undriveable. The
+   first version fell off a cliff past 60% (down to 70% grip), and a drifted
+   set got there by lap three: the car simply stopped turning. */
 function tyreGripOf(c) {
   const w = c.tw;
-  const drop = w < 0.6 ? w * 0.06 : 0.036 + (w - 0.6) * 0.42;
-  return TYRES[c.tyre].grip * (1 - Math.min(0.30, drop));
+  const drop = w * 0.10 + Math.max(0, w - 0.7) * 0.12;
+  return TYRES[c.tyre].grip * (1 - Math.min(0.18, drop));
 }
 function tyreTick(c, dt) {
   if (!c.tyre || c.pit) return;
   const km = Math.abs(c.speed) * dt / 1000;
-  const stress = 1 + (c.slip || 0) * 1.5 + Math.min(1, Math.abs(c.ay || 0) / 40) * 0.6 + (c.wheelSpin || 0) * 0.8;
+  // sliding wears them a bit faster, not two or three times faster
+  const stress = 1 + Math.min(0.6, (c.slip || 0) * 0.7) + Math.min(1, Math.abs(c.ay || 0) / 40) * 0.4 + (c.wheelSpin || 0) * 0.5;
   c.tw = Math.min(1.2, c.tw + (km / TYRES[c.tyre].life) * stress);
   c.tyreGrip = tyreGripOf(c);
+  if (c.isPlayer && c.tw > 0.7 && !c.twWarned && !c.boxReq && G.laps + 1 - c.progress > 0.8) {
+    c.twWarned = true;
+    hint('TYRES WORN &mdash; <b>BOX FOR TYRES</b> &middot; ' + (PAD.on ? '<kbd>&#9650;</kbd>' : '<kbd>B</kbd>'), 3.5);
+  }
 }
 
 /* -------------------------------- the pit lane -----------------------
@@ -14426,7 +14434,7 @@ const DMG_PARTS = { fwL: 'FRONT WING (L)', fwR: 'FRONT WING (R)', rw: 'REAR WING
 
 function f1DmgReset(c) {
   c.f1d = { fwL: 0, fwR: 0, rw: 0, fl: 0 };
-  c.cwarn = 0; c.judged = {};
+  c.cwarn = 0; c.judged = {}; c.noseWarned = false;
   f1DmgLook(c);
 }
 
@@ -14435,10 +14443,12 @@ function f1DmgGrip(c) {
   const D = c.f1d;
   if (!D) return null;
   const fw = (Math.min(1, D.fwL) + Math.min(1, D.fwR)) * 0.5;
+  // half what it first cost: a broken wing makes the car push, it does not
+  // stop it turning
   return {
-    f: 1 - fw * 0.13 - D.fl * 0.035,
-    r: 1 - D.rw * 0.10 - D.fl * 0.035,
-    down: 1 - fw * 0.22 - D.rw * 0.26 - D.fl * 0.10,
+    f: 1 - fw * 0.065 - D.fl * 0.018,
+    r: 1 - D.rw * 0.05 - D.fl * 0.018,
+    down: 1 - fw * 0.11 - D.rw * 0.13 - D.fl * 0.05,
   };
 }
 
@@ -14470,7 +14480,11 @@ function f1DmgHit(c, part, amt, at) {
     }
   }
   f1DmgLook(c);
-  if (c.isPlayer && D[part] - was > 0.08 && !(was < 0.75 && D[part] >= 0.75)) {
+  // the first time the nose is badly hurt, say so plainly
+  if (c.isPlayer && (part === 'fwL' || part === 'fwR') && was < 0.4 && D[part] >= 0.4 && D[part] < 0.75 && !c.noseWarned) {
+    c.noseWarned = true;
+    announce('FRONT WING DAMAGED', 'BOX FOR A NEW NOSE');
+  } else if (c.isPlayer && D[part] - was > 0.08 && !(was < 0.75 && D[part] >= 0.75)) {
     hint('<b>' + DMG_PARTS[part] + '</b> DAMAGE &mdash; ' + Math.round(D[part] * 100) + '%', 2.2);
   }
   // the AI comes in for a nose when it has lost a lot of it
@@ -14489,22 +14503,22 @@ function f1DmgPart(c, lx, lz) {
 
 /* a wall: impact is the speed into it. Glancing scrapes cost nothing. */
 function f1WallHit(c, impact, wx, wz) {
-  if (!c.f1d || impact < 6) return;
+  if (!c.f1d || impact < 9) return;            // brushing a wall in a slide is free
   const f = c.forward(_dmA), l = c.left(_dmB);
   const into = f.x * wx + f.z * wz, side = l.x * wx + l.z * wz;
   const part = into > 0.35 ? (side >= 0 ? 'fwL' : 'fwR') : into < -0.5 ? 'rw' : 'fl';
   const k = part === 'fl' ? 0.005 : 0.028;
-  f1DmgHit(c, part, (impact - 6) * k * DIFF_K().dmg(c), _dmC.set(c.pos.x + wx * 1.4, 0, c.pos.z + wz * 1.4));
+  f1DmgHit(c, part, (impact - 9) * k * DIFF_K().dmg(c), _dmC.set(c.pos.x + wx * 1.4, 0, c.pos.z + wz * 1.4));
 }
 
 /* a corner of the car caught on the wall in a tight spot */
 function f1CornerHit(c, impact, fx, lx, px, pz) {
   // a front corner is the wing; a rear one sliding into the wall is the
   // corner of the floor, not the rear wing — that needs the car going backwards
-  if (!c.f1d || impact < 6) return;
+  if (!c.f1d || impact < 9) return;
   const back = c.speed < -2;
   const part = fx > 0 ? (lx > 0 ? 'fwL' : 'fwR') : back ? 'rw' : 'fl';
-  f1DmgHit(c, part, (impact - 6) * (part === 'fl' ? 0.006 : 0.028) * DIFF_K().dmg(c), _dmC.set(px, 0, pz));
+  f1DmgHit(c, part, (impact - 9) * (part === 'fl' ? 0.006 : 0.028) * DIFF_K().dmg(c), _dmC.set(px, 0, pz));
 }
 
 /* two cars: damage where each one was touched, then the stewards */
@@ -14515,8 +14529,9 @@ function f1CarHit(A, B, H, closing, nx, nz) {
     const cs = Math.cos(c.yaw), sn = Math.sin(c.yaw);
     return [dx * cs - dz * sn, dx * sn + dz * cs];
   };
-  // rubbing is racing: nothing under 5 m/s of closing speed
-  const amt = Math.max(0, closing - 5) * 0.04;
+  // rubbing is racing: nothing under 8 m/s (about 30 km/h) of closing speed,
+  // so drifting into a car alongside costs paint, not a wing
+  const amt = Math.max(0, closing - 8) * 0.04;
   const at = _dmC.set(H.cx, 0, H.cz);
   const la = local(A), lb = local(B);
   const pa = f1DmgPart(A, la[0], la[1]), pb = f1DmgPart(B, lb[0], lb[1]);
@@ -14573,7 +14588,7 @@ function f1CarHit(A, B, H, closing, nx, nz) {
 function f1NoseChange(c) {
   const D = c.f1d;
   if (!D || (D.fwL < 0.15 && D.fwR < 0.15)) return 0;
-  D.fwL = 0; D.fwR = 0;
+  D.fwL = 0; D.fwR = 0; c.noseWarned = false;
   f1DmgLook(c);
   return 5;
 }
