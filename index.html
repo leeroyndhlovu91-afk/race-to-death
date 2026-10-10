@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.19.1 · 2026-10-10 17:44 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.20.0 · 2026-10-10 19:58 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.19.1   (built 2026-10-10 17:44)
+   RACE TO DEATH  v3.20.0   (built 2026-10-10 19:58)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.19.1',
+  version: '3.20.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -4815,7 +4815,7 @@ const STOCK_CIRCUITS = [
     ],
     start: 2.5,
     bankBase: 6, bank: [[2.62, 4.38, 26, 30], [0.62, 2.38, 26, 30]],
-    apron: 6, pitLimit: 13.4, laps: 40, stages: [10, 20], concrete: true,
+    apron: 6, pitLimit: 22, laps: 40, stages: [10, 20], concrete: true,
     panels: [], traps: [], barrels: [], mood: OVAL_MOOD,
   },
   {
@@ -8472,6 +8472,68 @@ function ovalPitSetup(C) {
   PIT.side = 1;
   PIT.laneOff = (s) => s.w + (C.apron || 8) + 6.5;
   PIT.edgeOff = (s) => s.w - 2.4;
+  PIT.zones = null;
+  if (C.kind === 'bowl') {
+    // Bristol's way: the only short track with stalls on BOTH straights. Pit
+    // road starts at the exit of turn 2, runs the backstretch stalls, round the
+    // inside of turns 3 and 4, down the frontstretch stalls and out in turn 1
+    // (the caution route every car uses there). Distances from the line,
+    // measured so the backstretch sits round -L/2.
+    const runs = [], step = TRACK.step, N = TRACK.N;
+    const dOf = (i) => ((((i * step + 0.75 * L) % L) + L) % L) - 0.75 * L;
+    let cur = null;
+    for (let i = 0; i <= N; i++) {
+      const st = Math.abs(sAt(i).k) < 2e-4;
+      if (st && !cur) cur = [dOf(i), dOf(i)];
+      else if (st) cur[1] = dOf(i);
+      if ((!st || i === N) && cur) { if (cur[1] - cur[0] > 60) runs.push(cur); cur = null; }
+    }
+    const front = runs.find((r) => r[0] < 0 && r[1] > 0) || [-100, 100];
+    const back = runs.find((r) => r[1] < -L * 0.25) || [-L * 0.62, -L * 0.38];
+    PIT.entry = back[0] - 6; PIT.limitIn = back[0] + 40;
+    PIT.exitLimit = front[1] - 10; PIT.end = front[1] + 45;
+    PIT.zones = [[back[0] + 48, back[1] - 10], [front[0] + 10, PIT.exitLimit - 8]];
+  }
+}
+
+/* the rubber the field lays down: a dark groove where the cars run (low in
+   the turns, wider off the corners) and a fainter second one up the track,
+   both soft-edged and patchy, laid on the banking */
+function ovalGrooves(C) {
+  const N = TRACK.N;
+  const { c, x } = makeCanvas(64, 512);
+  for (let y = 0; y < 512; y++) {
+    for (let xx = 0; xx < 64; xx++) {
+      const u = xx / 63, edge = Math.sin(Math.PI * u);
+      const a = edge * edge * (0.55 + 0.45 * Math.sin(y * 0.11 + Math.sin(y * 0.031) * 3)) * (0.75 + Math.random() * 0.25);
+      x.fillStyle = 'rgba(8,8,9,' + (a * 0.5).toFixed(3) + ')'; x.fillRect(xx, y, 1, 1);
+    }
+  }
+  const t = new THREE.CanvasTexture(c); t.wrapT = THREE.RepeatWrapping;
+  const m = new THREE.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+  const ribbon = (latF, half, op) => {
+    const pos = [], uv = [], idx = [];
+    for (let i = 0; i <= N; i++) {
+      const s = sAt(i), k = Math.abs(s.k);
+      // low in the turns, drifting up the track down the straights
+      const lat = s.w * (k > 0.0012 ? latF : latF - 0.25);
+      for (const [o, u] of [[-half, 0], [half, 1]]) {
+        const l = lat + o;
+        pos.push(s.p.x + s.n.x * l, roadY(i % N, l) + 0.025, s.p.z + s.n.z * l);
+        uv.push(u, s.d / 40);
+      }
+      if (i) { const q = (i - 1) * 2; idx.push(q, q + 2, q + 1, q + 1, q + 2, q + 3); }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setIndex(idx);
+    const mm = m.clone(); mm.opacity = op;
+    const me = new THREE.Mesh(g, mm); me.renderOrder = 1;
+    vAdd(me);
+  };
+  ribbon(0.38, 2.6, 1.0);         // the bottom groove
+  ribbon(-0.25, 2.2, 0.55);       // the second lane up the banking
 }
 
 function dressOval(C) {
@@ -8481,6 +8543,7 @@ function dressOval(C) {
   const latW = OVAL.latWall || ((i) => -(sAt(i).w + 0.45));
   const wallTop = (i) => roadY(i, latW(i)) + 1.25;
   ovalPitSetup(C);
+  ovalGrooves(C);
 
   // ---- grandstands along the outside: the whole lap at the bowl, the front
   // stretch and into the turns everywhere else ----
@@ -8751,7 +8814,7 @@ function buildOvalPitRoad(C, K, M) {
   for (let d = PIT.entry; d <= PIT.end; d += 3) {
     pitPoint(d, a); pitPoint(d + 3, b);
     const tx = b.x - a.x, tz = b.z - a.z, tl = Math.hypot(tx, tz) || 1;
-    const nx = tz / tl, nz = -tx / tl, hw = 5.0;
+    const nx = tz / tl, nz = -tx / tl, hw = 6.2;
     pos.push(a.x + nx * hw, 0.02, a.z + nz * hw, a.x - nx * hw, 0.02, a.z - nz * hw);
     if (q) { const o = (q - 1) * 2; idx.push(o, o + 1, o + 2, o + 1, o + 3, o + 2); }
     q++;
@@ -8765,7 +8828,7 @@ function buildOvalPitRoad(C, K, M) {
   // the pit wall on the infield side of the lane (the crews go over it);
   // the Blender pit boxes bring their own, so this only fills in without them
   for (let d = PIT.limitIn; d < PIT.exitLimit && !(K && K.ov_pitbox); d += 6) {
-    const s = sAt(idxAhead(0, d)), o = lane(s) + 5.4;
+    const s = sAt(idxAhead(0, d)), o = lane(s) + 6.2;
     const F = frameAt(s.p.x + s.n.x * o, 0, s.p.z + s.n.z * o, Math.atan2(s.t.x, s.t.z));
     put(pb, F, gBox(0.8, 1.05, 6.0), M.white, 0, 0.52, 0);
     put(pb, F, gBox(0.82, 0.12, 6.02), M.pit_wall, 0, 1.1, 0);
@@ -8775,15 +8838,26 @@ function buildOvalPitRoad(C, K, M) {
   // the stalls against the wall, outlined in yellow with the car's number
   // painted in its box and its colours on its cart and its stretch of wall
   PIT.boxes = {};
-  const zone = PIT.exitLimit - PIT.limitIn - 40;
-  const S = clamp(zone / STOCK_GARAGE.length, 7.2, 10.5);
-  const first = PIT.limitIn + 20 + (zone - S * STOCK_GARAGE.length) / 2;
+  const zones = PIT.zones || [[PIT.limitIn + 20, PIT.exitLimit - 20]];
+  const total = zones.reduce((a, z) => a + (z[1] - z[0]), 0);
+  const S = clamp(total / STOCK_GARAGE.length, 7.2, 10.5);
+  // the stalls, zone by zone, each zone filled from its middle
+  const spots = [];
+  {
+    let left = STOCK_GARAGE.length;
+    zones.forEach((z, zi) => {
+      const n = zi === zones.length - 1 ? left : Math.min(left, Math.round(STOCK_GARAGE.length * (z[1] - z[0]) / total));
+      const first = z[0] + ((z[1] - z[0]) - S * n) / 2;
+      for (let j = 0; j < n; j++) spots.push(first + (j + 0.5) * S);
+      left -= n;
+    });
+  }
   const yel = mat(0xb8961c, { rough: 0.8, env: 0.1 });
   const sd = PIT.side || 1;
   STOCK_GARAGE.forEach((k, n) => {
-    const d = first + (n + 0.5) * S;
+    const d = spots[n];
     PIT.boxes[k] = d;
-    const s = sAt(idxAhead(0, d)), o = lane(s) + 5.4;
+    const s = sAt(idxAhead(0, d)), o = lane(s) + 6.2;
     const e = ROSTER[k].field;
     const team = mat(hexInt(e.colours.base), { rough: 0.6, env: 0.3 });
     if (K && K.ov_pitbox) {
@@ -8803,7 +8877,7 @@ function buildOvalPitRoad(C, K, M) {
     const nm = stallNumberMat(e);
     const q = new THREE.Mesh(STALL_NUM_GEO || (STALL_NUM_GEO = new THREE.PlaneGeometry(1.5, 1.5).rotateX(-Math.PI / 2)), nm);
     // ahead of the nose, by the wall, so the car never parks on it
-    const nl = lane(s) + sd * 3.9, sn = sAt(idxAhead(0, d + S / 2 - 1.0));
+    const nl = lane(s) + sd * 4.9, sn = sAt(idxAhead(0, d + S / 2 - 1.0));
     q.position.set(sn.p.x + sn.n.x * nl, 0.04, sn.p.z + sn.n.z * nl);
     q.scale.setScalar(0.8);
     q.rotation.y = Math.atan2(s.n.x, s.n.z) * 0 + Math.atan2(-s.n.x * sd, -s.n.z * sd);
@@ -8811,8 +8885,9 @@ function buildOvalPitRoad(C, K, M) {
     vAdd(q);
   });
   // the line between the fast lane and the stalls, all the way down
-  for (let d = first; d < first + S * STOCK_GARAGE.length; d += 3) {
-    const s = sAt(idxAhead(0, d)), cl = lane(s) + sd * 0.15;
+  for (let d = Math.min.apply(null, spots) - S / 2; d < Math.max.apply(null, spots) + S / 2; d += 3) {
+    if (!spots.some((q) => Math.abs(q - d) < S * 0.6)) continue;
+    const s = sAt(idxAhead(0, d)), cl = lane(s) + sd * 1.0;
     const F = frameAt(s.p.x + s.n.x * cl, 0, s.p.z + s.n.z * cl, Math.atan2(s.t.x, s.t.z));
     put(pb, F, gBox(0.14, 0.02, 3.05), STALL_LINE || (STALL_LINE = mat(0xa8a8a4, { rough: 0.9, env: 0.1 })), 0, 0.034, 0);
   }
@@ -11149,7 +11224,7 @@ function stockKit() {
 
 const STOCK_BASE = {
   m: 1550, wb: 2.79, wd: 0.54, cg: 0.42, muF: 1.45, muR: 1.52, stF: 10.5, stR: 13.0,
-  pw: 23500, br: 19500, bb: 0.70, st: 0.36, sr: 2.6, df: 0.42, cd: 0.88, esp: 2.6, cyl: 8, hp: 670, nos: 1, wpn: 0,
+  pw: 23500, br: 19500, bb: 0.70, st: 0.36, sr: 2.6, df: 0.42, cd: 0.88, esp: 2.6, cyl: 8, hp: 670, nos: 1.32, wpn: 0,
   gears: [2.85, 1.95, 1.50, 1.20, 1.00], final: 3.70, redline: 9400, idle: 1100, wr: 0.356,
   snd: { deep: 0.55, lope: 0.34, rasp: 0.82, idle: 1000, red: 8800, seed: 101 },
 };
@@ -11552,9 +11627,10 @@ function buildNascarCar(def, out, ch, M, wheels, g) {
       wheels.push({ holder: holder, spin: spin, face: null, front: front, y0: r });
     }
   } else addWheels(g, wheels, r, w, af, ar, tr, undefined, false, true);
-  out.length = D_(STOCK_DIMS.zf, 2.45) - D_(STOCK_DIMS.zr, -2.45);
-  out.width = 2.0;
-  out.hitWid = 1.0;
+  // the collision box is the car you see: splitter to diffuser, mirror to mirror
+  out.length = D_(STOCK_DIMS.zf, 2.45) - D_(STOCK_DIMS.zr, -2.45) + 0.16;
+  out.width = 2.12;
+  out.hitWid = 1.06;
   // the contact shadows: one soft patch under the whole car, one under each
   // tyre, lying on the road in the car's frame (they tilt with it on the banking)
   {
@@ -12112,8 +12188,12 @@ class Car {
       // so the drive barely dips. The old 0.22 s cut on every upshift made the
       // car surge and squat, surge and squat â€” the rocking back and forth.
       const f1 = this.spec.f1;
-      if (rpm > P.redline * 0.95 && this.gear < P.gears.length - 1) { this.gear++; this.shiftT = f1 ? 0.035 : 0.22; }
-      else if (rpm < P.redline * 0.48 && this.gear > 0) { this.gear--; this.shiftT = f1 ? 0.03 : 0.16; }
+      // race cars (F1, and the stock cars' sequential box) shift in a blink and
+      // keep most of the drive: a fifth of a second of nothing nodded the car
+      // forward and back on every change
+      const quick = f1 || this.spec.stock;
+      if (rpm > P.redline * 0.95 && this.gear < P.gears.length - 1) { this.gear++; this.shiftT = quick ? 0.045 : 0.22; }
+      else if (rpm < P.redline * 0.48 && this.gear > 0) { this.gear--; this.shiftT = quick ? 0.04 : 0.16; }
     }
     this.rpm = clamp(rpm, P.idle, P.redline);
 
@@ -12133,11 +12213,14 @@ class Car {
     // ---------- nitrous ----------
     // The boost tapers off as the car approaches its boosted terminal speed,
     // so it is a shove out of corners rather than an infinite top end.
-    const canNos = inp.nos && !this.spec.stock && this.nos > 0.05 && throttle > 0.1 && vx > 2;
+    // stock cars run nitrous too (a game call, not the rule book): no boost under yellow or in the pits
+    const canNos = inp.nos && this.nos > 0.05 && throttle > 0.1 && vx > 2 && !(this.spec.stock && (STOCK.phase !== 'green' || this.pit));
     this.nosOn = canNos;
     if (canNos) this.nos = Math.max(0, this.nos - dt * 0.16 / this.nosEff);   // ~6s of boost
     // an F1 car's energy store charges under braking, like the real thing
     else if (this.spec.f1 && brake > 0) this.nos = Math.min(1, this.nos + dt * 0.10 * brake * this.nosEff);
+    // a stock car fills its bottle in the draft: tuck in behind somebody and it charges
+    else if (this.spec.stock) this.nos = Math.min(1, this.nos + dt * (0.008 + (this.draft || 0) * 0.16) * this.nosEff);
     else this.nos = Math.min(1, this.nos + dt * 0.012);            // bare trickle — drift is the real source
     let boost = 1;
     if (canNos) {
@@ -12146,7 +12229,7 @@ class Car {
     }
 
     let Fdrive = 0;
-    if (this.shiftT <= 0 || this.spec.f1) Fdrive = throttle * P.pw * (this.pwK || 1) * tq * gearScale * boost * (this.ai && !this.isPlayer && !this.remote ? DIFF_K().power : 1) * (this.shiftT > 0 ? 0.85 : 1);
+    if (this.shiftT <= 0 || this.spec.f1 || this.spec.stock) Fdrive = throttle * P.pw * (this.pwK || 1) * tq * gearScale * boost * (this.ai && !this.isPlayer && !this.remote ? DIFF_K().power : 1) * (this.shiftT > 0 ? 0.85 : 1);
     if (throttle < 0) Fdrive = throttle * P.pw * 0.42;     // reverse
     if (this.oiled > 0) Fdrive *= 0.5;
 
@@ -12414,7 +12497,8 @@ class Car {
     // body attitude from actual accelerations
     // an F1 car is a stiff, low thing on its downforce: a degree of pitch and
     // roll at most, eased, never the five-degree nod of a muscle car
-    const f1v = this.spec.f1;
+    // (a stock car the same: stiff springs, a low centre, a degree or two at most)
+    const f1v = this.spec.f1 || this.spec.stock;
     const rollT = f1v ? clamp(this.ay / G_ACC * 0.012, -0.02, 0.02) : clamp(this.ay / G_ACC * 0.105, -0.13, 0.13);
     const pitchT = f1v ? clamp(-this.ax / G_ACC * 0.010, -0.018, 0.018) : clamp(-this.ax / G_ACC * 0.070, -0.10, 0.10);
     this.roll += (rollT - this.roll) * damp(f1v ? 5 : 9, dt);
@@ -12904,10 +12988,10 @@ function resolveCarCollisions(dt) {
   for (let pass = 0; pass < 2; pass++) {
     for (let a = 0; a < cars.length; a++) {
       const A = cars[a];
-      if (!A.alive || A.airY > 1.4 || A.pit || A.netPit) continue;
+      if (!A.alive || A.airY > 1.4 || (A.pit && !pitSolid(A)) || A.netPit) continue;
       for (let b = a + 1; b < cars.length; b++) {
         const B = cars[b];
-        if (!B.alive || B.airY > 1.4 || B.pit || B.netPit) continue;
+        if (!B.alive || B.airY > 1.4 || (B.pit && !pitSolid(B)) || B.netPit) continue;
         if (A.remote && B.remote) continue;          // two other machines' cars: theirs to sort out
         const dx = B.pos.x - A.pos.x, dz = B.pos.z - A.pos.z;
         const reach = A.hitR + B.hitR;
@@ -15532,7 +15616,8 @@ function inPitSpan(i) {
 /* the car is taken in at the entry line and driven down the lane */
 function pitBegin(c) {
   c.pit = { d: PIT.entry, v: Math.max(10, c.speed), phase: 'in', t: 0, T: 1, box: PIT.boxes[c.key] || -40,
-    lat0: clamp(lateralOf(c.pos, c.si), -sAt(c.si).w, sAt(c.si).w), yaw0: c.yaw, yb: 1 };
+    // where it really is: on a speedway's apron that is beyond the white line (§12s)
+    lat0: clamp(lateralOf(c.pos, c.si), -sAt(c.si).w - (TRACK.banked ? 12 : 0), sAt(c.si).w + (TRACK.banked ? 12 : 0)), yaw0: c.yaw, yb: 1 };
   c.boxReq = false;
   if (c.isPlayer) hint('PIT LANE &mdash; <b>LIMITER ON</b>', 2);
 }
@@ -15578,19 +15663,20 @@ function pitStep(c, dt) {
   // waits behind its team-mate's box until the car ahead has gone
   for (const o of G.cars) {
     if (o === c || !o.pit) continue;
-    // a stock-car pit road (§12s) is wide: cars drive past the ones stopped in their boxes
-    if (SPORT.kind === 'stock' && (o.pit.phase === 'stop' || P.phase === 'stop')) continue;
-    // ...and past the ones swinging into their box or pulling out of it: a
-    // field of eighteen pitting together otherwise queued nose to tail
-    // behind every stop in turn (§12s)
-    if (SPORT.kind === 'stock' && ((o.pit.phase === 'in' && o.pit.box - o.pit.d < 16) || (o.pit.phase === 'out' && o.pit.d - o.pit.box < 10))) continue;
+    // a stock-car pit road (§12s) has a fast lane beside the stalls: a car only
+    // queues behind one that is really in its way — one in the same strip of
+    // lane (the fast lane, or swinging across it), never one parked in its stall
+    if (SPORT.kind === 'stock') {
+      if (P.phase === 'stop') continue;
+      const myLat = stallK(P, P.d) * STALL_SHIFT, oLat = stallK(o.pit, o.pit.d) * STALL_SHIFT;
+      if (Math.abs(myLat - oLat) > 2.3) continue;
+    }
     const gap = o.pit.d - P.d;
     if (gap > 0 && gap < 11) { P.v = Math.min(P.v, gap < 8.5 ? 0 : o.pit.v); if (P.phase === 'in' && gap < 8.5 && P.box - P.d < 9) P.wait = true; }
   }
   P.d += P.v * dt;
   const yaw = pitYaw(P.d, P.lat0);
   pitPoint(P.d, c.pos, P.lat0);
-  c.gy = 0;              // pit road is flat: never the height of the banking the car came off (§12s)
   // the nose comes round onto the lane's line over half a second, not in a frame
   P.yb *= Math.exp(-dt * 5);
   c.yaw = yaw + angDiff(yaw, P.yaw0) * P.yb;
@@ -15608,6 +15694,10 @@ function pitStep(c, dt) {
   if (c.u > 0.75 && nu < 0.25) c.lapCount++;
   else if (c.u < 0.25 && nu > 0.75) c.lapCount--;
   c.u = nu; c.progress = c.lapCount + c.u;
+  // on the road surface wherever the car is: up on the banking where pit road
+  // leaves it, down on the flat lane. (Pinning it at 0 sank it into the
+  // banking at pit entry; never setting it left it floating at pit exit.)
+  if (TRACK.banked) { c.gy = roadY(c.si, lateralOf(c.pos, c.si)); c.pos.y = c.gy; }
   c.updateVisuals(dt);
   // up on the jacks for the tyre change
   const lift = SPORT.kind === 'stock' ? 0 : P.phase === 'stop' ? (1 - P.t / P.T < 0.08 ? (1 - P.t / P.T) / 0.08 : 1 - P.t / P.T > 0.9 ? 0 : 1) * 0.09 : 0;
@@ -16250,7 +16340,7 @@ function stockStart() {
     car.progress = car.lapCount + car.u;
     car.lives = 1; car.maxLives = 1;
     car.lapAt = 0; car.bestLap = 0; car.lastLapN = 0;
-    car.nos = 0;
+    car.nos = 0.5;
     car.pwK = C.plate ? 0.88 : 1;            // the superspeedway package
     car.stockPts = 0;
     stockDmgReset(car);
@@ -16339,6 +16429,7 @@ function stockPreStep(dt) {
     // off the throttle and coasting down, not stood on the brakes: braking
     // in a banked turn at 150 mph spins the car, and the cars behind with it
     const cap = Math.max(vPace, STOCK.cautionV - 4.0 * t);
+    STOCK.playerCap = cap;
     for (const c of G.cars) {
       if (c.pit || !c.alive || c.remote) continue;
       if (c.speed <= cap) continue;
@@ -16350,9 +16441,16 @@ function stockPreStep(dt) {
     // and nobody runs up the back of the car in front as the field bunches:
     // the car just ahead in ANY lane that overlaps mine sets my speed too
     const ord = G.cars.filter((c) => !c.pit && c.alive).sort((a, b) => b.progress - a.progress);
+    // nobody, the player included, catches and passes the pace car
+    if (ord[0] && !ord[0].remote && STOCK.pace && !STOCK.paceGone) {
+      const c = ord[0], gap = STOCK.paceDTotal - stockD(c);
+      const vMax = Math.max(0, vPace + (gap - 22) * 0.55);
+      if (c.speed > vMax) c.input.throttle = Math.min(c.input.throttle, clamp((vMax - c.speed) * 0.3, -0.7, 0));
+      if (c.isPlayer && !c.ai) STOCK.playerCap = Math.min(STOCK.playerCap, vMax);
+    }
     for (let k = 1; k < ord.length; k++) {
       const c = ord[k];
-      if (c.remote || (c.isPlayer && !c.ai)) continue;
+      if (c.remote) continue;
       const lc = lateralOf(c.pos, c.si), turn = Math.abs(sAt(c.si).k) > 0.0018;
       for (let j = k - 1; j >= Math.max(0, k - 3); j--) {
         const o = ord[j];
@@ -16361,6 +16459,7 @@ function stockPreStep(dt) {
         if (Math.abs(lateralOf(o.pos, c.si) - lc) > 2.9) continue;
         const vMax = Math.max(0, o.speed + (d - 11) * 0.6);
         if (c.speed > vMax) c.input.throttle = Math.min(c.input.throttle, clamp((vMax - c.speed) * 0.25, turn ? -0.3 : -0.7, 0));
+        if (c.isPlayer && !c.ai) STOCK.playerCap = Math.min(STOCK.playerCap, vMax);
       }
     }
     if (cap <= vPace && t > 3) STOCK.collect = false;
@@ -16414,6 +16513,17 @@ function stockPreStep(dt) {
     }
     if (dropBack) vT = Math.min(vT, c.speed - 3);
     if (c.boxReq && STOCK.pitOpen) lat = sAt(c.si).w * 0.7;      // down to pit road
+    // THE PLAYER DRIVES. Under the yellow and on the pace laps nobody takes
+    // the wheel: the car is only held to the speed of the line (a limiter —
+    // you can be slower, never faster), so you cannot pass the car in front
+    // or the pace car. Where to go is on the screen.
+    if (c.isPlayer && !c.ai) {
+      const cap = Math.max(4, vT + 1.2);
+      if (c.speed > cap) c.input.throttle = Math.min(c.input.throttle, clamp((cap - c.speed) * 0.35, -0.7, 0));
+      c.input.nos = false;
+      STOCK.playerCap = cap;
+      return;
+    }
     paceDrive(c, vT, lat);
   });
 }
@@ -16586,7 +16696,7 @@ function stockTick(dt) {
     // one to go once everybody stopping is on pit road: the green never
     // waves over a field still sitting in its boxes
     if (leadLap > was && STOCK.phase === 'caution' && (!MP.on || MP.host)) {
-      const waiting = G.cars.some((c) => c.boxReq && !c.pit && !c.finished && !c.remote);
+      const waiting = G.cars.some((c) => !c.finished && !c.remote && c.boxReq && !c.pit);
       if (STOCK.pitOpen && G.raceT - STOCK.pitOpenT > 6 && !waiting) stockOneToGo();
     }
   }
@@ -16722,7 +16832,7 @@ function mpSpawnStock(m) {
     car.progress = car.lapCount + car.u;
     car.lives = 1; car.maxLives = 1;
     car.lapAt = 0; car.bestLap = 0; car.lastLapN = 0;
-    car.nos = 0;
+    car.nos = 0.5;
     car.pwK = C.plate ? 0.88 : 1;
     car.stockPts = 0;
     if (!car.remote) stockDmgReset(car);
@@ -17133,9 +17243,22 @@ function updateStockAI(car, dt, t) {
     steer = clamp(steer - clamp(yawX * 1.1, -0.7, 0.7), -1, 1);
   }
   if (ai.reverseT > 0) { ai.reverseT -= dt; throttle = -1; steer = -steer; }
-  inp.throttle = clamp(throttle, -1, 1);
+  // a driver's foot, not a switch: the throttle is fed in and out over a
+  // tenth of a second (bang-bang throttle in the draft rocked the car)
+  if (ai.thr === undefined) ai.thr = throttle;
+  if (throttle >= 0 && ai.thr >= 0) ai.thr += (throttle - ai.thr) * damp(9, dt);
+  else ai.thr = throttle;
+  inp.throttle = clamp(ai.thr, -1, 1);
   inp.steer = steer;
-  inp.hand = false; inp.nos = false;
+  inp.hand = false;
+  // nitrous: on a straight, flat out, to get by the car in front or to pull clear
+  const straight = Math.abs(s0.k) < 0.0012 && Math.abs(sAt(idxAhead(car.si, 60)).k) < 0.0012;
+  if (ai.nosT === undefined) ai.nosT = 0;
+  ai.nosT -= dt;
+  if (ai.nosT <= 0 && STOCK.phase === 'green' && straight && inp.throttle > 0.9 && car.nos > 0.45 &&
+      (ahead && aheadD < 30 && ai.laneT > 0 || Math.random() < dt * 0.15)) ai.nosT = rand(1.5, 2.8) + skill;
+  inp.nos = ai.nosT > 0 && straight && STOCK.phase === 'green';
+  if (ai.nosT > 0 && !straight) ai.nosT = -rand(3, 8);
 }
 
 /* --------------------------------- the spotter ---------------------------------
@@ -17209,19 +17332,21 @@ function stockHudBuild() {
       '#stockHud .sth-draft{position:absolute;right:22px;bottom:214px;padding:4px 10px;font:900 12px/1 var(--title,Arial);letter-spacing:.2em;' +
         'color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.15);background:rgba(9,10,14,.6)}' +
       '#stockHud .sth-draft.on{color:#0b1;background:#d8ff3a;border-color:#d8ff3a;color:#111}' +
+      '#stockHud .sth-lim{position:absolute;top:92px;left:50%;transform:translateX(-50%);padding:5px 12px;background:#ffd21e;color:#111;' +
+        'font:900 12px/1 var(--title,Arial);letter-spacing:.16em;display:none;white-space:nowrap}' +
       '#stockHud .sth-dmg{position:absolute;right:22px;bottom:244px;display:flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(9,10,14,.6);' +
         'border:1px solid rgba(255,255,255,.15);font:900 10px/1 var(--title,Arial);letter-spacing:.18em;color:rgba(255,255,255,.6)}' +
-      'body.stock #nosBar,body.stock #nosBar + .sub,body.stock #drsBox{display:none !important}' +
+      'body.stock #drsBox{display:none !important}' +
       'body.touch #stockHud .sth-tl{top:6px;transform:translateX(-50%) scale(.8)}';
     document.head.appendChild(css);
     const el = document.createElement('div');
     el.id = 'stockHud';
     el.innerHTML = '<div class="sth-tl"><div class="sth-logo">THUNDER CUP</div><div class="sth-flag"></div><div class="sth-lap"></div><div class="sth-stage"></div></div>' +
-      '<div class="sth-spot"></div><div class="sth-pos"><b></b><i></i></div><div class="sth-draft">DRAFT</div><div class="sth-dmg"></div>';
+      '<div class="sth-spot"></div><div class="sth-pos"><b></b><i></i></div><div class="sth-draft">DRAFT</div><div class="sth-dmg"></div><div class="sth-lim"></div>';
     HUD.hud.appendChild(el);
     STOCK.el = { root: el, flag: el.querySelector('.sth-flag'), lap: el.querySelector('.sth-lap'), stage: el.querySelector('.sth-stage'),
       spot: el.querySelector('.sth-spot'), pos: el.querySelector('.sth-pos b'), tot: el.querySelector('.sth-pos i'), draft: el.querySelector('.sth-draft'),
-      dmg: el.querySelector('.sth-dmg'), dmgKey: '' };
+      dmg: el.querySelector('.sth-dmg'), dmgKey: '', lim: el.querySelector('.sth-lim'), limKey: '' };
   }
   STOCK.el.root.style.display = '';
 }
@@ -17243,6 +17368,17 @@ function stockHud() {
   } else E.stage.textContent = sl.length ? 'FINAL STAGE' : '';
   E.pos.textContent = p.rank; E.tot.textContent = '/' + G.cars.length;
   E.draft.classList.toggle('on', (p.draft || 0) > 0.05 && STOCK.phase === 'green');
+  // under yellow: the limiter and who to follow
+  let lim = '';
+  if (STOCK.phase !== 'green' && !p.pit && !p.finished) {
+    const order = (STOCK.lineup && STOCK.lineup.length ? STOCK.lineup : G.cars.slice().sort((a, b) => b.progress - a.progress));
+    const k = order.indexOf(p);
+    const ahead = STOCK.phase === 'restart' || STOCK.phase === 'pace' ? order[k - 2] : order[k - 1];
+    const mph = Math.round((STOCK.playerCap || 0) * 2.23694);
+    lim = 'LIMITER ' + mph + ' MPH &middot; ' + (k <= 0 || !ahead ? 'FOLLOW THE PACE CAR' : 'FOLLOW #' + ahead.spec.num) +
+      (STOCK.phase === 'restart' || STOCK.phase === 'pace' ? ' &middot; ' + ((k % 2) ? 'OUTSIDE' : 'INSIDE') + ' LINE' : '');
+  }
+  if (lim !== E.limKey) { E.limKey = lim; E.lim.innerHTML = lim; E.lim.style.display = lim ? 'block' : 'none'; }
   const D = p.scd || { n: 0, t: 0, s: 0 };
   const key = [D.n, D.t, D.s].map((v) => Math.round(v * 20)).join();
   if (key !== E.dmgKey) { E.dmgKey = key; E.dmg.innerHTML = stockDmgSvg(p) + 'CAR'; }
@@ -17342,7 +17478,7 @@ function stockNav(a) {
    The car is driven by pitStep (§8b); this only animates the people and
    tips the car onto the side that is up on the jack.
    ================================================================== */
-const STALL_SHIFT = 2.6;                 // stall centre, metres from the fast lane toward the wall
+const STALL_SHIFT = 3.4;                 // stall centre, metres from the fast lane toward the wall
 
 /* how far into its stall the car is, 0 in the fast lane .. 1 at its box */
 function stallK(P, d) {
@@ -17427,13 +17563,41 @@ function stockCrewSpot(C, role, side) {
     case 'jack': return new THREE.Vector3(x * 1.55, 0, 0.15);
     case 'gunF': return new THREE.Vector3(x * half, 0, C.af);
     case 'gunR': return new THREE.Vector3(x * half, 0, C.ar);
-    case 'carry': return new THREE.Vector3(x * (half + 0.75), 0, C.af - 0.75);
+    case 'carry': return new THREE.Vector3(x * (half + 0.4), 0, C.af - 0.75);
     case 'fuel': return new THREE.Vector3(C.W * 1.35, 0, C.ar - 0.35);      // always the wall side, at the filler
   }
   return new THREE.Vector3();
 }
 
-const _scA = new THREE.Vector3(), _scB = new THREE.Vector3();
+/* a point along a path of points, f 0..1 by distance */
+function crewAlong(pts, f, out) {
+  let tot = 0;
+  for (let i = 1; i < pts.length; i++) tot += pts[i].distanceTo(pts[i - 1]);
+  let want = f * tot;
+  for (let i = 1; i < pts.length; i++) {
+    const L = pts[i].distanceTo(pts[i - 1]);
+    if (want <= L || i === pts.length - 1) return out.lerpVectors(pts[i - 1], pts[i], L > 0 ? clamp(want / L, 0, 1) : 1);
+    want -= L;
+  }
+  return out.copy(pts[pts.length - 1]);
+}
+
+/* the crew's routes, in the car's frame. Nobody walks through the car: from
+   the wall to the far side they go round in front of the stall (the car is
+   still coming in behind them), and to swap sides they run round the nose. */
+function stockCrewPath(C, m, kind) {
+  const u = m.userData, W = C.W, zf = C.af + 2.7;
+  const V = (x, z) => new THREE.Vector3(x, 0, z);
+  const far = stockCrewSpot(C, u.role, 1), near = stockCrewSpot(C, u.role, -1);
+  if (u.role === 'fuel') return kind === 'back' ? [m.position.clone(), u.home] : [u.home, far];
+  if (kind === 'out') return [u.home, V(W * 2.0, zf), V(-W * 1.7, zf), far];
+  if (kind === 'swap') return [far, V(-W * 1.7, zf), V(W * 1.7, zf), near];
+  // back over the wall, from wherever they finished
+  const onFar = Math.sign(m.position.x || -W) !== Math.sign(W);
+  return onFar ? [m.position.clone(), V(-W * 1.7, zf), V(W * 2.0, zf), u.home] : [m.position.clone(), u.home];
+}
+
+const _scA = new THREE.Vector3();
 function stockCrewTick(dt) {
   if (SPORT.kind !== 'stock' || !PIT.boxes) return;
   PIT.screws = PIT.screws || {};
@@ -17444,48 +17608,33 @@ function stockCrewTick(dt) {
     const coming = P && (P.phase === 'stop' || (P.phase === 'in' && P.box - P.d < 45));
     if (coming && !C) C = PIT.screws[c.key] = stockCrewBuild(c.key, c);
     if (!C) continue;
-    if (coming && C.state === 'in') { C.state = 'out'; C.t = 0; C.root.visible = true; }
-    if (!coming && (C.state === 'out' || C.state === 'work')) { C.state = 'back'; C.t = 0; }
+    if (coming && C.state === 'in') { C.state = 'out'; C.t = 0; C.root.visible = true; for (const m of C.men) m.userData.path = stockCrewPath(C, m, 'out'); }
+    if (!coming && C.state === 'out') { C.state = 'back'; C.t = 0; for (const m of C.men) m.userData.path = stockCrewPath(C, m, 'back'); }
     if (C.state === 'in') continue;
     C.t += dt;
     const two = P && P.two;
     const stop = P && P.phase === 'stop' ? 1 - P.t / P.T : 0;
-    // the stop's order: far side 0..0.45, round the nose, near side 0.55..0.95
-    const sideOf = (s) => (two || s < 0.47 ? 1 : -1);
+    let allHome = true;
     for (const m of C.men) {
       const u = m.userData;
-      let to, from, f = 1, moving = false;
+      let f, moving;
       if (C.state === 'out') {
-        from = u.home; to = stockCrewSpot(C, u.role, 1);
-        f = clamp(C.t / 1.4, 0, 1); moving = f < 1;
-        if (P && P.phase === 'stop') {
-          const s = stop;
-          const s1 = sideOf(s);
-          if (s1 < 0 && u.role !== 'fuel') {
-            // round the nose to the near side, 0.47..0.55 of the stop
-            const k = clamp((s - 0.47) / 0.08, 0, 1);
-            const A = stockCrewSpot(C, u.role, 1), B = stockCrewSpot(C, u.role, -1);
-            const nose = _scA.set(0, 0, C.af + 1.9);
-            if (k < 1) {
-              moving = true;
-              if (k < 0.5) { from = A; to = nose; f = k * 2; } else { from = nose; to = B; f = (k - 0.5) * 2; }
-            } else { from = to = B; f = 1; moving = false; }
-          } else if (f >= 1) { from = to = stockCrewSpot(C, u.role, 1); }
-        }
-      } else {                                  // back over the wall
-        from = m.userData.lastSpot || stockCrewSpot(C, u.role, two ? 1 : -1); to = u.home;
-        f = clamp(C.t / 1.5, 0, 1); moving = f < 1;
-        if (f >= 1) { C.state = 'in'; C.root.visible = false; }
-      }
+        // round to the near side for the second half of the stop
+        if (!two && P && P.phase === 'stop' && stop >= 0.47 && u.role !== 'fuel') {
+          if (u.leg !== 'swap') { u.leg = 'swap'; u.path = stockCrewPath(C, m, 'swap'); }
+          f = clamp((stop - 0.47) / 0.08, 0, 1);
+        } else { if (u.leg === 'swap') u.leg = 'out'; f = clamp(C.t / 1.7, 0, 1); }
+      } else { f = clamp(C.t / 1.7, 0, 1); if (f < 1) allHome = false; }
+      moving = f < 1;
       const e = f * f * (3 - 2 * f);
-      m.position.lerpVectors(from, to, e);
-      if (C.state === 'out') u.lastSpot = m.position.clone();
-      // over the wall: a hop where the line crosses it
-      const wx = C.W * 2.8, ax = from.x - wx, bx = m.position.x - wx;
-      const wallIn = Math.abs(m.position.x - wx) < 0.55 && moving;
-      m.position.y = wallIn ? Math.cos(((m.position.x - wx) / 0.55) * Math.PI / 2) * 0.95 : 0;
+      crewAlong(u.path, e, m.position);
+      // over the wall: a vault where the route crosses it
+      const wx = C.W * 2.8, near = Math.abs(m.position.x - wx);
+      m.position.y = moving && near < 0.55 ? Math.cos((near / 0.55) * Math.PI / 2) * 0.95 : 0;
       // facing: where they run; at work, the car
-      const head = moving ? Math.atan2(to.x - from.x, to.z - from.z) : (u.role === 'fuel' ? (C.W > 0 ? -Math.PI / 2 : Math.PI / 2) : Math.atan2(-m.position.x, 0.0001));
+      crewAlong(u.path, Math.min(1, e + 0.02), _scA);
+      const head = moving ? Math.atan2(_scA.x - m.position.x, _scA.z - m.position.z + 1e-6)
+        : (u.role === 'fuel' ? (C.W > 0 ? -Math.PI / 2 : Math.PI / 2) : Math.atan2(-m.position.x, 0.0001));
       m.rotation.y += angDiff(m.rotation.y, head) * damp(12, dt);
       let kn = 0, arms = 0.15;
       if (!moving && C.state === 'out' && P && P.phase === 'stop') {
@@ -17496,6 +17645,7 @@ function stockCrewTick(dt) {
       } else if (u.role === 'carry' || u.role === 'fuel') arms = 0.8;
       crewPose(m, kn, arms, moving ? Math.sin(C.t * 13 + m.id) : 0);
     }
+    if (C.state === 'back' && allHome) { C.state = 'in'; C.root.visible = false; for (const m of C.men) m.userData.leg = null; }
   }
 }
 
@@ -17517,6 +17667,15 @@ function stockCrewCleanup() {
   if (!PIT.screws) return;
   for (const k in PIT.screws) { const C = PIT.screws[k]; if (C.root.parent) C.root.parent.remove(C.root); }
   PIT.screws = {};
+}
+
+/* a stock car on its way into or out of pit road is still a car on the track:
+   others hit it rather than drive through it (§12s). Down the lane itself
+   the cars are kept apart by pitStep's queue. */
+function pitSolid(c) {
+  const P = c.pit;
+  // only rejoining: going in, cars peel off one by one and are kept apart by the queue
+  return !!P && SPORT.kind === 'stock' && P.d > PIT.exitLimit + 8 && P.phase === 'out';
 }
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
@@ -17607,6 +17766,9 @@ function updateCamera(dt) {
   // SPORT keeps the camera tight on the car at any speed
   const wantDist = M.dist + sf * C.distSpeed * (braking ? 0.25 : 1) * (SPORT.on ? 0.08 : 1) + CAM.kickBack * 1.6;
   CAM.dist += (wantDist - CAM.dist) * damp(braking ? 9 : 3.4, dt);
+  // the stock cars: a fixed distance. Pulling in under every brake touch and
+  // out again made the car surge back and forth on the screen
+  if (SPORT.kind === 'stock') CAM.dist = M.dist;
   const wantH = M.height + sf * C.heightSpeed * (SPORT.on ? 0.1 : 1) + CAM.kickUp * 0.8;
 
   if (CAM.mode === 2) {
