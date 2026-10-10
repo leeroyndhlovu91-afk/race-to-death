@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.18.0 · 2026-10-10 11:51 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.19.0 · 2026-10-10 16:50 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.18.0   (built 2026-10-10 11:51)
+   RACE TO DEATH  v3.19.0   (built 2026-10-10 16:50)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.18.0',
+  version: '3.19.0',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -4778,11 +4778,11 @@ const OVAL_MOOD = {
   sun: [-0.35, 0.78, 0.52], sunCol: 0xfff3e2, sunI: 5.2,
   skyHi: 0x2f6fc4, skyLo: 0xa9c8e8, haze: 0xb4c8dc, fog: 0.00018,
   hemiSky: 0x8fb4e0, hemiGnd: 0x5a7a3c, hemiI: 0.85, bounce: 0xd8e6c8, bounceI: 0.24,
-  ground: 0x5f8c40, shoulder: 0x6f9a4c, dust: 0xe8ecdf,
+  ground: 0x4e7636, shoulder: 0x5a8040, dust: 0xe8ecdf,
 };
 const STOCK_CIRCUITS = [
   {
-    key: 'ov_mile', name: 'SABLE RIDGE SPEEDWAY', theme: 'oval', oval: true, kind: 'mile', turns: 4,
+    key: 'ov_mile', name: 'SABLE RIDGE SPEEDWAY', theme: 'oval', oval: true, kind: 'mile', turns: 4, minLap: 26,
     sub: '1.5-MILE QUAD-OVAL · 24° BANKING',
     blurb: 'The intermediate: a mile and a half, 24 degrees in the turns and a dogleg on the front stretch. ' +
       'Flat out if you are brave, and the draft decides who wins the run to turn one.',
@@ -4801,7 +4801,7 @@ const STOCK_CIRCUITS = [
     panels: [], traps: [], barrels: [], mood: OVAL_MOOD,
   },
   {
-    key: 'ov_bowl', name: 'MARULA MOTOR BOWL', theme: 'oval', oval: true, kind: 'bowl', turns: 4,
+    key: 'ov_bowl', name: 'MARULA MOTOR BOWL', theme: 'oval', oval: true, kind: 'bowl', turns: 4, minLap: 13,
     sub: 'HALF-MILE BOWL · 26° BANKING',
     blurb: 'Half a mile of concrete in a stadium. Fifteen-second laps, 26 degrees in the turns, ' +
       'no room to breathe and somebody always on your bumper.',
@@ -4819,7 +4819,7 @@ const STOCK_CIRCUITS = [
     panels: [], traps: [], barrels: [], mood: OVAL_MOOD,
   },
   {
-    key: 'ov_super', name: 'BOKAMOSO SUPERSPEEDWAY', theme: 'oval', oval: true, kind: 'super', turns: 4,
+    key: 'ov_super', name: 'BOKAMOSO SUPERSPEEDWAY', theme: 'oval', oval: true, kind: 'super', turns: 4, minLap: 42,
     sub: '2.5-MILE SUPERSPEEDWAY · 31° BANKING',
     blurb: 'Two and a half miles, 31 degrees, three wide at 300 km/h. Nobody wins alone here: ' +
       'find a partner in the draft, and pick the lane that is moving.',
@@ -4838,7 +4838,7 @@ const STOCK_CIRCUITS = [
     panels: [], traps: [], barrels: [], mood: OVAL_MOOD,
   },
   {
-    key: 'ov_triangle', name: 'NYALA TRIANGLE RACEWAY', theme: 'oval', oval: true, kind: 'triangle', turns: 3,
+    key: 'ov_triangle', name: 'NYALA TRIANGLE RACEWAY', theme: 'oval', oval: true, kind: 'triangle', turns: 3, minLap: 45,
     sub: '2.5-MILE TRIANGLE · 14° / 8° / 6°',
     blurb: 'Three corners, three different cars needed. A long front stretch into the 14-degree first turn, ' +
       'the flat tunnel turn, and a wide, slippery final turn onto the longest straight in the series.',
@@ -4855,6 +4855,10 @@ const STOCK_CIRCUITS = [
     panels: [], traps: [], barrels: [], mood: OVAL_MOOD,
   },
 ];
+
+/* the quickest lap a circuit can honestly be driven in: anything under it is
+   a counting glitch (a rolling start's run to the line), never a record */
+function lapFloor(k) { const C = circuitByKey(k); return Math.max(15, (C && C.minLap) || 0); }
 
 function circuitByKey(k) {
   for (const C of CIRCUITS) if (C.key === k) return C;
@@ -8596,24 +8600,71 @@ function dressOval(C) {
    the horizon is not an endless lawn (one cylinder, a painted silhouette) */
 /* a cumulus sky: soft cloud blobs painted on a dome round the speedway */
 function ovalClouds(C) {
-  const { c, x } = makeCanvas(2048, 512);
-  x.clearRect(0, 0, 2048, 512);
-  // many small cumulus, flat-bottomed, thinning toward the horizon (the
-  // bottom of the canvas); every puff drawn twice across the seam so it wraps
-  for (let k = 0; k < 46; k++) {
-    const cy = 60 + Math.pow(Math.random(), 0.7) * 360, far = cy / 420;
-    const cx = Math.random() * 2048, r = (16 + Math.random() * 22) * (1 - far * 0.5);
-    for (let j = 0; j < 18; j++) {
-      const gx = cx + rand(-r * 3.2, r * 3.2), gy = cy + rand(-r * 0.9, 0) * (1 - Math.abs(gx - cx) / (r * 4)), gr = r * rand(0.45, 1.0);
-      for (const ox of [0, -2048, 2048]) {
-        const g = x.createRadialGradient(gx + ox, gy, 0, gx + ox, gy, gr);
-        const a = 0.75 * (1 - far * 0.6);
-        g.addColorStop(0, 'rgba(255,255,255,' + a.toFixed(2) + ')'); g.addColorStop(0.65, 'rgba(244,247,252,' + (a * 0.5).toFixed(2) + ')'); g.addColorStop(1, 'rgba(240,244,250,0)');
-        x.fillStyle = g; x.beginPath(); x.arc(gx + ox, gy, gr, 0, TAU); x.fill();
-      }
+  const W = 2048, H = 512;
+  const { c, x } = makeCanvas(W, H);
+  x.clearRect(0, 0, W, H);
+  // Fair-weather cumulus, the summer-afternoon sky of the race footage. Each
+  // cloud is painted on its own little canvas — a heap of soft puffs over a
+  // FLAT base, lit white on top and grey underneath — then laid on the dome.
+  // Low in the sky (the bottom of the canvas) they are further away: smaller,
+  // flatter, hazier, and more of them; a few thin streaks sit on the horizon.
+  const one = (w, h, seed) => {
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const g = cv.getContext('2d');
+    const base = h * 0.80;
+    const n = 10 + Math.floor(w / 18);
+    for (let j = 0; j < n; j++) {
+      const u = j / (n - 1);
+      const hump = Math.sin(Math.PI * u);                        // tallest in the middle
+      const px = w * (0.12 + 0.76 * u) + rand(-w * 0.05, w * 0.05);
+      const pr = h * (0.16 + 0.30 * hump) * rand(0.75, 1.15);
+      const py = Math.min(base - pr * 0.55, base - h * (0.10 + 0.42 * hump) * rand(0.7, 1.1));
+      const rg = g.createRadialGradient(px - pr * 0.25, py - pr * 0.35, pr * 0.1, px, py, pr);
+      rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.6, 'rgba(250,251,253,0.92)'); rg.addColorStop(1, 'rgba(245,247,250,0)');
+      g.fillStyle = rg; g.beginPath(); g.arc(px, py, pr, 0, TAU); g.fill();
+    }
+    // the flat base: cut everything below it, then shade the underside grey
+    g.globalCompositeOperation = 'destination-out';
+    const cut = g.createLinearGradient(0, base - h * 0.02, 0, base + h * 0.05);
+    cut.addColorStop(0, 'rgba(0,0,0,0)'); cut.addColorStop(1, 'rgba(0,0,0,1)');
+    g.fillStyle = cut; g.fillRect(0, base - h * 0.02, w, h);
+    g.globalCompositeOperation = 'source-atop';
+    const sh = g.createLinearGradient(0, h * 0.25, 0, base);
+    sh.addColorStop(0, 'rgba(160,172,190,0)'); sh.addColorStop(1, 'rgba(150,162,182,0.55)');
+    g.fillStyle = sh; g.fillRect(0, 0, w, h);
+    g.globalCompositeOperation = 'source-over';
+    return cv;
+  };
+  const put = (cv, cx, cy, alpha) => {
+    x.globalAlpha = alpha;
+    for (const ox of [0, -W, W]) x.drawImage(cv, cx - cv.width / 2 + ox, cy - cv.height);
+    x.globalAlpha = 1;
+  };
+  // high and near: few, big
+  for (let k = 0; k < 9; k++) {
+    const w = rand(220, 340), h = w * rand(0.42, 0.55);
+    put(one(w, h), rand(0, W), rand(170, 300), 0.95);
+  }
+  // the middle distance
+  for (let k = 0; k < 22; k++) {
+    const w = rand(120, 210), h = w * rand(0.32, 0.42);
+    put(one(w, h), rand(0, W), rand(300, 400), 0.85);
+  }
+  // far off, toward the horizon: small, flat, hazy
+  for (let k = 0; k < 40; k++) {
+    const w = rand(60, 130), h = w * rand(0.22, 0.30);
+    put(one(w, h), rand(0, W), rand(395, 470), 0.62);
+  }
+  // thin streaks of cirrus right on the horizon
+  for (let k = 0; k < 7; k++) {
+    const cx = rand(0, W), cy = rand(440, 492), w = rand(90, 200);
+    for (const ox of [0, -W, W]) {
+      const lg = x.createLinearGradient(cx + ox - w / 2, 0, cx + ox + w / 2, 0);
+      lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, 'rgba(255,255,255,0.16)'); lg.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = lg; x.fillRect(cx + ox - w / 2, cy, w, rand(1.5, 3));
     }
   }
-  const t = tex(c); t.wrapS = THREE.RepeatWrapping; t.repeat.set(3, 1);
+  const t = tex(c); t.wrapS = THREE.RepeatWrapping; t.repeat.set(2, 1);
   let cx = 0, cz = 0;
   for (let i = 0; i < TRACK.N; i++) { cx += sAt(i).p.x; cz += sAt(i).p.z; }
   cx /= TRACK.N; cz /= TRACK.N;
@@ -11908,7 +11959,7 @@ class Car {
 
     // ---------- loads ----------
     const W = P.m * G_ACC;
-    const DG = this.f1d ? f1DmgGrip(this) : null;     // SPORT MODE damage (§12f)
+    const DG = this.f1d ? f1DmgGrip(this) : this.scd ? stockDmgGrip(this) : null;     // SPORT MODE / stock-car damage (§12f, §12s)
     const down = P.df * speed * speed * 2.2 * (DG ? DG.down : 1);
     let FzF = W * P.wd + down * 0.45;
     let FzR = W * (1 - P.wd) + down * 0.55;
@@ -11993,7 +12044,7 @@ class Car {
     // ---------- resistance ----------
     // an open DRS flap sheds a fifth of the drag (§12d)
     // the draft (§12s): running in the hole behind another car, the air is already moving
-    const drag = this.dragK * (this.drsOpen ? 0.80 : 1) * (1 - (this.draft || 0)) * speed * speed * sgn(vx || 1);
+    const drag = this.dragK * (this.drsOpen ? 0.80 : 1) * (1 - (this.draft || 0)) * (this.scd ? stockDmgDrag(this) : 1) * speed * speed * sgn(vx || 1);
     const roll = P.m * 0.016 * G_ACC * sgn(vx || 1);
     // sand bogs a car down and water drags at it, harder the faster it goes;
     // faded out at a crawl so a car parked in a puddle does not twitch
@@ -12614,6 +12665,17 @@ function contactCars(A, B, H, report) {
   B.yawRate -= crossB * closing * tk * (mA / mt) / B.izN;
   A.yawRate = clamp(A.yawRate, -4.5, 4.5);
   B.yawRate = clamp(B.yawRate, -4.5, 4.5);
+  // stock cars lean on each other in the pack all race long (§12s): a rub
+  // must not slowly wind a car round. Leaning door to door, each car's yaw
+  // is eased back toward what the road asks of it — a real hit still spins
+  // you (the torque above), a long lean does not
+  if (A.spec.stock && B.spec.stock && closing < 6) {
+    for (const c of [A, B]) {
+      if (c.remote) continue;
+      const want = c.speed * sAt(c.si).k;
+      c.yawRate += (want - c.yawRate) * 0.10;
+    }
+  }
 
   if (!report) return;
   if (sport) f1CarHit(A, B, H, closing, nx, nz);
@@ -14411,7 +14473,7 @@ function sportTick(dt) {
     if (c.lapCount !== c.lastLapN) {
       if (c.lapCount > c.lastLapN && c.lapAt > 0 && c.lastLapN >= 1) {
         const t = G.raceT - c.lapAt;
-        if (t > 15 && !c.lapBad) {
+        if (t > lapFloor(G.circuit) && !c.lapBad) {
           if (!c.bestLap || t < c.bestLap) c.bestLap = t;
           if (!SPORT.fast.t || t < SPORT.fast.t) {
             SPORT.fast = { t: t, car: c };
@@ -15291,16 +15353,23 @@ function pitStep(c, dt) {
     if (toBox < 0.4 && P.v < 1.2) {
       P.phase = 'stop'; P.v = 0;
       // four tyres and fuel takes a stock car crew about ten seconds (§12s)
-      P.t = P.T = SPORT.kind === 'stock' ? (c.isPlayer ? 9.6 : rand(9.4, 11.2)) : c.isPlayer ? 2.0 : rand(2.0, 2.6);
+      // (or two tyres, right side only, in about six: a strategy call, §12s)
+      P.two = SPORT.kind === 'stock' && !!c.twoTyres;
+      P.t = P.T = SPORT.kind === 'stock' ? (c.isPlayer ? 9.6 : P.two ? rand(5.4, 6.6) : rand(9.4, 11.2)) : c.isPlayer ? 2.0 : rand(2.0, 2.6);
       // a damaged front wing is changed with the tyres: five more seconds
       P.nose = f1NoseChange(c) > 0;
       if (P.nose) { P.t += 5; P.T = P.t; }
-      if (c.isPlayer) announce('PIT STOP', SPORT.kind === 'stock' ? 'FOUR TYRES AND FUEL' : TYRES[c.nextTyre || 'M'].name + ' TYRES' + (P.nose ? ' &middot; NEW FRONT WING' : ''));
+      // a stock car's crew pulls the fenders out and tapes the nose (§12s)
+      P.fix = c.scd ? stockRepair(c) : 0;
+      if (P.fix) { P.t += P.fix; P.T = P.t; }
+      if (c.isPlayer) announce('PIT STOP', SPORT.kind === 'stock' ? (P.two ? 'TWO TYRES AND FUEL' : 'FOUR TYRES AND FUEL') + (P.fix ? ' &middot; REPAIRS' : '') : TYRES[c.nextTyre || 'M'].name + ' TYRES' + (P.nose ? ' &middot; NEW FRONT WING' : ''));
     }
   } else if (P.phase === 'stop') {
     P.t -= dt;
     if (P.t <= 0) {
+      const twWas = c.tw || 0;
       tyreSet(c, c.nextTyre || (c.tyre === 'M' ? 'H' : 'M'));
+      if (P.two) { c.tw = twWas * 0.5; c.twoTyres = false; }       // two new, two old
       c.nextTyre = null; c.stops = (c.stops || 0) + 1;
       P.phase = 'out';
       if (c.isPlayer) hint('GO GO GO &mdash; <b>' + TYRES[c.tyre].name + '</b>', 1.6);
@@ -15316,6 +15385,10 @@ function pitStep(c, dt) {
     if (o === c || !o.pit) continue;
     // a stock-car pit road (§12s) is wide: cars drive past the ones stopped in their boxes
     if (SPORT.kind === 'stock' && (o.pit.phase === 'stop' || P.phase === 'stop')) continue;
+    // ...and past the ones swinging into their box or pulling out of it: a
+    // field of eighteen pitting together otherwise queued nose to tail
+    // behind every stop in turn (§12s)
+    if (SPORT.kind === 'stock' && ((o.pit.phase === 'in' && o.pit.box - o.pit.d < 16) || (o.pit.phase === 'out' && o.pit.d - o.pit.box < 10))) continue;
     const gap = o.pit.d - P.d;
     if (gap > 0 && gap < 11) { P.v = Math.min(P.v, gap < 8.5 ? 0 : o.pit.v); if (P.phase === 'in' && gap < 8.5 && P.box - P.d < 9) P.wait = true; }
   }
@@ -15709,6 +15782,7 @@ function f1DmgPart(c, lx, lz) {
 
 /* a wall: impact is the speed into it. Glancing scrapes cost nothing. */
 function f1WallHit(c, impact, wx, wz) {
+  if (c.scd) return stockWallHit(c, impact, wx, wz);      // the stock cars bend differently (§12s)
   if (!c.f1d || impact < 9) return;            // brushing a wall in a slide is free
   const f = c.forward(_dmA), l = c.left(_dmB);
   const into = f.x * wx + f.z * wz, side = l.x * wx + l.z * wz;
@@ -15721,6 +15795,7 @@ function f1WallHit(c, impact, wx, wz) {
 function f1CornerHit(c, impact, fx, lx, px, pz) {
   // a front corner is the wing; a rear one sliding into the wall is the
   // corner of the floor, not the rear wing — that needs the car going backwards
+  if (c.scd) return stockWallHit(c, impact, fx > 0 ? c.forward(_dmA).x : -c.forward(_dmA).x, fx > 0 ? c.forward(_dmA).z : -c.forward(_dmA).z);
   if (!c.f1d || impact < 9) return;
   const back = c.speed < -2;
   const part = fx > 0 ? (lx > 0 ? 'fwL' : 'fwR') : back ? 'rw' : 'fl';
@@ -15729,6 +15804,7 @@ function f1CornerHit(c, impact, fx, lx, px, pz) {
 
 /* two cars: damage where each one was touched, then the stewards */
 function f1CarHit(A, B, H, closing, nx, nz) {
+  if (A.scd && B.scd) return stockCarHit(A, B, H, closing);
   if (!A.f1d || !B.f1d || A.pit || B.pit) return;
   const local = (c) => {
     const dx = H.cx - c.pos.x, dz = H.cz - c.pos.z;
@@ -15851,7 +15927,8 @@ const STOCK_ROWS = ['circuit', 'car', 'laps', 'diff'];
 const STOCK_PTS = (pos) => (pos === 1 ? 40 : pos <= 36 ? 37 - pos : 1);
 const STOCK_DRAFT = { super: [0.33, 62], mile: [0.21, 46], triangle: [0.21, 46], bowl: [0.10, 24] };
 // caution speed, m/s: quicker than the real 55-70 mph so a yellow is a lap and a half, not five minutes
-const STOCK_PACE = { super: 46, mile: 43, triangle: 43, bowl: 25 };
+const STOCK_PACE = { super: 46, mile: 43, triangle: 43, bowl: 31 };
+const STOCK_AIGRIP = { bowl: 0.85, triangle: 1.0 };
 
 function stockC() { return STOCK_CIRCUITS[STOCK.circ] || STOCK_CIRCUITS[0]; }
 function stockCar() { return STOCK_GARAGE[STOCK.car] || STOCK_GARAGE[0]; }
@@ -15977,6 +16054,7 @@ function stockStart() {
     car.nos = 0;
     car.pwK = C.plate ? 0.88 : 1;            // the superspeedway package
     car.stockPts = 0;
+    stockDmgReset(car);
     car.vel.copy(car.forward(_v1)).multiplyScalar(STOCK_PACE[C.kind] || 27);
     if (isP) { G.player = car; car.kills = 0; }
     else initAI(car);
@@ -16059,13 +16137,32 @@ function stockPreStep(dt) {
   // cars braking at different rates is a pile-up. Then it forms up in line.
   if (STOCK.phase === 'caution' && STOCK.collect) {
     const t = G.raceT - STOCK.cautionT;
-    const cap = Math.max(vPace, STOCK.cautionV - 5.5 * t);
+    // off the throttle and coasting down, not stood on the brakes: braking
+    // in a banked turn at 150 mph spins the car, and the cars behind with it
+    const cap = Math.max(vPace, STOCK.cautionV - 4.0 * t);
     for (const c of G.cars) {
-      if (c.pit || !c.alive) continue;
-      if (c.isPlayer && !c.ai) {
-        // the player drives, held to the falling cap
-        if (c.speed > cap) c.input.throttle = Math.min(c.input.throttle, clamp((cap - c.speed) * 0.2, -0.5, 0));
-      } else if (c.speed > cap) c.input.throttle = clamp((cap - c.speed) * 0.2, -0.5, 0);
+      if (c.pit || !c.alive || c.remote) continue;
+      if (c.speed <= cap) continue;
+      const turn = Math.abs(sAt(c.si).k) > 0.0018;
+      const want = clamp((cap - c.speed) * 0.2, turn ? -0.12 : -0.4, 0);
+      if (c.isPlayer && !c.ai) c.input.throttle = Math.min(c.input.throttle, want);   // the player drives, held to the falling cap
+      else c.input.throttle = Math.min(c.input.throttle, want);
+    }
+    // and nobody runs up the back of the car in front as the field bunches:
+    // the car just ahead in ANY lane that overlaps mine sets my speed too
+    const ord = G.cars.filter((c) => !c.pit && c.alive).sort((a, b) => b.progress - a.progress);
+    for (let k = 1; k < ord.length; k++) {
+      const c = ord[k];
+      if (c.remote || (c.isPlayer && !c.ai)) continue;
+      const lc = lateralOf(c.pos, c.si), turn = Math.abs(sAt(c.si).k) > 0.0018;
+      for (let j = k - 1; j >= Math.max(0, k - 3); j--) {
+        const o = ord[j];
+        const d = (o.progress - c.progress) * L;
+        if (d > 40) break;
+        if (Math.abs(lateralOf(o.pos, c.si) - lc) > 2.9) continue;
+        const vMax = Math.max(0, o.speed + (d - 11) * 0.6);
+        if (c.speed > vMax) c.input.throttle = Math.min(c.input.throttle, clamp((vMax - c.speed) * 0.25, turn ? -0.3 : -0.7, 0));
+      }
     }
     if (cap <= vPace && t > 3) STOCK.collect = false;
     return;
@@ -16076,17 +16173,37 @@ function stockPreStep(dt) {
   // once the pace car dives for pit road the leader sets the pace on his own
   const paceD = STOCK.paceGone || STOCK.paceLeaving ? null : STOCK.paceDTotal;
   lineup.forEach((c, k) => {
-    let aheadD, gap, lat;
+    let aheadD, gap, lat, aheadCar = null;
     if (double) {
       lat = (k % 2 ? -1 : 1) * sAt(c.si).w * 0.30;
       if (k === 0) { aheadD = paceD; gap = 22; }
       else if (k === 1) { aheadD = stockD(lineup[0]); gap = 0; }
-      else { aheadD = stockD(lineup[k - 2]); gap = 10.5; }
+      else { aheadCar = lineup[k - 2]; aheadD = stockD(aheadCar); gap = 10.5; }
     } else {
       lat = sAt(c.si).w * 0.15;
       if (k === 0) { aheadD = paceD; gap = 22; }
-      else { aheadD = stockD(lineup[k - 1]); gap = 9.5; }
+      else { aheadCar = lineup[k - 1]; aheadD = stockD(aheadCar); gap = 9.5; }
     }
+    // into the line a little at a time, and only into a gap: the whole
+    // field swinging into single file at once was cars braking side by side
+    // on the banking, and spinning
+    const cur = lateralOf(c.pos, c.si);
+    if (c.paceAt !== STOCK.cautions + ':' + STOCK.phase) { c.paceAt = STOCK.cautions + ':' + STOCK.phase; c.paceLat = cur; }
+    const dc = stockD(c);
+    let held = false, dropBack = false;
+    for (const o of lineup) {
+      if (o === c) continue;
+      const dd = stockD(o) - dc;
+      if (dd > 7 || dd < -5.5) continue;
+      const ol = lateralOf(o.pos, c.si);
+      // a car alongside, on the side I am moving toward: wait — and if it is
+      // the one ahead, drop back behind it
+      if (Math.abs(ol - c.paceLat) < 4.2 && (ol - c.paceLat) * (lat - c.paceLat) > 0) { held = true; if (dd >= 0) dropBack = true; }
+    }
+    if (!held) c.paceLat += clamp(lat - c.paceLat, -1.6 * dt, 1.6 * dt);
+    lat = c.paceLat;
+    // the car being followed only counts if it is really in my lane yet
+    if (aheadCar && Math.abs(lateralOf(aheadCar.pos, c.si) - cur) > 3.0 && aheadD - dc < 9) gap = Math.min(gap, aheadD - dc - 1);
     // the leader on the last lap of the yellow: holds pace to the zone, then
     // brings them to the green (stockTick waves it)
     let vT = vPace;
@@ -16096,19 +16213,63 @@ function stockPreStep(dt) {
       vT = Math.max(vT, vPace * 0.55);
       if (gap > 0 && dist < 5) vT = Math.min(vT, Math.max(0, c.speed - 6));    // about to touch: brake
     }
+    if (dropBack) vT = Math.min(vT, c.speed - 3);
     if (c.boxReq && STOCK.pitOpen) lat = sAt(c.si).w * 0.7;      // down to pit road
     paceDrive(c, vT, lat);
   });
 }
 
+/* a wreck ahead: a car spun, stopped or crawling in my path. Go round it on
+   the side with more room, and slow to get by. Without this the field ran
+   straight into a spun car at full speed, under green and under yellow. */
+function stockAvoid(c, lat) {
+  const L = TRACK.length, s = sAt(c.si), w = s.w, spd = Math.max(c.speed, 1);
+  let best = null;
+  for (const o of G.cars) {
+    if (o === c || o.pit || !o.alive || o.finished) continue;
+    let d = (o.progress - c.progress) * L;
+    if (d < -L / 2) d += L; if (d > L / 2) d -= L;
+    if (d < 2 || d > 40 + spd * spd / 12) continue;          // far enough to stop from full speed
+    const os = sAt(o.si);
+    const sideways = Math.abs(angDiff(o.yaw, Math.atan2(os.t.x, os.t.z))) > 0.55;
+    if (!(o.speed < spd * 0.62 || sideways)) continue;
+    const ol = lateralOf(o.pos, c.si);
+    if (Math.abs(ol - lat) > 3.6) continue;
+    if (!best || d < best.d) best = { d: d, ol: ol, v: Math.max(0, o.speed) };
+  }
+  if (!best) return null;
+  // the side with more road: past it low or high, whichever is open
+  const room = 3.9;
+  const hi = best.ol + room, lo = best.ol - room;
+  const lim = w - 1.3;
+  let nl = Math.abs(hi - lat) < Math.abs(lo - lat) ? hi : lo;
+  if (nl > lim) nl = lo; if (nl < -lim) nl = hi;
+  nl = clamp(nl, -lim, lim);
+  const clear = Math.abs(nl - best.ol) > 3.0;
+  // slow enough to get round it — or to stop short if there is no way past
+  const vCap = clear ? Math.max(best.v + 8, Math.sqrt(best.v * best.v + 2 * 7 * Math.max(0, best.d - 6)) * 0.85)
+    : Math.sqrt(best.v * best.v + 2 * 7.5 * Math.max(0, best.d - 7));
+  return { lat: nl, vCap: vCap };
+}
+
 function paceDrive(c, vT, lat) {
   const inp = c.input;
+  const av = stockAvoid(c, lat);
+  if (av) { lat = av.lat; vT = Math.min(vT, av.vCap); }
   const spd = c.speed;
   const dv = vT - spd;
   // ease off rather than stamp on the brakes: a field slowing for a yellow
   // at 180 mph must not stop dead in front of itself
-  inp.throttle = dv > 0 ? clamp(dv * 0.35, 0.05, 1) : clamp(dv * 0.06, -0.55, 0);
+  const s = sAt(c.si), turn = Math.abs(s.k) > 0.0018;
+  // gently, at caution speed on the banking: a floored V8 at 60 mph on 31
+  // degrees steps the tail out
+  inp.throttle = dv > 0 ? clamp(dv * 0.35, 0.05, turn ? 0.55 : 1) : clamp(dv * 0.06, turn ? -0.2 : -0.55, 0);
   inp.steer = stockSteer(c, lat, 10 + spd * 0.5);
+  const yawX = c.yawRate - spd * s.k;
+  if (Math.abs(yawX) > 0.22 && spd > 8) {
+    inp.throttle = Math.min(inp.throttle, 0.1);
+    inp.steer = clamp(inp.steer - clamp(yawX * 1.1, -0.7, 0.7), -1, 1);
+  }
   inp.hand = false; inp.nos = false;
 }
 
@@ -16212,37 +16373,52 @@ function stockTick(dt) {
     }
     // a stage ends as the leader takes its flag — under green it brings out
     // the yellow; reached under a caution, the points are simply given out
-    if (leadLap > was) {
+    if (leadLap > was && (!MP.on || MP.host)) {
       const si = STOCK.stageLaps.indexOf(leadLap - 1);
-      if (si >= 0 && STOCK.stage === si) stockStageEnd(si, STOCK.phase === 'green');
+      // a stage that ends within a lap of a restart is scored without
+      // another yellow: two cautions back to back is no race at all
+      if (si >= 0 && STOCK.stage === si) stockStageEnd(si, STOCK.phase === 'green' && leadLap - (STOCK.greenLap || 0) >= 2);
     }
     // the yellow, game length: the field is collected behind the pace car;
     // at the line pit road opens and it is ONE TO GO — stop this lap or not,
     // and the restart comes at the end of it
-    if (leadLap > was && STOCK.phase === 'caution') {
-      if (!STOCK.pitOpen && leadLap > STOCK.cautionLap) {
-        // pit road is open for a whole lap: the stops are made before the field comes back round
-        STOCK.pitOpen = true;
-        spot('PIT ROAD IS OPEN', true);
-        stockPitCalls();
-        if (!G.player.pit) hint('PIT ROAD IS OPEN &mdash; <b>' + (PAD.on ? '&#9650;' : 'B') + '</b> TO PIT THIS LAP', 5);
-      } else if (STOCK.pitOpen && leadLap > STOCK.cautionLap + 1) {
-        STOCK.phase = 'restart';
-        spot('ONE TO GO. DOUBLE FILE', true);
-        hint('ONE TO GO &mdash; THE FIELD DOUBLES UP FOR THE RESTART', 3);
-        if (STOCK.pace && STOCK.pace.scLights) for (const m of STOCK.pace.scLights) m.color.setRGB(0.2, 0.2, 0.2);
-      }
+    // a game-length yellow: pit road opens as soon as the field is
+    // collected (below), and the lap after that is ONE TO GO
+    // one to go once everybody stopping is on pit road: the green never
+    // waves over a field still sitting in its boxes
+    if (leadLap > was && STOCK.phase === 'caution' && (!MP.on || MP.host)) {
+      const waiting = G.cars.some((c) => c.boxReq && !c.pit && !c.finished && !c.remote);
+      if (STOCK.pitOpen && G.raceT - STOCK.pitOpenT > 6 && !waiting) stockOneToGo();
     }
   }
+
+  if (STOCK.phase === 'caution' && !STOCK.pitOpen && !STOCK.collect && G.raceT - STOCK.cautionT > 7 && (!MP.on || MP.host)) stockPitOpen();
 
   // ---- the tow truck: a car stopped, or stranded in the infield, for five
   // seconds is put back on the apron and rejoins (it has lost its time) ----
   for (const c of G.cars) {
-    if (c.pit || c.finished || !c.alive) { c.towT = 0; continue; }
+    if (c.pit || c.finished || !c.alive || c.remote) { c.towT = 0; continue; }
     const lat = lateralOf(c.pos, c.si), s = sAt(c.si);
     const stranded = Math.abs(c.speed) < 4 || lat > s.w + (C.apron || 8) + 3;
     c.towT = stranded ? (c.towT || 0) + dt : 0;
     if (c.towT > 5) stockTow(c);
+  }
+
+  // ---- a car spun round brings out the yellow too (§12s) ----
+  if (STOCK.phase === 'green' && G.raceT > 8 && (!MP.on || MP.host)) {
+    for (const c of G.cars) {
+      if (c.pit || c.finished || c.lapCount < 1 || !c.alive) { c.spunT = 0; continue; }
+      const s = sAt(c.si);
+      const off = Math.abs(angDiff(c.yaw, Math.atan2(s.t.x, s.t.z)));
+      c.spunT = off > 0.9 || (off > 0.5 && c.speed < 16) ? (c.spunT || 0) + dt : 0;
+      if (c.spunT > 0.45) { stockCaution((c.isPlayer && !MP.on ? 'YOU' : '#' + c.spec.num) + (c.isPlayer && !MP.on ? ' SPUN' : ' SPINS') + ' IN TURN ' + stockTurnAt(c)); break; }
+    }
+  }
+  // a car with its nose stoved in trails smoke
+  for (const c of G.cars) {
+    if (!c.scd || !c.alive || c.pit) continue;
+    const d = c.scd.n + c.scd.s * 0.5;
+    if (d > 0.45 && Math.random() < dt * (d * 14)) fxSmokePuff(c.worldPoint(_v3.set(rand(-0.5, 0.5), 0.9, 2.0)).clone(), 0x4a4643, 1.0 + d, rand(0.7, 1.3));
   }
 
   // ---- a car stopped on the track brings out the yellow ----
@@ -16258,6 +16434,287 @@ function stockTick(dt) {
   stockHud();
 }
 
+/* pit road is open for a whole lap: the stops are made before the field comes back round */
+function stockPitOpen() {
+  if (MP.on && MP.host) mpEmit({ t: 'stk', k: 'po' });
+  STOCK.pitOpen = true; STOCK.pitOpenT = G.raceT;
+  spot('PIT ROAD IS OPEN', true);
+  stockPitCalls();
+  if (!G.player.pit) hint('PIT ROAD IS OPEN &mdash; <b>' + (PAD.on ? '&#9650;' : 'B') + '</b> TO PIT THIS LAP', 5);
+}
+
+function stockOneToGo() {
+  if (MP.on && MP.host) mpEmit({ t: 'stk', k: 'r' });
+  STOCK.phase = 'restart'; STOCK.pitOpen = true;
+  spot('ONE TO GO. DOUBLE FILE', true);
+  hint('ONE TO GO &mdash; THE FIELD DOUBLES UP FOR THE RESTART', 3);
+  if (STOCK.pace && STOCK.pace.scLights) for (const m of STOCK.pace.scLights) m.color.setRGB(0.2, 0.2, 0.2);
+}
+
+/* ----------------------------- online (§14a) -----------------------------
+   One machine runs the flags: the host's. Its calls go out as events (the
+   yellow, the green, a stage, pit road, one to go) and the pace car's place
+   rides along with the AI cars' reports. Everybody else follows them; each
+   machine still drives its own car to the pace controller under yellow. */
+function stockNetState() {
+  return [r2(STOCK.paceD), STOCK.paceLeaving ? 1 : 0, STOCK.paceGone ? 1 : 0, STOCK.phase === 'restart' ? 2 : STOCK.phase === 'caution' ? 1 : STOCK.phase === 'pace' ? 3 : 0];
+}
+
+function stockNetSync(s) {
+  if (!Array.isArray(s)) return;
+  if (s[2] && !STOCK.paceGone) { STOCK.paceGone = true; if (STOCK.pace) STOCK.pace.mesh.visible = false; }
+  if (s[1] && !STOCK.paceLeaving && !STOCK.paceGone) { STOCK.paceLeaving = true; STOCK.pacePit = PIT.entry; }
+  if (!STOCK.paceLeaving && !STOCK.paceGone && typeof s[0] === 'number') {
+    // ease onto the host's pace car; a big gap (a missed caution) is a cut
+    const e = s[0] - STOCK.paceD;
+    STOCK.paceD += Math.abs(e) > 30 ? e : e * 0.15;
+    STOCK.paceDTotal = STOCK.paceD;
+  }
+}
+
+function stockNetEvent(ev) {
+  if (!stockOn() || MP.host) return;
+  const car = (id) => (id ? MP.cars[id] || null : null);
+  switch (ev.k) {
+    case 'g': if (STOCK.phase !== 'green') stockGreen(true); break;
+    case 'c': stockCaution(String(ev.why || 'CAUTION'), { lap: ev.lap | 0, laps: ev.laps | 0 }); break;
+    case 's': {
+      const top = (ev.top || []).map(car).filter(Boolean);
+      if (STOCK.stage <= (ev.si | 0)) stockStageEnd(ev.si | 0, !!ev.y, top);
+      break;
+    }
+    case 'po': if (!STOCK.pitOpen) stockPitOpen(); break;
+    case 'r': if (STOCK.phase !== 'restart') stockOneToGo(); break;
+  }
+}
+
+/* the grid the host sent: sixteen cars rolling behind the pace car */
+function mpSpawnStock(m) {
+  clearRace();
+  MP.on = true;
+  MP.raceId = m.raceId;
+  MP.startAt = m.startAt;
+  MP.cars = {};
+  MP.pay = null; MP.endAt = 0;
+  thrillsReset();
+  MP.rules = { boss: false, bossAt: 999, bossArmour: 0 };
+  SPORT.on = true; SPORT.kind = 'stock';
+  DAILY.on = false;
+  STOCK.circ = Math.max(0, STOCK_CIRCUITS.findIndex((c) => c.key === m.circuit));
+  const C = stockC();
+  G.laps = m.laps || 12; SPORT.laps = G.laps;
+  G.bossKill = false;
+  SPORT.R = { title: 'THUNDER CUP', sub: C.name, laps: G.laps, rivals: [], boss: false };
+  SPORT.fast = { t: 0, car: null };
+  STOCK.stagePts = {}; STOCK.stage = 0; STOCK.cautions = 0; STOCK.ot = 0;
+  STOCK.stageLaps = G.laps >= 8 ? [Math.max(2, Math.round(G.laps * 0.25)), Math.max(4, Math.round(G.laps * 0.5))] : [];
+  STOCK.debrisAt = MP.host && G.laps >= 12 && Math.random() < 0.45 ? randi(STOCK.stageLaps[0] + 2, G.laps - 3) : 99;
+  const lead = PIT.entry - (C.kind === 'bowl' ? 120 : 200);
+  let hi = 0;
+  m.grid.forEach((e, n) => {
+    const isMe = e.id === NET.uid;
+    const car = new Car(e.k, isMe);
+    car.netId = e.id;
+    car.isHuman = !e.ai;
+    car.remote = !(isMe || (MP.host && e.ai));
+    const row = Math.floor(n / 2), col = n % 2;
+    const i = idxAhead(0, lead - row * 10.5);
+    car.placeAt(i, (col ? -1 : 1) * sAt(i).w * 0.30);
+    car.progress = car.lapCount + car.u;
+    car.lives = 1; car.maxLives = 1;
+    car.lapAt = 0; car.bestLap = 0; car.lastLapN = 0;
+    car.nos = 0;
+    car.pwK = C.plate ? 0.88 : 1;
+    car.stockPts = 0;
+    if (!car.remote) stockDmgReset(car);
+    if (e.ai && !car.remote) initAI(car);
+    if (!e.ai) {
+      const col2 = MP_COLORS[hi++ % 4];
+      car.colorHex = col2;
+      car.driver = cleanName(e.n) || 'RIVAL';
+      if (isMe) { G.player = car; car.kills = 0; MP.killsAtStart = 0; SPORT.gridPos = n + 1; }
+      else { car.pname = car.driver; mpNameTag(car, car.driver, col2); }
+    }
+    MP.cars[e.id] = car;
+    G.cars.push(car);
+  });
+  if (!G.player) { MP.on = false; SPORT.on = false; SPORT.kind = null; showRoom(); return; }
+  G.killsAtStart = 0;
+  PIT_LIMIT = C.pitLimit || 20;
+  mpListen(m);
+
+  // the pace car leads them round from the moment the countdown ends
+  STOCK.pace = new Car('pacecar', false);
+  updateRanks();
+  STOCK.paceD = Math.max.apply(null, G.cars.map(stockD)) + 26;
+  STOCK.paceDTotal = STOCK.paceD;
+  STOCK.paceLeaving = false; STOCK.paceGone = false;
+  stockPaceCarAt(STOCK.paceD, 0);
+  STOCK.phase = 'pace'; STOCK.flag = 'yellow'; STOCK.pitOpen = false;
+  STOCK.lastLeadLap = 0;
+
+  HUD.round.textContent = 'THUNDER CUP ONLINE  ·  ROOM ' + MP.code;
+  HUD.carName.textContent = '#' + G.player.spec.num + ' ' + G.player.spec.car + ' · ' + G.player.driver;
+  HUD.hud.classList.remove('hidden');
+  document.body.classList.add('sport', 'stock');
+  if (!SPORT.mirrorSet) { SPORT.mirrorSet = true; SPORT.mirrorWas = MIRROR.on; MIRROR.on = false; }
+  if (!SPORT.grade) SPORT.grade = { e: GFX.exposure, c: GFX.contrast, s: GFX.saturation };
+  GFX.exposure = 0.95; GFX.contrast = 1.16; GFX.saturation = 1.10;
+  SFX.setEngine(G.player.P);
+  CAM.mode = 0;
+  resetCamera(G.player);
+  updateRanks();
+  pitRaceStart();
+  stockHudBuild();
+  G.state = 'countdown';
+  G.cd = Math.max(1.5, (MP.startAt - netNow()) / 1000);
+  G.lastCd = null;
+  hideScreen();
+  setTimeout(() => { if (stockOn() && G.state === 'countdown') hint('ROLLING START &mdash; <b>P' + SPORT.gridPos + '</b> OF ' + m.grid.length + ' &middot; THE HOST RUNS THE FLAGS', 4); }, 300);
+}
+
+/* online the field waits on the grid for the host's moment, then rolls */
+function stockCountdown(dt) {
+  G.cd -= dt;
+  const n = Math.ceil(G.cd);
+  if (n !== G.lastCd && n <= 3 && n >= 1) { G.lastCd = n; announce(String(n), n === 3 ? 'DRIVERS, START YOUR ENGINES' : ''); SFX.beep(false); }
+  for (const c of G.cars) {
+    if (c.remote) { mpPuppet(c, dt); continue; }
+    c.input.throttle = 0; c.input.steer = 0;
+    c.vel.multiplyScalar(0.85); c.yawRate *= 0.85;
+    c.step(dt);
+  }
+  if (STOCK.pace) STOCK.pace.updateVisuals(dt);
+  mpUpdate(dt);
+  updateCamera(dt);
+  updateParticles(dt);
+  updateWorld(dt);
+  updateHUD(dt);
+  stockHud();
+  SFX.drive(G.player.telemetry());
+  SFX.field(G.cars, G.player);
+  if (G.cd <= 0) {
+    const v = STOCK_PACE[stockC().kind] || 27;
+    for (const c of G.cars) if (!c.remote) c.vel.copy(c.forward(_v1)).multiplyScalar(v);
+    G.state = 'racing';
+    G.lapStart = 0;
+    spot('PACE LAP. DOUBLE FILE, STAY IN LINE', true);
+  }
+}
+
+/* ------------------------------- damage -------------------------------
+   Rubbing is racing: a stock car leans on its neighbours all day long and it
+   costs nothing. A real hit bends sheet metal:
+     NOSE   the splitter and the grille — drag, and the front end pushes
+     TAIL   the spoiler — the back end gets loose
+     SIDES  bent fenders and doors — drag
+   Nobody retires. On a stop the crew pulls the fenders out and tapes the
+   nose up: most of it comes back, for a few seconds more on pit road. */
+function stockDmgReset(c) { c.scd = { n: 0, t: 0, s: 0 }; c.dmgWarned = false; }
+function stockDmgGrip(c) {
+  const D = c.scd;
+  return { f: 1 - D.n * 0.07 - D.s * 0.015, r: 1 - D.t * 0.075 - D.s * 0.015, down: 1 - D.n * 0.2 - D.t * 0.3 };
+}
+function stockDmgDrag(c) { const D = c.scd; return 1 + D.n * 0.14 + D.s * 0.08 + D.t * 0.05; }
+
+function stockDmgHit(c, part, amt, at) {
+  if (!c.scd || amt <= 0.01 || c.pit || c.remote) return;
+  amt *= DIFF_K().dmg(c);
+  const D = c.scd, was = D.n + D.t + D.s;
+  D[part] = Math.min(1, D[part] + amt);
+  if (amt > 0.18 && at) {
+    fxDebris(new THREE.Vector3(at.x, 0.6, at.z), 4 + Math.round(amt * 10), c.spec.body);
+    fxSmokePuff(new THREE.Vector3(at.x, 0.8, at.z), 0x8a8580, 2.4, 1.2);
+  }
+  const now = D.n + D.t + D.s;
+  if (c.isPlayer) {
+    const what = { n: 'NOSE', t: 'TAIL', s: 'SIDE' }[part];
+    if (!c.dmgWarned && now >= 0.35) {
+      c.dmgWarned = true;
+      announce('DAMAGE', 'PIT FOR REPAIRS UNDER THE NEXT CAUTION');
+      spot('YOU GOT SOME DAMAGE THERE. WE\'LL FIX IT ON THE NEXT STOP', true);
+    } else if (amt > 0.06) hint('<b>' + what + ' DAMAGE</b> &mdash; ' + Math.round(D[part] * 100) + '%', 2);
+  } else if (was < 0.5 && now >= 0.5) feed('#' + c.spec.num + ' ' + mpEsc(c.driver) + ' &middot; <b>HEAVY DAMAGE</b>', '#ffcf3a');
+}
+
+/* the SAFER wall: impact is the speed into it. Glancing off it is free. */
+function stockWallHit(c, impact, wx, wz) {
+  if (impact < 10) return;
+  const f = c.forward(_dmA), l = c.left(_dmB);
+  const into = f.x * wx + f.z * wz;
+  const part = into > 0.4 ? 'n' : into < -0.5 ? 't' : 's';
+  stockDmgHit(c, part, (impact - 10) * (part === 's' ? 0.012 : 0.032), _dmC.set(c.pos.x + wx * 1.4, 0, c.pos.z + wz * 1.4));
+}
+
+/* two cars: each bent where it was touched. No stewards — rubbing is racing. */
+function stockCarHit(A, B, H, closing) {
+  if (A.pit || B.pit || closing < (STOCK.phase === 'green' ? 9.5 : 14)) return;
+  const at = _dmC.set(H.cx, 0, H.cz);
+  const part = (c) => {
+    const dx = H.cx - c.pos.x, dz = H.cz - c.pos.z;
+    const lz = dx * Math.sin(c.yaw) + dz * Math.cos(c.yaw);
+    return lz > c.hitLen * 0.4 ? 'n' : lz < -c.hitLen * 0.3 ? 't' : 's';
+  };
+  const amt = (closing - 9.5) * 0.035;
+  const pa = part(A), pb = part(B);
+  stockDmgHit(A, pa, amt * (pa === 's' ? 0.5 : 1), at);
+  stockDmgHit(B, pb, amt * (pb === 's' ? 0.5 : 1), at);
+}
+
+/* the crew's work on a stop: back to a quarter of each, a few seconds more */
+function stockRepair(c) {
+  const D = c.scd, tot = D.n + D.t + D.s;
+  if (tot < 0.1) return 0;
+  D.n *= 0.25; D.t *= 0.25; D.s *= 0.25;
+  c.dmgWarned = false;
+  return clamp(tot * 6, 2, 8);
+}
+
+/* which turn a car is in, for the spotter and the flags: turns are counted
+   from the line, one to each corner of the speedway */
+function stockTurnAt(c) {
+  const C = stockC(), n = C.turns || 4;
+  if (STOCK.turnsFor !== TRACK.S) {
+    // the curved stretches of the lap, from the line; a four-turn oval has
+    // two ends, each two turns, so each end is split down the middle
+    const runs = [];
+    let inC = false;
+    for (let i = 0; i < TRACK.N; i++) {
+      const curved = Math.abs(TRACK.S[i].k) > 0.0012;
+      if (curved && !inC) runs.push([i, i]);
+      if (curved) runs[runs.length - 1][1] = i;
+      inC = curved;
+    }
+    if (runs.length > 1 && runs[0][0] === 0 && runs[runs.length - 1][1] === TRACK.N - 1) { runs[runs.length - 1][1] = runs[0][1] + TRACK.N; runs.shift(); }
+    const turns = [];
+    for (const r of runs) {
+      if (runs.length * 2 === n) { const m = Math.floor((r[0] + r[1]) / 2); turns.push([r[0], m], [m + 1, r[1]]); }
+      else turns.push(r);
+    }
+    STOCK.turns = turns; STOCK.turnsFor = TRACK.S;
+  }
+  const T = STOCK.turns;
+  if (!T || !T.length) return 1;
+  // in a turn, that one; on a straight, the turn coming up
+  for (let k = 0; k < T.length; k++) {
+    const a = T[k][0], b = T[k][1];
+    if ((c.si >= a && c.si <= b) || (c.si + TRACK.N >= a && c.si + TRACK.N <= b)) return k + 1;
+  }
+  for (let k = 0; k < T.length; k++) if (T[k][0] > c.si) return k + 1;
+  return 1;
+}
+
+/* the damage readout: the car from above, each part coloured */
+function stockDmgSvg(c) {
+  const D = c.scd || { n: 0, t: 0, s: 0 };
+  const col = (d) => d < 0.08 ? '#4fc46a' : d < 0.3 ? '#ffd23a' : d < 0.6 ? '#ff8a2a' : '#ff3b30';
+  return '<svg viewBox="0 0 30 60" width="20" height="40">' +
+    '<rect x="5" y="2" width="20" height="12" rx="4" fill="' + col(D.n) + '"/>' +
+    '<rect x="3" y="15" width="4" height="28" rx="1" fill="' + col(D.s) + '"/><rect x="23" y="15" width="4" height="28" rx="1" fill="' + col(D.s) + '"/>' +
+    '<rect x="8" y="16" width="14" height="26" rx="2" fill="#2a2d33"/>' +
+    '<rect x="5" y="44" width="20" height="13" rx="3" fill="' + col(D.t) + '"/></svg>';
+}
+
 function stockTow(c) {
   const i = c.si, s = sAt(i);
   const lap = c.lapCount;
@@ -16270,8 +16727,11 @@ function stockTow(c) {
   else feed('#' + c.spec.num + ' ' + mpEsc(c.driver) + ' &middot; BACK ON TRACK', '#b8b2a4');
 }
 
-function stockGreen() {
+function stockGreen(net) {
+  if (MP.on && !MP.host && !net) return;          // online the host waves the flags
+  if (MP.on && MP.host) mpEmit({ t: 'stk', k: 'g' });
   STOCK.phase = 'green'; STOCK.flag = 'green'; STOCK.pitOpen = false;
+  { const ld = G.cars.reduce((m, c) => (!m || c.progress > m.progress ? c : m), null); STOCK.greenLap = ld ? ld.lapCount : 0; }
   if (STOCK.pace) { STOCK.pace.mesh.visible = false; STOCK.paceGone = true; }
   spot('GREEN, GREEN, GREEN. GO GO GO', true);
   announce('GREEN FLAG', STOCK.cautions ? 'RESTART' : 'THUNDER CUP');
@@ -16284,21 +16744,27 @@ function stockGreen() {
   }
 }
 
-function stockCaution(why) {
-  if (STOCK.phase !== 'green') return;
+function stockCaution(why, net) {
+  if (!net && (STOCK.phase !== 'green' || (MP.on && !MP.host))) return;
   const C = stockC(), L = TRACK.length;
   STOCK.cautions++;
   STOCK.phase = 'caution'; STOCK.flag = 'yellow'; STOCK.pitOpen = false;
   const leader = G.cars.reduce((m, c) => (!m || c.progress > m.progress ? c : m), null);
-  STOCK.cautionLap = leader.lapCount;
+  STOCK.cautionLap = net ? net.lap : leader.lapCount;
   STOCK.collect = true; STOCK.cautionT = G.raceT;
   STOCK.cautionV = Math.max.apply(null, G.cars.map((c) => c.speed));
   // overtime: no finish under yellow — twice; after that the yellow stands
-  if (G.laps - leader.lapCount < 3 && (STOCK.ot || 0) < 2) {
+  if (net) {
+    if (net.laps && net.laps !== G.laps) {
+      G.laps = net.laps; SPORT.laps = G.laps;
+      feed('<b style="color:#ffcf3a">OVERTIME</b> &middot; THE RACE IS EXTENDED TO ' + G.laps + ' LAPS', '#ffcf3a');
+    }
+  } else if (G.laps - leader.lapCount < 3 && (STOCK.ot || 0) < 2) {
     STOCK.ot = (STOCK.ot || 0) + 1;
     G.laps = leader.lapCount + 3; SPORT.laps = G.laps;
     feed('<b style="color:#ffcf3a">OVERTIME</b> &middot; THE RACE IS EXTENDED TO ' + G.laps + ' LAPS', '#ffcf3a');
   }
+  if (MP.on && MP.host) mpEmit({ t: 'stk', k: 'c', why: why, lap: STOCK.cautionLap, laps: G.laps });
   // the pace car comes out ahead of the leader
   if (STOCK.pace) {
     STOCK.paceD = stockD(leader) + 140;
@@ -16314,15 +16780,17 @@ function stockCaution(why) {
   SFX.tone(660, 0.3, 'square', 0.1); setTimeout(() => SFX.tone(660, 0.3, 'square', 0.1), 400);
 }
 
-function stockStageEnd(si, yellow) {
+function stockStageEnd(si, yellow, top) {
   STOCK.stage = si + 1;
-  const order = G.cars.slice().sort((a, b) => b.progress - a.progress);
+  // online the host's order is the one that scores
+  const order = top || G.cars.slice().sort((a, b) => b.progress - a.progress);
+  if (MP.on && MP.host) mpEmit({ t: 'stk', k: 's', si: si, y: yellow ? 1 : 0, top: order.slice(0, 10).map((c) => c.netId) });
   order.slice(0, 10).forEach((c, n) => {
     const pts = 10 - n;
     c.stockPts = (c.stockPts || 0) + pts;
     STOCK.stagePts[c.key] = (STOCK.stagePts[c.key] || 0) + pts;
   });
-  const p = G.player, pos = order.indexOf(p) + 1;
+  const p = G.player, pos = order.indexOf(p) + 1 || 99;
   feed('<b>STAGE ' + (si + 1) + ' COMPLETE</b> &middot; #' + order[0].spec.num + ' ' + mpEsc(order[0].driver) + ' WINS IT', '#2fd4e6');
   if (pos <= 10) hint('STAGE ' + (si + 1) + ' &mdash; <b>P' + pos + '</b> &middot; +' + (11 - pos) + ' STAGE POINTS', 3);
   if (yellow) stockCaution('STAGE ' + (si + 1) + ' COMPLETE');
@@ -16335,8 +16803,9 @@ function stockPitCalls() {
   const stageBreak = STOCK.stage > 0 && STOCK.cautionLap === STOCK.stageLaps[STOCK.stage - 1] + 1;
   for (const c of G.cars) {
     if (c.isPlayer || c.pit || c.finished) continue;
-    const want = stageBreak ? 0.8 : clamp((c.tw || 0) * 1.6, 0, 0.9);
-    if (Math.random() < want && G.laps - c.lapCount > 1) { c.boxReq = true; c.nextTyre = 'K'; }
+    const dm = c.scd ? c.scd.n + c.scd.t + c.scd.s : 0;
+    const want = dm > 0.3 ? 0.97 : stageBreak ? 0.8 : clamp((c.tw || 0) * 1.6, 0, 0.9);
+    if (Math.random() < want && G.laps - c.lapCount > 1) { c.boxReq = true; c.nextTyre = 'K'; c.twoTyres = dm < 0.3 && Math.random() < 0.4; }
   }
 }
 
@@ -16404,16 +16873,20 @@ function updateStockAI(car, dt, t) {
     if (Math.abs(side.lat - desired) < 3.3) desired = side.lat + away * 3.4;
   }
   desired = clamp(desired, -(w - 1.4), w - 1.2);
+  // a wreck in the road: round it, quickly
+  const av = stockAvoid(car, ai.dl === undefined ? myLat : ai.dl);
+  if (av) desired = av.lat;
   // the line glides across: a lane change takes a few seconds, never a lunge
   if (ai.dl === undefined) ai.dl = myLat;
-  const rate = (side ? 4.0 : 2.4) * dt;
+  const rate = (av ? 7.0 : side ? 4.0 : 2.4) * dt;
   ai.dl += clamp(desired - ai.dl, -rate, rate);
   desired = ai.dl;
 
   // ---- speed ----
   const DK = DIFF_K();
-  // the bowl's 75 m turns hold less than the formula promises: measured, 85% keeps them off the wall
-  const muG = (10.6 + 2.4 * skill) * DK.pace * (C.kind === 'bowl' ? 0.85 : C.kind === 'triangle' ? 0.78 : 1);
+  // how much of the formula's corner speed each kind of track really holds,
+  // measured: the bowl's 75 m turns less than it promises
+  const muG = (10.6 + 2.4 * skill) * DK.pace * (STOCK_AIGRIP[C.kind] || 1);
   const top = sp.topSpeed * (0.9 + 0.1 * skill) * DK.top * 1.15;
   // the slowest point in the next stretch, with braking distance
   let vmax = 999;
@@ -16428,6 +16901,7 @@ function updateStockAI(car, dt, t) {
     vmax = Math.min(vmax, Math.sqrt(vc * vc + 2 * brake * j));
   }
   let targetV = Math.min(top, vmax);
+  if (av) targetV = Math.min(targetV, av.vCap);
   // hold a gap behind the car in front: close in the draft, bump at the plate tracks
   if (ahead) {
     // centre to centre: a 4.9 m car, so about two metres of air in the draft
@@ -16451,6 +16925,14 @@ function updateStockAI(car, dt, t) {
   // and never more lock than the speed can take
   const lockCap = clamp(1.1 - spd * 0.0105, 0.32, 1);
   steer = clamp(steer, -lockCap, lockCap);
+  // catching a slide: the car rotating faster than the road turns is the back
+  // end stepping out — off the throttle and into the counter-steer, before
+  // it is a spin (a stock car at 120 mph does not come back from 60 degrees)
+  const yawX = car.yawRate - spd * s0.k;
+  if (Math.abs(yawX) > 0.26 && spd > 15 && ai.reverseT <= 0) {
+    throttle = Math.min(throttle, 0.12);
+    steer = clamp(steer - clamp(yawX * 1.1, -0.7, 0.7), -1, 1);
+  }
   if (ai.reverseT > 0) { ai.reverseT -= dt; throttle = -1; steer = -steer; }
   inp.throttle = clamp(throttle, -1, 1);
   inp.steer = steer;
@@ -16489,7 +16971,11 @@ function stockSpotter(dt) {
     if (ol > pl) low = true; else high = true;
   }
   const S = STOCK.spot;
-  const now = low && high ? 3 : low ? 1 : high ? 2 : 0;
+  const raw = low && high ? 3 : low ? 1 : high ? 2 : 0;
+  // a car has to be there (or gone) for a moment before it is called: the
+  // flicker of a nose at the edge of the window was "car low, clear low, car low"
+  if (raw !== S.cand) { S.cand = raw; S.candT = 0; } else S.candT = (S.candT || 0) + dt;
+  const now = S.candT > 0.3 ? raw : S.side;
   S.sideT = now === S.side ? S.sideT + dt : 0;
   if (now !== S.side && STOCK.phase === 'green') {
     if (now === 3) spot('THREE WIDE, YOU\'RE IN THE MIDDLE');
@@ -16524,16 +17010,19 @@ function stockHudBuild() {
       '#stockHud .sth-draft{position:absolute;right:22px;bottom:214px;padding:4px 10px;font:900 12px/1 var(--title,Arial);letter-spacing:.2em;' +
         'color:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.15);background:rgba(9,10,14,.6)}' +
       '#stockHud .sth-draft.on{color:#0b1;background:#d8ff3a;border-color:#d8ff3a;color:#111}' +
+      '#stockHud .sth-dmg{position:absolute;right:22px;bottom:244px;display:flex;align-items:center;gap:6px;padding:3px 8px;background:rgba(9,10,14,.6);' +
+        'border:1px solid rgba(255,255,255,.15);font:900 10px/1 var(--title,Arial);letter-spacing:.18em;color:rgba(255,255,255,.6)}' +
       'body.stock #nosBar,body.stock #nosBar + .sub,body.stock #drsBox{display:none !important}' +
       'body.touch #stockHud .sth-tl{top:6px;transform:translateX(-50%) scale(.8)}';
     document.head.appendChild(css);
     const el = document.createElement('div');
     el.id = 'stockHud';
     el.innerHTML = '<div class="sth-tl"><div class="sth-logo">THUNDER CUP</div><div class="sth-flag"></div><div class="sth-lap"></div><div class="sth-stage"></div></div>' +
-      '<div class="sth-spot"></div><div class="sth-pos"><b></b><i></i></div><div class="sth-draft">DRAFT</div>';
+      '<div class="sth-spot"></div><div class="sth-pos"><b></b><i></i></div><div class="sth-draft">DRAFT</div><div class="sth-dmg"></div>';
     HUD.hud.appendChild(el);
     STOCK.el = { root: el, flag: el.querySelector('.sth-flag'), lap: el.querySelector('.sth-lap'), stage: el.querySelector('.sth-stage'),
-      spot: el.querySelector('.sth-spot'), pos: el.querySelector('.sth-pos b'), tot: el.querySelector('.sth-pos i'), draft: el.querySelector('.sth-draft') };
+      spot: el.querySelector('.sth-spot'), pos: el.querySelector('.sth-pos b'), tot: el.querySelector('.sth-pos i'), draft: el.querySelector('.sth-draft'),
+      dmg: el.querySelector('.sth-dmg'), dmgKey: '' };
   }
   STOCK.el.root.style.display = '';
 }
@@ -16555,6 +17044,9 @@ function stockHud() {
   } else E.stage.textContent = sl.length ? 'FINAL STAGE' : '';
   E.pos.textContent = p.rank; E.tot.textContent = '/' + G.cars.length;
   E.draft.classList.toggle('on', (p.draft || 0) > 0.05 && STOCK.phase === 'green');
+  const D = p.scd || { n: 0, t: 0, s: 0 };
+  const key = [D.n, D.t, D.s].map((v) => Math.round(v * 20)).join();
+  if (key !== E.dmgKey) { E.dmgKey = key; E.dmg.innerHTML = stockDmgSvg(p) + 'CAR'; }
 }
 
 /* ---------------------------------- results ---------------------------------- */
@@ -17319,6 +17811,8 @@ const CAREER = {
   daily: null,                // today's attempts, best score and the streak (§13b)
   sport: null,                // sport mode season: races, wins, podiums, points (§12c)
   sportSel: null,             // the last circuit, team and distance picked
+  stock: null,                // the Thunder Cup season: races, wins, top fives, points (§12s)
+  stockSel: null,             // the last speedway, car and distance picked
 };
 
 function loadCareer() {
@@ -17350,6 +17844,10 @@ function loadCareer() {
     if (s.sport && typeof s.sport === 'object') {
       CAREER.sport = { races: s.sport.races | 0, wins: s.sport.wins | 0, podiums: s.sport.podiums | 0, points: s.sport.points | 0 };
     }
+    if (s.stock && typeof s.stock === 'object') {
+      CAREER.stock = { races: s.stock.races | 0, wins: s.stock.wins | 0, top5: s.stock.top5 | 0, points: s.stock.points | 0 };
+    }
+    if (s.stockSel && typeof s.stockSel === 'object') CAREER.stockSel = { c: s.stockSel.c | 0, k: s.stockSel.k | 0, l: s.stockSel.l | 0 };
     if (s.sportSel && typeof s.sportSel === 'object') CAREER.sportSel = { c: s.sportSel.c | 0, k: s.sportSel.k | 0, l: s.sportSel.l | 0, t: String(s.sportSel.t || 'M') };
     if (s.daily && typeof s.daily === 'object') {
       const d = s.daily;
@@ -18015,7 +18513,7 @@ const LB = {
 
   /* a personal best was just set on this circuit */
   submitLap(circuit, t, car, ghost) {
-    if (!NET.available() || !CAREER.name || !(t > 15)) return;
+    if (!NET.available() || !CAREER.name || !(t > lapFloor(circuit))) return;
     NET.connect().then((ok) => {
       if (!ok) return;
       const path = 'lb/' + circuit + '/' + NET.uid;
@@ -18049,7 +18547,8 @@ const LB = {
     this.data = null;
     Promise.all([NET.get('lb/' + C.key), NET.get('hof')]).then(([laps, hof]) => {
       const L = [];
-      for (const k in (laps || {})) { const r = laps[k]; if (r && r.t > 15) L.push({ me: k === NET.uid, n: cleanName(r.n) || '???', t: r.t, car: r.car }); }
+      const fl = lapFloor(C.key);
+      for (const k in (laps || {})) { const r = laps[k]; if (r && r.t > fl) L.push({ me: k === NET.uid, n: cleanName(r.n) || '???', t: r.t, car: r.car }); }
       L.sort((a, b) => a.t - b.t);
       const H = [];
       for (const k in (hof || {})) { const r = hof[k]; if (r) H.push({ me: k === NET.uid, n: cleanName(r.n) || '???', wins: r.wins | 0, kills: r.kills | 0, drift: r.drift | 0 }); }
@@ -18154,11 +18653,19 @@ const r2 = (v) => Math.round(v * 100) / 100;
 const r3 = (v) => Math.round(v * 1000) / 1000;
 function mpPath(p) { return 'rooms/' + MP.code + (p ? '/' + p : ''); }
 function mpMine() { return MP.players[NET.uid]; }
-/* a room plays one of the two games, never a mix: the championship's cars on
-   its circuits (weapons), or SPORT MODE's F1 teams on the grand-prix circuits */
-function mpSport(m) { m = m || MP.meta; return !!(m && m.mode === 'sport'); }
-function mpCircs(m) { return mpSport(m) ? SPORT_CIRCUITS : CIRCUITS; }
-function mpGarage(m) { return mpSport(m) ? SPORT_GARAGE : GARAGE; }
+/* a room plays one of the three games, never a mix: the championship's cars
+   on its circuits (weapons), SPORT MODE's F1 teams on the grand-prix
+   circuits, or the THUNDER CUP's stock cars on the ovals */
+const MP_MODES = ['combat', 'sport', 'stock'];
+const MP_STOCK_FIELD = 16;        // online the stock field is 16 cars, not 24: the host sends every AI car
+function mpMode(m) { m = m || MP.meta; return (m && m.mode) || 'combat'; }
+function mpSport(m) { return mpMode(m) === 'sport'; }
+function mpStock(m) { return mpMode(m) === 'stock'; }
+function mpCombat(m) { return mpMode(m) === 'combat'; }
+function mpCircs(m) { return mpSport(m) ? SPORT_CIRCUITS : mpStock(m) ? STOCK_CIRCUITS : CIRCUITS; }
+function mpGarage(m) { return mpSport(m) ? SPORT_GARAGE : mpStock(m) ? STOCK_GARAGE : GARAGE; }
+/* the car a person in the room has picked for this room's game */
+function mpPick(p, m) { return mpSport(m) ? p.f1 : mpStock(m) ? p.sc : p.car; }
 function mpHumans() {
   return Object.keys(MP.players).map((k) => Object.assign({ uid: k }, MP.players[k]))
     .filter((p) => p && p.n).sort((a, b) => (a.j || 0) - (b.j || 0));
@@ -18197,7 +18704,7 @@ function mpTitleExtras() {
     ['mponline', 'ONLINE', 'Race your friends with a four-letter room code.'],
     ['mplb', 'LEADERBOARD', 'The fastest laps and the best of the season.'],
     ['diff', 'DIFFICULTY &middot; <i class="dlv">' + DIFF_K().name + '</i>', 'Easy, medium or hard &mdash; how fast the field races you. ENTER changes it.'],
-    ['controls', 'CONTROLS', 'Keyboard and controller, for both modes.'],
+    ['controls', 'CONTROLS', 'Keyboard and controller, for every mode.'],
   ]);
 }
 
@@ -18227,6 +18734,10 @@ function showControls() {
         k('<kbd>E</kbd>', 'open DRS in the zone') + k('<kbd>B</kbd>', 'box &mdash; pit this lap') +
         k('<kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>', 'soft / medium / hard at the stop') +
         k('hold <kbd>W</kbd> on the grid', 'rev for the start') +
+        '<h4>STOCK CAR</h4>' +
+        k('<kbd>B</kbd>', 'pit &mdash; when pit road is open under the yellow') +
+        k('<kbd>C</kbd>', 'chase, far chase or hood camera') +
+        k('tuck in behind a car', 'the draft &mdash; the DRAFT light comes on') +
       '</div>' +
       '<div class="ccol"><h3>CONTROLLER &middot; ' + L.name + '</h3>' +
         k(pb(L.thr, [BTN.RT]), 'throttle') + k(pb(L.brk, [BTN.LT]), 'brake &amp; reverse') +
@@ -18236,6 +18747,7 @@ function showControls() {
         '<h4>SPORT MODE</h4>' +
         k(pb(L.fire, []), 'open DRS in the zone') + k('<kbd>D-PAD &#9650;</kbd>', 'box &mdash; pit this lap') +
         k('<kbd>D-PAD &#9660;</kbd>', 'change the tyre for the stop') + k(pb(L.thr.length ? L.thr : [BTN.RT], []) + ' on the grid', 'rev for the start') +
+        '<h4>STOCK CAR</h4>' + k('<kbd>D-PAD &#9650;</kbd>', 'pit &mdash; when pit road is open') +
         '<h4>MENUS</h4>' + k('<kbd>A</kbd>', 'select') + k('<kbd>B</kbd>', 'back') + k('<kbd>D-PAD</kbd> / <kbd>STICK</kbd>', 'move') +
         k('<kbd>LB</kbd> <kbd>RB</kbd>', 'jump between the buttons on any screen') + k('<kbd>VIEW</kbd>', 'garage') +
         '<div class="blurb" style="margin-top:10px;opacity:.6">' + (PAD.on ? 'Controller connected. Change the layout in the pause menu.' : 'No controller connected &mdash; plug one in and press any button.') + '</div>' +
@@ -18272,7 +18784,8 @@ function showOnline() {
     '<div class="tag">RACING AS <b class="cash">' + mpEsc(CAREER.name) + '</b> &middot; BALANCE <b class="cash">' + money(CAREER.cash) + '</b></div>' +
     '<div class="rule"></div>' +
     '<div class="blurb">Make a room and send your friends the code, or type in theirs. Up to four people race the ' +
-    'whole field together &mdash; AI cars, weapons and the Juggernaut. Online is <b>stock</b>: every car is open to ' +
+    'whole field together, and the host picks the game: <b>Race to Death</b> (AI cars, weapons and the Juggernaut), ' +
+    '<b>Sport Mode</b> (the F1 grand prix) or the <b>Thunder Cup</b> (stock cars on the ovals). In Race to Death every car is open to ' +
     'everybody and upgrades stay at home, so it comes down to driving. Online races pay a 25% bonus.</div>' +
     (MP.msg ? '<div class="blurb" style="color:#ff8478;margin-top:8px">' + MP.msg + '</div>' : '') +
     mpButtons([['mpcreate', 'CREATE ROOM'], ['mpjoin', 'JOIN ROOM'], ['mplb', 'LEADERBOARD'], ['mpname', 'NAME'], ['mpback', 'BACK']]) +
@@ -18346,7 +18859,7 @@ function mpEnter() {
   mpOff(MP.offs);
   MP.meta = null; MP.players = {};
   const me = mpPath('players/' + NET.uid);
-  NET.set(me, { n: CAREER.name, car: G.playerCar, f1: sportCar(), j: netNow() });
+  NET.set(me, { n: CAREER.name, car: G.playerCar, f1: sportCar(), sc: stockCar(), j: netNow() });
   NET.dropOnExit(me);
   NET.dropOnExit(mpPath('st/' + NET.uid));
   MP.offs.push(NET.on(mpPath('meta'), (m) => mpMeta(m)));
@@ -18395,7 +18908,7 @@ function mpLeaveRoom(gone) {
 function mpRows() {
   const rows = MP.host ? ['mode', 'car'] : ['car'];
   if (MP.host) rows.push('circuit', 'laps');
-  if (MP.host && !mpSport()) rows.push('boss');
+  if (MP.host && mpCombat()) rows.push('boss');
   return rows;
 }
 
@@ -18407,16 +18920,18 @@ function showRoom() {
   const m = MP.meta || {};
   const rows = mpRows();
   MP.rsel = clamp(MP.rsel, 0, rows.length - 1);
-  const sp = mpSport(m);
+  const sp = mpSport(m), sk = mpStock(m), cb = mpCombat(m);
   const C = mpCircs(m).find((c) => c.key === m.circuit) || mpCircs(m)[0];
+  const sf = ROSTER[stockCar()].field;
   const val = {
-    mode: sp ? 'SPORT MODE &middot; F1 GRAND PRIX' : 'RACE TO DEATH &middot; WEAPONS',
-    car: sp ? ROSTER[sportCar()].car + ' &middot; F1' : ROSTER[G.playerCar].car + ' &middot; STOCK',
+    mode: sp ? 'SPORT MODE &middot; F1 GRAND PRIX' : sk ? 'STOCK CAR &middot; THUNDER CUP' : 'RACE TO DEATH &middot; WEAPONS',
+    car: sp ? ROSTER[sportCar()].car + ' &middot; F1' : sk ? '<span style="color:' + sf.colours.base + ';text-shadow:0 0 1px #fff">&#9632;</span> #' + sf.num + ' ' + sf.sponsor
+      : ROSTER[G.playerCar].car + ' &middot; STOCK',
     circuit: C.name,
     laps: (m.laps || 2) + ' LAPS',
     boss: m.boss ? 'ON' : 'OFF',
   };
-  const lbl = { mode: 'GAME', car: sp ? 'YOUR TEAM' : 'YOUR CAR', circuit: 'CIRCUIT', laps: 'DISTANCE', boss: 'JUGGERNAUT' };
+  const lbl = { mode: 'GAME', car: sp ? 'YOUR TEAM' : 'YOUR CAR', circuit: sk ? 'SPEEDWAY' : 'CIRCUIT', laps: 'DISTANCE', boss: 'JUGGERNAUT' };
   let set = '';
   rows.forEach((r, i) => {
     set += '<div class="srow' + (i === MP.rsel ? ' me' : '') + '" style="border-left-color:' + (i === MP.rsel ? '#f6a41b' : '#555') + '">' +
@@ -18424,8 +18939,8 @@ function showRoom() {
       '<b class="adj" data-nav="mpset:' + r + ':-1">&#9664;</b><b class="adj" data-nav="mpset:' + r + ':1">&#9654;</b></div>';
   });
   if (!MP.host) {
-    set += '<div class="srow"><div class="who"><span style="opacity:.55">' + (sp ? 'SPORT MODE' : 'RACE TO DEATH') + '</span> &nbsp;<b>' + C.name + '</b> &middot; ' +
-      (m.laps || 2) + ' LAPS' + (sp ? ' &middot; F1 RULES' : ' &middot; JUGGERNAUT ' + (m.boss ? 'ON' : 'OFF')) + '</div></div>';
+    set += '<div class="srow"><div class="who"><span style="opacity:.55">' + (sp ? 'SPORT MODE' : sk ? 'STOCK CAR' : 'RACE TO DEATH') + '</span> &nbsp;<b>' + C.name + '</b> &middot; ' +
+      (m.laps || 2) + ' LAPS' + (sp ? ' &middot; F1 RULES' : sk ? ' &middot; CAUTIONS &middot; STAGES' : ' &middot; JUGGERNAUT ' + (m.boss ? 'ON' : 'OFF')) + '</div></div>';
   }
   const hs = mpHumans();
   let ppl = '';
@@ -18434,7 +18949,9 @@ function showRoom() {
       '<div class="n">' + (i + 1) + '</div><div class="who"><b class="pn"></b>' +
       (p.uid === m.host ? ' &nbsp;<span style="color:#f6a41b">HOST</span>' : '') +
       (p.uid === NET.uid ? ' &nbsp;<span style="opacity:.55">YOU</span>' : '') + '</div>' +
-      '<div class="st">' + ((ROSTER[sp ? p.f1 : p.car] && ROSTER[sp ? p.f1 : p.car].car) || '') + '</div></div>';
+      '<div class="st">' + (sk ? (ROSTER[p.sc] ? '#' + ROSTER[p.sc].field.num + ' ' + ROSTER[p.sc].field.sponsor : '') +
+        (hs.slice(0, i).some((q) => q.sc === p.sc) ? ' &middot; <span style="color:#ff8478">TAKEN &mdash; GETS THE NEXT FREE CAR</span>' : '')
+        : (ROSTER[mpPick(p, m)] && ROSTER[mpPick(p, m)].car) || '') + '</div></div>';
   });
   const racing = m.status === 'race';
   showScreen('<h2>ROOM <span class="cash" style="letter-spacing:.2em">' + MP.code + '</span></h2>' +
@@ -18443,13 +18960,13 @@ function showRoom() {
     '<div class="standings">' + set + '</div>' +
     '<div class="tag" style="margin:14px 0 6px">DRIVERS</div><div class="standings">' + ppl + '</div>' +
     (racing ? '<div class="blurb" style="margin-top:10px;color:#f6a41b">A RACE IS ON &mdash; YOU ARE IN THE NEXT ONE</div>' : '') +
-    mpButtons(sp
+    mpButtons(!cb
       ? (MP.host ? [['mpstart', 'START RACE'], ['mpleave', 'LEAVE']] : [['mpleave', 'LEAVE']])
       : MP.host
       ? [['mpstart', 'START RACE'], ['mpgarage', 'GARAGE'], ['mpleave', 'LEAVE']]
       : [['mpgarage', 'GARAGE'], ['mpleave', 'LEAVE']]) +
     '<div class="cta" data-nav="' + (MP.host ? 'mpstart' : 'mpgarage') + '">&#9650;&#9660; row &middot; &#9664; &#9654; change &middot; ' +
-      (MP.host ? 'ENTER start' : 'waiting for the host') + (sp ? '' : ' &middot; <kbd>G</kbd> garage') + ' &middot; <kbd>ESC</kbd> leave</div>');
+      (MP.host ? 'ENTER start' : 'waiting for the host') + (cb ? ' &middot; <kbd>G</kbd> garage' : '') + ' &middot; <kbd>ESC</kbd> leave</div>');
   // other people's names go in as text, never as markup
   document.querySelectorAll('#screen .pn').forEach((el, i) => { if (hs[i]) el.textContent = hs[i].n; });
 }
@@ -18460,6 +18977,11 @@ function mpSet(row, d) {
     // SPORT MODE: one of the five F1 teams
     SPORT.car = (SPORT.car + d + SPORT_GARAGE.length) % SPORT_GARAGE.length;
     CAREER.sportSel = Object.assign({}, CAREER.sportSel || {}, { k: SPORT.car }); saveCareer();
+    mpSendCar();
+  } else if (row === 'car' && mpStock()) {
+    // THE THUNDER CUP: one of the stock cars, the player's own #91 first
+    STOCK.car = (STOCK.car + d + STOCK_GARAGE.length) % STOCK_GARAGE.length;
+    CAREER.stockSel = Object.assign({}, CAREER.stockSel || {}, { k: STOCK.car }); saveCareer();
     mpSendCar();
   } else if (row === 'car') {
     // every car, owned or not: online is stock and open
@@ -18473,15 +18995,15 @@ function mpSet(row, d) {
     const n = Object.assign({}, m);
     if (row === 'mode') {
       // switching games resets the circuit and distance to that game's own
-      n.mode = mpSport(m) ? 'combat' : 'sport';
+      n.mode = MP_MODES[(MP_MODES.indexOf(mpMode(m)) + d + MP_MODES.length) % MP_MODES.length];
       n.circuit = mpCircs(n)[0].key;
-      n.laps = mpSport(n) ? 3 : 2;
+      n.laps = mpSport(n) ? 3 : mpStock(n) ? 12 : 2;
       MP.rsel = 0;
     } else if (row === 'circuit') {
       const L = mpCircs(m);
       const i = Math.max(0, L.findIndex((c) => c.key === m.circuit));
       n.circuit = L[(i + d + L.length) % L.length].key;
-    } else if (row === 'laps') n.laps = clamp((m.laps || 2) + d, 1, mpSport(m) ? 10 : 5);
+    } else if (row === 'laps') n.laps = clamp((m.laps || 2) + d * (mpStock(m) ? 2 : 1), mpStock(m) ? 4 : 1, mpSport(m) ? 10 : mpStock(m) ? 40 : 5);
     else if (row === 'boss') n.boss = !m.boss;
     NET.set(mpPath('meta'), n);
   }
@@ -18491,7 +19013,7 @@ function mpSet(row, d) {
 
 function mpSendCar() {
   if (!MP.code) return;
-  NET.set(mpPath('players/' + NET.uid), { n: CAREER.name, car: G.playerCar, f1: sportCar(), j: (mpMine() && mpMine().j) || netNow() });
+  NET.set(mpPath('players/' + NET.uid), { n: CAREER.name, car: G.playerCar, f1: sportCar(), sc: stockCar(), j: (mpMine() && mpMine().j) || netNow() });
 }
 
 /* ============================ race start ============================= */
@@ -18500,6 +19022,7 @@ function mpStart() {
   const hs = mpHumans();
   if (!hs.length) return;
   if (mpSport()) { mpStartSport(hs); return; }
+  if (mpStock()) { mpStartStock(hs); return; }
   const taken = new Set(hs.map((h) => h.car));
   const pool = GARAGE.filter((k) => !taken.has(k));
   const nAi = clamp(6 - hs.length, 2, 5);
@@ -18533,6 +19056,33 @@ function mpStartSport(hs) {
     .then(() => NET.set(mpPath('meta'), meta));
 }
 
+/* THE THUNDER CUP online: sixteen stock cars. Each friend drives the number
+   they picked (the first to pick it keeps it), the host's machine drives
+   the rest, and the host's machine runs the flags — the pace car, cautions,
+   stages and the restarts are its calls, sent to everybody (§12s). The grid
+   is set by a quick qualifying shake, friends in among the field. */
+function mpStartStock(hs) {
+  const taken = new Set();
+  const grid = [];
+  hs.forEach((h) => {
+    let k = STOCK_GARAGE.includes(h.sc) ? h.sc : STOCK_GARAGE[0];
+    if (taken.has(k)) k = STOCK_GARAGE.find((x) => !taken.has(x));
+    taken.add(k);
+    grid.push({ id: h.uid, k: k, n: h.n, q: rand(0.86, 0.98) });
+  });
+  const pool = STOCK_GARAGE.filter((k) => !taken.has(k));
+  for (let i = 0; grid.length < MP_STOCK_FIELD && pool.length; i++) {
+    const k = pool.splice(randi(0, pool.length - 1), 1)[0];
+    grid.push({ id: 'a' + i, k: k, ai: 1, q: (ROSTER[k].skill || 0.9) + rand(0, 0.10) });
+  }
+  grid.sort((a, b) => b.q - a.q);
+  for (const e of grid) delete e.q;
+  const raceId = 'r' + Date.now().toString(36);
+  const meta = Object.assign({}, MP.meta, { status: 'race', raceId: raceId, startAt: netNow() + 8000, grid: grid });
+  Promise.all([NET.set(mpPath('st'), null), NET.set(mpPath('ai'), null), NET.set(mpPath('ev'), null)])
+    .then(() => NET.set(mpPath('meta'), meta));
+}
+
 function mpBeginRace(m) {
   sportLeave();                              // Sport Mode's rules never ride along
   const C = mpCircs(m).find((c) => c.key === m.circuit) || mpCircs(m)[0];
@@ -18553,6 +19103,7 @@ function mpBeginRace(m) {
 
 function mpSpawnGrid(m) {
   if (mpSport(m)) return mpSpawnSport(m);
+  if (mpStock(m)) return mpSpawnStock(m);
   clearRace();
   MP.on = true;
   MP.raceId = m.raceId;
@@ -18625,6 +19176,7 @@ function mpListen(m) {
         if (!car && id === 'boss') car = mpMakeBoss(blob.c[id]);
         if (car) mpSnap(car, blob.c[id]);
       }
+      if (blob.s && stockOn()) stockNetSync(blob.s);
     }));
   }
   MP.raceOffs.push(NET.onAdd(mpPath('ev/' + MP.raceId), (k, ev) => mpEvent(ev)));
@@ -18805,9 +19357,16 @@ function mpUpdate(dt) {
   const p = G.player;
   if (p) NET.set(mpPath('st/' + NET.uid), mpPack(p));
   if (MP.host) {
+    // a full stock field is a lot of cars to send: the AI goes out 6 times a
+    // second there (the ovals' constant curves dead-reckon well), 12 elsewhere
+    MP.aiT = (MP.aiT || 0) - MP_SEND;
+    if (MP.aiT > 0) return;
+    MP.aiT = stockOn() ? MP_SEND * 0.5 : 0;           // every other packet
     const c = {};
     for (const car of G.cars) if (!car.remote && !car.isHuman && car.netId) c[car.netId] = mpPack(car);
-    NET.set(mpPath('ai'), { c: c });
+    const blob = { c: c };
+    if (stockOn()) blob.s = stockNetState();
+    NET.set(mpPath('ai'), blob);
   }
 }
 
@@ -18880,6 +19439,8 @@ function mpPuppet(c, dt) {
     c.stops = L[28] | 0; c.penalty = L[29] | 0;
   }
   c.si = nearestIdx(c.pos, c.si);
+  // on a banked oval a friend's car sits on the banking, not under it
+  if (TRACK.banked) { c.gy = roadY(c.si, lateralOf(c.pos, c.si)); c.pos.y = c.gy; }
 
   const alive = !!(f & F_ALIVE);
   if (c.alive && !alive) {
@@ -19023,6 +19584,7 @@ function mpEvent(ev) {
       if (bar) explodeBarrel(bar, car(ev.by), true);
       break;
     }
+    case 'stk': stockNetEvent(ev); break;
     case 'trap': {
       const tr = TRAPS[ev.i | 0];
       if (tr && tr.state !== 'falling') {
@@ -19073,6 +19635,7 @@ function mpResultScreen() {
   const racers = G.cars.filter((c) => !c.isBoss).sort((a, b) => a.rank - b.rank);
   const names = [];
   let rows = '';
+  if (SPORT.on && SPORT.kind === 'stock') return mpStockResultScreen(racers);
   if (SPORT.on) return mpSportResultScreen(racers);
   for (const c of racers) {
     const st = c.finished ? fmtTime(c.finishTime) : c.alive ? 'RACING' : (c.lives > 0 ? 'RESPAWNING' : 'DESTROYED');
@@ -19121,6 +19684,36 @@ function mpSportResultScreen(racers) {
     '<div class="rule"></div><div class="standings">' + rows + '</div>' +
     paydayHtml(MP.pay) +
     (MP.host && !canBack ? '<div class="blurb" style="margin-top:10px">Your machine runs the AI cars &mdash; hang on until the others finish (' + waitS + 's).</div>' : '') +
+    (canBack ? mpButtons([['mproom', 'BACK TO THE ROOM']]) : '') +
+    (canBack ? '<div class="cta" data-nav="mproom">ENTER back to the room</div>' : ''));
+  document.querySelectorAll('#screen .pn').forEach((el, i) => { if (names[i] !== undefined) el.textContent = names[i]; });
+}
+
+function mpStockResultScreen(racers) {
+  const names = [];
+  let rows = '';
+  const order = racers.slice().sort((a, b) => (b.finished - a.finished) ||
+    (a.finished ? a.finishTime - b.finishTime : b.progress - a.progress));
+  const win = order[0];
+  order.forEach((c, i) => {
+    const e = c.spec.field, sp = STOCK.stagePts[c.key] || 0;
+    const down = c.finished || !win ? 0 : Math.floor(win.progress - c.progress);
+    const st = c.finished ? (i === 0 ? fmtTime(c.finishTime) : '+' + (c.finishTime - win.finishTime).toFixed(3)) : down >= 1 ? '-' + down + ' LAP' + (down > 1 ? 'S' : '') : 'RACING';
+    names.push(c.isPlayer ? CAREER.name + ' (YOU)' : (c.pname || c.driver));
+    rows += '<div class="srow' + (c.isPlayer ? ' me' : '') + '" style="border-left-color:' + (c.isHuman ? hexCss(c.colorHex) : e.colours.base) + '">' +
+      '<div class="n">' + (i + 1) + '</div><div class="who"><b style="color:' + e.colours.base + ';text-shadow:0 0 2px #000">#' + e.num + '</b> <b class="pn"></b> &nbsp;<span style="opacity:.55">' + e.sponsor + '</span></div>' +
+      '<div class="st">' + st + ' &middot; ' + (c.stops || 0) + (c.stops === 1 ? ' STOP' : ' STOPS') + (sp ? ' &middot; ' + sp + ' STAGE PTS' : '') + '</div>' +
+      '<div class="q in">' + (c.finished ? (STOCK_PTS(i + 1) + sp) + ' PTS' : '') + '</div></div>';
+  });
+  const p = G.player, pos = order.indexOf(p) + 1;
+  const done = mpRaceDone();
+  const waitS = Math.max(0, 45 - Math.floor((Date.now() - MP.endAt) / 1000));
+  const canBack = !MP.host || done || waitS <= 0;
+  showScreen('<h2>' + (pos === 1 ? 'VICTORY LANE' : pos <= 5 ? 'TOP FIVE &middot; P' + pos : 'P' + pos) + '</h2><div class="tag">THUNDER CUP ONLINE &middot; ROOM ' + MP.code + ' &middot; ' + stockC().name +
+      ' &middot; ' + STOCK.cautions + ' CAUTION' + (STOCK.cautions === 1 ? '' : 'S') + (done ? ' &middot; RACE OVER' : ' &middot; STILL RACING') + '</div>' +
+    '<div class="rule"></div><div class="standings">' + rows + '</div>' +
+    paydayHtml(MP.pay) +
+    (MP.host && !canBack ? '<div class="blurb" style="margin-top:10px">Your machine runs the AI cars and the flags &mdash; hang on until the others finish (' + waitS + 's).</div>' : '') +
     (canBack ? mpButtons([['mproom', 'BACK TO THE ROOM']]) : '') +
     (canBack ? '<div class="cta" data-nav="mproom">ENTER back to the room</div>' : ''));
   document.querySelectorAll('#screen .pn').forEach((el, i) => { if (names[i] !== undefined) el.textContent = names[i]; });
@@ -19186,7 +19779,7 @@ MP.key = function (e, k) {
     if (e.key === 'Escape') { mpLeaveRoom(); showOnline(); return true; }
     if (up || down) { MP.rsel = (MP.rsel + (up ? -1 : 1) + rows.length) % rows.length; SFX.beep(false); showRoom(); return true; }
     if (left || right) { mpSet(rows[MP.rsel], left ? -1 : 1); return true; }
-    if (k === 'g' && !mpSport()) { MP.nav('mpgarage'); return true; }
+    if (k === 'g' && mpCombat()) { MP.nav('mpgarage'); return true; }
     if (e.key === 'Enter') { if (MP.host) mpStart(); else SFX.deny(); return true; }
     return false;
   }
@@ -19334,7 +19927,11 @@ function applyState(s) {
   G.carryArmour = typeof s.carryArmour === 'number' ? s.carryArmour : null;
   G.carryKills = s.carryKills | 0;
   G.qualified = Array.isArray(s.qualified) ? s.qualified.filter(k => ROSTER[k]) : [];
-  if (s.bestLaps && typeof s.bestLaps === 'object') G.bestLaps = s.bestLaps;
+  if (s.bestLaps && typeof s.bestLaps === 'object') {
+    G.bestLaps = s.bestLaps;
+    // a glitched lap saved by an older version is not a record
+    for (const k in G.bestLaps) if (!(G.bestLaps[k] > lapFloor(k))) delete G.bestLaps[k];
+  }
   // a save from before there was more than one circuit: its best lap was Black Gold's
   if (s.bestLap && !G.bestLaps.yard) G.bestLaps.yard = s.bestLap;
   {
@@ -20695,6 +21292,7 @@ function tick(dt) {
     return;
   }
 
+  if (G.state === 'countdown' && SPORT.on && SPORT.kind === 'stock') { stockCountdown(dt); return; }
   if (G.state === 'countdown' && SPORT.on) { f1Countdown(dt); return; }
   if (G.state === 'countdown') {
     G.cd -= dt;
@@ -20778,7 +21376,8 @@ function tick(dt) {
       let best = false;
       const deleted = SPORT.on && G.player.lapBad;
       if (deleted) feed('LAP TIME DELETED &middot; <b>TRACK LIMITS</b>', '#ff8478');
-      if (G.lastLap > 15 && !deleted) {
+      // a rolling start's run up to the line is not a lap (§12s)
+      if (G.lastLap > lapFloor(G.circuit) && !deleted && (!SPORT.on || G.lastLapCount >= 1)) {
         best = !G.bestLap || G.lastLap < G.bestLap;
         if (best) {
           G.bestLap = G.lastLap;
@@ -20892,6 +21491,11 @@ function boot() {
     SPORT.car = clamp(CAREER.sportSel.k | 0, 0, SPORT_GARAGE.length - 1);
     SPORT.laps = clamp(CAREER.sportSel.l | 0 || 3, 1, 10);
     if (TYRES[CAREER.sportSel.t]) SPORT.tyre = CAREER.sportSel.t;
+  }
+  if (CAREER.stockSel) {
+    STOCK.circ = clamp(CAREER.stockSel.c | 0, 0, STOCK_CIRCUITS.length - 1);
+    STOCK.car = clamp(CAREER.stockSel.k | 0, 0, STOCK_GARAGE.length - 1);
+    STOCK.laps = CAREER.stockSel.l | 0;
   }
   initThrills();
   applyState(loadState());
