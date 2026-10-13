@@ -818,7 +818,7 @@ body.touch.portrait:not(.rot) #rotate{display:flex}
   </div>
 </div>
 <div id="screen"></div>
-<div class="ver">RACE TO DEATH v3.20.1 · 2026-10-13 10:35 · <span id="verIn">…</span></div>
+<div class="ver">RACE TO DEATH v3.20.2 · 2026-10-13 10:55 · <span id="verIn">…</span></div>
 </div><!-- /stage -->
 
 <div id="boot">LOADING THE CIRCUIT</div>
@@ -829,7 +829,7 @@ if(!window.THREE){document.write(unescape('%3Cscript src="https://cdn.jsdelivr.n
 </script>
 <script>
 /* =====================================================================
-   RACE TO DEATH  v3.20.1   (built 2026-10-13 10:35)
+   RACE TO DEATH  v3.20.2   (built 2026-10-13 10:55)
    A single-file vehicular combat racer.
 
    Systems:  §0 utils/config  §1 audio  §2 renderer  §3 track  §4 world
@@ -854,7 +854,7 @@ const $ = (id) => document.getElementById(id);
 
 /* ============================ §0  CONFIG ============================ */
 const CFG = {
-  version: '3.20.1',
+  version: '3.20.2',
   trackHalfWidth: 14.0,
   wallSetback: 1.6,
   sampleCount: 1400,
@@ -5230,6 +5230,21 @@ function roadY(i, lat) {
   const s = sAt(i);
   const d = s.w - lat;
   return d > 0 ? d * s.tb : 0;
+}
+
+/* the road's height under a point, i its nearest sample: interpolated between
+   that sample and the next one along, exactly as the road mesh is drawn
+   (§12s). roadY alone is a step per sample: where the banking ramps into a
+   turn a car hopped centimetres every sample, and its wheels floated. */
+function roadYAt(p, i) {
+  if (!TRACK.banked) return 0;
+  const s = sAt(i);
+  const ds = (p.x - s.p.x) * s.t.x + (p.z - s.p.z) * s.t.z;      // metres ahead of sample i
+  const j = ds >= 0 ? i + 1 : i - 1;
+  const f = clamp(Math.abs(ds) / (TRACK.step || 1), 0, 1);
+  const lat = lateralOf(p, i);
+  const a = roadY(i, lat), b = roadY(j, lateralOf(p, ((j % TRACK.N) + TRACK.N) % TRACK.N));
+  return a + (b - a) * f;
 }
 
 /* §3b  Run-off. The inside of every bend on a grand-prix circuit loses its
@@ -11925,6 +11940,8 @@ class Car {
     this.gy = 0;
     this.chassis = built.chassis;     // everything that rolls/pitches with the body
     this.wheels = built.wheels;
+    // race cars: a motion-blurred wheel face that fades in with speed (§12s)
+    if (spec.f1 || spec.stock) wheelBlurAdd(this);
     this.muzzles = built.muzzles;
     this.pods = built.pods;
     this.turret = built.turret;
@@ -12140,7 +12157,7 @@ class Car {
     if (SPORT.on && this.alive) this.cornerContain();
     // on a banked oval the car sits on the road surface (§12s)
     if (TRACK.banked) {
-      this.gy = roadY(this.si, lateralOf(this.pos, this.si));
+      this.gy = roadYAt(this.pos, this.si);
       this.pos.y = this.gy;
     }
 
@@ -12480,13 +12497,29 @@ class Car {
     this.mesh.position.y = this.airY + this.gy;
     this.mesh.rotation.y = this.yaw;
     if (TRACK.banked) {
-      // lie on the banking: roll toward the low inside edge, pitch up the slope
-      const bs = sAt(this.si), bk = bs.bank;
+      // lie on the road under the four tyres, not on the banking at the car's
+      // centre: where the banking ramps into and out of a turn the road also
+      // rises ALONG the car, and tilting for the centre alone left one axle
+      // 20 cm in the air and the other in the road. Sample the surface at the
+      // axles and at the sides, and pitch and roll to it.
       const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
-      const fn = sy * bs.n.x + cy * bs.n.z, ln = cy * bs.n.x - sy * bs.n.z;
-      this.mesh.rotation.x = bk * fn;
-      this.mesh.rotation.z = -bk * ln;
-    } else if (this.mesh.rotation.x || this.mesh.rotation.z) { this.mesh.rotation.x = 0; this.mesh.rotation.z = 0; }
+      const hl = Math.min(1.45, this.hitLen * 0.6), hw = Math.min(0.9, this.hitWid * 0.85);
+      const Y = (dx, dz) => {
+        _v4.set(this.pos.x + dx, 0, this.pos.z + dz);
+        const i = nearestIdx(_v4, this.si);
+        return roadYAt(_v4, i);
+      };
+      const yF = Y(sy * hl, cy * hl), yB = Y(-sy * hl, -cy * hl);
+      const yL = Y(cy * hw, -sy * hw), yR = Y(-cy * hw, sy * hw);
+      this.mesh.rotation.x = -Math.atan2(yF - yB, 2 * hl);
+      this.mesh.rotation.z = Math.atan2(yL - yR, 2 * hw);
+      this.mesh.position.y = this.airY + (yF + yB + yL + yR) * 0.25;
+      this._pl = this._pl || {};
+      Object.assign(this._pl, { yF: yF, yB: yB, yL: yL, yR: yR, hl: hl, hw: hw });
+    } else {
+      this._pl = null;
+      if (this.mesh.rotation.x || this.mesh.rotation.z) { this.mesh.rotation.x = 0; this.mesh.rotation.z = 0; }
+    }
     if (this.airY < 0.001) {
       this.tumbleX *= 1 - damp(5, dt);
       this.tumbleZ *= 1 - damp(5, dt);
@@ -12512,11 +12545,43 @@ class Car {
 
     // wheels: steer, spin, suspension travel
     const vx = this.speed;
-    this.wheelAngle += (vx / P.wr) * dt * (1 + this.wheelSpin * 2.2);
+    // A wheel at 180 mph turns three and a half radians between two frames:
+    // drawn at that rate the spokes strobe and look frozen or crawling (the
+    // wagon-wheel effect) — the car seemed to slide along on wheels that
+    // were not turning. Race cars draw at most 0.22 rad a frame, always
+    // forward, and a motion-blurred face fades in over the spokes at speed.
+    const wrate = (vx / P.wr) * (1 + this.wheelSpin * 2.2);
+    const race = this.spec.f1 || this.spec.stock;
+    let step = wrate * dt;
+    if (race) step = sgn(step) * Math.min(Math.abs(step), 0.22);
+    this.wheelAngle += step;
+    const blur = race ? clamp((Math.abs(wrate) - 18) / 40, 0, 1) : 0;
+    if (this.wheelBlurMat) this.wheelBlurMat.opacity = blur * 0.92;
     for (const w of this.wheels) {
       if (w.front) w.holder.rotation.y = this.steer;
       w.spin.rotation.x = this.wheelAngle;
       if (w.face) w.face.rotation.x = this.wheelAngle;
+      if (w.blur) { w.blur.visible = blur > 0.02; w.blur.rotation.x = this.wheelAngle * 0.3; }
+      // a race car's tyres stay on the road: its stiff springs move the BODY
+      // (chassis pitch, roll and heave above). Moving the wheels instead put
+      // them 7 cm in the air or 5 cm into the banking through every turn.
+      if (race) {
+        // ...and each wheel reaches for the road under it: where the car
+        // straddles the crease between the banking and the flat apron no
+        // single tilt puts all four down, so the springs take up the rest
+        let off = 0;
+        const Q = this._pl;
+        if (Q && this.airY < 0.01) {
+          const x = w.holder.position.x, z = w.holder.position.z;
+          const sy = Math.sin(this.yaw), cy = Math.cos(this.yaw);
+          _v4.set(this.pos.x + cy * x + sy * z, 0, this.pos.z - sy * x + cy * z);
+          const ground = roadYAt(_v4, nearestIdx(_v4, this.si));
+          const plane = (Q.yF + Q.yB + Q.yL + Q.yR) * 0.25 + (z / Q.hl) * (Q.yF - Q.yB) * 0.5 + (x / Q.hw) * (Q.yL - Q.yR) * 0.5;
+          off = clamp(ground - plane, -0.15, 0.15);
+        }
+        w.holder.position.y = w.y0 + off;
+        continue;
+      }
       const side = w.holder.position.x > 0 ? 1 : -1;
       const comp = clamp(this.ax * 0.012 * (w.front ? 1 : -1) + this.ay * 0.010 * side, -0.09, 0.09);
       w.holder.position.y = w.y0 - comp;
@@ -15697,7 +15762,7 @@ function pitStep(c, dt) {
   // on the road surface wherever the car is: up on the banking where pit road
   // leaves it, down on the flat lane. (Pinning it at 0 sank it into the
   // banking at pit entry; never setting it left it floating at pit exit.)
-  if (TRACK.banked) { c.gy = roadY(c.si, lateralOf(c.pos, c.si)); c.pos.y = c.gy; }
+  if (TRACK.banked) { c.gy = roadYAt(c.pos, c.si); c.pos.y = c.gy; }
   c.updateVisuals(dt);
   // up on the jacks for the tyre change
   const lift = SPORT.kind === 'stock' ? 0 : P.phase === 'stop' ? (1 - P.t / P.T < 0.08 ? (1 - P.t / P.T) / 0.08 : 1 - P.t / P.T > 0.9 ? 0 : 1) * 0.09 : 0;
@@ -17676,6 +17741,70 @@ function pitSolid(c) {
   const P = c.pit;
   // only rejoining: going in, cars peel off one by one and are kept apart by the queue
   return !!P && SPORT.kind === 'stock' && P.d > PIT.exitLimit + 8 && P.phase === 'out';
+}
+
+/* ---------------- the motion-blurred wheel face (race cars) ----------------
+   A soft disc over the outside of each wheel: the rim's colour smeared round,
+   a lighter ring where the lip is, the hub a blur in the middle. Its opacity
+   rises with wheel speed (updateVisuals), so standing still you see the real
+   spokes and at racing speed a spinning wheel, not a frozen one. */
+let WHEEL_BLUR_TEX = null;
+function wheelBlurTex() {
+  if (WHEEL_BLUR_TEX) return WHEEL_BLUR_TEX;
+  const S = 256, { c, x } = makeCanvas(S, S);
+  x.clearRect(0, 0, S, S);
+  const g = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0.00, 'rgba(150,150,150,0.95)');      // the lug, smeared
+  g.addColorStop(0.16, 'rgba(70,72,78,0.95)');
+  g.addColorStop(0.55, 'rgba(38,40,44,0.92)');          // spokes into a haze
+  g.addColorStop(0.80, 'rgba(62,64,70,0.95)');
+  g.addColorStop(0.90, 'rgba(120,122,128,0.9)');        // the rim lip
+  g.addColorStop(0.97, 'rgba(30,30,32,0.6)');
+  g.addColorStop(1.00, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.beginPath(); x.arc(S / 2, S / 2, S / 2, 0, TAU); x.fill();
+  // faint streaks round the disc so it reads as turning, not as a hubcap
+  x.strokeStyle = 'rgba(255,255,255,0.06)'; x.lineWidth = 3;
+  for (let k = 0; k < 18; k++) { const r = S * (0.2 + 0.03 * k); x.beginPath(); x.arc(S / 2, S / 2, r, k, k + 1.8); x.stroke(); }
+  WHEEL_BLUR_TEX = new THREE.CanvasTexture(c);
+  return WHEEL_BLUR_TEX;
+}
+
+function wheelBlurAdd(car) {
+  if (!car.wheels || !car.wheels.length) return;
+  const m = new THREE.MeshBasicMaterial({ map: wheelBlurTex(), transparent: true, opacity: 0, depthWrite: false,
+    polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  car.wheelBlurMat = m;
+  car.mesh.updateMatrixWorld(true);
+  const box = new THREE.Box3(), a = new THREE.Vector3(), b = new THREE.Vector3();
+  for (const w of car.wheels) {
+    box.setFromObject(w.spin);
+    if (box.isEmpty()) continue;
+    const hp = w.holder.getWorldPosition(new THREE.Vector3());
+    const out = hp.x >= car.mesh.position.x ? 1 : -1;          // the car is built at the origin, unrotated
+    // the outer face of the wheel and the rim's radius, in the holder's own units
+    a.set(out > 0 ? box.max.x : box.min.x, (box.min.y + box.max.y) / 2, (box.min.z + box.max.z) / 2);
+    b.set(a.x, box.max.y, a.z);
+    w.holder.worldToLocal(a); w.holder.worldToLocal(b);
+    const R = Math.abs(b.y - a.y) * 0.70;                    // the rim, inside the tyre wall
+    const geo = new THREE.CircleGeometry(R, 28);
+    geo.rotateY(out > 0 ? Math.PI / 2 : -Math.PI / 2);
+    const d = new THREE.Mesh(geo, m);
+    d.position.set(a.x + out * 0.004, a.y, a.z);
+    d.visible = false;
+    d.renderOrder = 2;
+    w.holder.add(d);
+    w.blur = d;
+    // an F1 tyre gets the stock cars' soft contact patch on the road under it
+    if (!car.spec.stock && w.holder.parent) {
+      const sh = new THREE.Mesh(STOCK_CONTACT_GEO || (STOCK_CONTACT_GEO = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)),
+        STOCK_SHARED.contact || stockShared().contact);
+      const half = Math.abs(b.y - a.y);                       // the tyre radius, holder units
+      sh.scale.set(half * 1.5, 1, half * 2.4);
+      sh.position.set(w.holder.position.x, 0.012, w.holder.position.z);
+      sh.renderOrder = 1;
+      w.holder.parent.add(sh);
+    }
+  }
 }
 /* =========================== §11  CAMERA ===========================
    Position and yaw both lag the car, and the yaw also leads the slide, so a
@@ -19989,7 +20118,7 @@ function mpPuppet(c, dt) {
   }
   c.si = nearestIdx(c.pos, c.si);
   // on a banked oval a friend's car sits on the banking, not under it
-  if (TRACK.banked) { c.gy = roadY(c.si, lateralOf(c.pos, c.si)); c.pos.y = c.gy; }
+  if (TRACK.banked) { c.gy = roadYAt(c.pos, c.si); c.pos.y = c.gy; }
 
   const alive = !!(f & F_ALIVE);
   if (c.alive && !alive) {
