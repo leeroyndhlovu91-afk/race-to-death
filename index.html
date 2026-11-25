@@ -19378,6 +19378,7 @@ function mpTitleExtras() {
     ['go', 'CHAMPIONSHIP', 'Three rounds of armoured combat racing. The cut tightens every round.'],
     ['sport', 'SPORT MODE', 'Grand prix: ten F1 cars, real rules, pit stops and the safety car.'],
     ['stock', 'STOCK CAR', 'The Thunder Cup: 24 stock cars on banked ovals. Drafting, cautions, stages.'],
+    ['rtd2', 'RACE TO DEATH 2 &middot; PC DOWNLOAD', 'The Unreal Engine sequel for Windows PCs. Free &mdash; opens the download page (703 MB).'],
     ['daily', 'DAILY CHALLENGE', 'One set-up a day, the same for everybody. Three attempts.'],
     ['mponline', 'ONLINE', 'Race your friends with a four-letter room code.'],
     ['mplb', 'LEADERBOARD', 'The fastest laps and the best of the season.'],
@@ -20513,6 +20514,7 @@ function mpHighlight() {
 
 MP.nav = function (a) {
   if (a === 'controls') { showControls(); return true; }
+  if (a === 'rtd2') { const w = window.open('https://github.com/leeroyndhlovu91-afk/race-to-death/releases/tag/rtd2-v0.1.0', '_blank'); if (w) w.opener = null; else hint('Download Race to Death 2 at <b>github.com/leeroyndhlovu91-afk/race-to-death/releases</b>', 8); return true; }
   if (a === 'diff') {
     diffStep(1);
     const s = MP.btns.indexOf('diff');
